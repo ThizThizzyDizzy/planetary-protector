@@ -20,50 +20,54 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 public class Main{
-    private static String requiredSimpleLibraryVersion = "10.0";
+    private static String requiredSimpleLibraryVersion = "10.1.2";
+    private static int simplelibrarySize = 539;
+    private static int simplelibraryExtendedSize = 628;
+    /**
+     * Set to "" for latest, otherwise exact version #
+     */
+    private static String requiredSimpleLibraryExtendedVersion = null;
     private static String versionListURL = "https://www.dropbox.com/s/capgobag47srs17/versions.txt?dl=1";
     public static final String applicationName = "Planetary Protector";
-    private static ArrayList<String[]> requiredLibraries = new ArrayList<>();
+    private static HashMap<String[], Integer> requiredLibraries = new HashMap<>();
     public static final boolean jLayer = true;
     public static final boolean webcam = false;
-    public static final boolean simplelibraryExtended = false;
     public static final boolean textToSpeech = false;
-    public static final boolean mediaButtons = false;
+    public static final boolean intellitype = false;
+    private static int downloadSize = 0;
     //Download details
     private static int total;
     private static int current;
     private static JFrame frame;
     private static JProgressBar bar;
+    private static boolean allowDownload = false;
     static{
         if(jLayer){
-            addRequiredLibrary("https://www.dropbox.com/s/phv29x1suv4i4b0/jl1.0.1.jar?dl=1", "jl1.0.1.jar");
+            addRequiredLibrary("https://www.dropbox.com/s/phv29x1suv4i4b0/jl1.0.1.jar?dl=1", "jl1.0.1.jar", 103);
         }
         if(webcam){
-            addRequiredLibrary("https://www.dropbox.com/s/t09a8brz3i5nl9c/bridj-0.6.2.jar?dl=1", "bridj-0.6.2.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/bvyy19zh5vvibrq/slf4j-api-1.7.2.jar?dl=1", "slf4j-api-1.7.2.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/1idoft8jafnr1x1/webcam-capture-0.3.10.jar?dl=1", "webcam-capture-0.3.10.jar");
+            addRequiredLibrary("https://www.dropbox.com/s/t09a8brz3i5nl9c/bridj-0.6.2.jar?dl=1", "bridj-0.6.2.jar", 859);
+            addRequiredLibrary("https://www.dropbox.com/s/bvyy19zh5vvibrq/slf4j-api-1.7.2.jar?dl=1", "slf4j-api-1.7.2.jar", 26);
+            addRequiredLibrary("https://www.dropbox.com/s/1idoft8jafnr1x1/webcam-capture-0.3.10.jar?dl=1", "webcam-capture-0.3.10.jar", 400);
         }
-        if(simplelibraryExtended){
-            addRequiredLibrary("https://www.dropbox.com/s/9kae7xcvddmrcz3/simplelibrary-extended.jar?dl=1", "simplelibrary-extended.jar");
-        }
-        if(mediaButtons){
-            addRequiredLibrary("https://www.dropbox.com/s/kjwuh8poofqk36k/jintellitype-1.3.9.jar?dl=1", "jintellitype-1.3.9.jar");
+        if(intellitype){
+            addRequiredLibrary("https://www.dropbox.com/s/kjwuh8poofqk36k/jintellitype-1.3.9.jar?dl=1", "jintellitype-1.3.9.jar", 16);
         }
         if(textToSpeech){
-            addRequiredLibrary("https://www.dropbox.com/s/y3skf4runw20h6w/cmu_time_awb.jar?dl=1", "cmu_time_awb.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/il7apy01wk4f8g9/cmu_us_kal.jar?dl=1", "cmu_us_kal.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/9s1rdcvknjwctc5/cmudict04.jar?dl=1", "cmudict04.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/pn9q7dnkfhpx0xk/cmulex.jar?dl=1", "cmulex.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/ibg7wq65yzounuu/cmutimelex.jar?dl=1", "cmutimelex.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/9b7e8sa4sqf1tju/en_us.jar?dl=1", "en_us.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/n9zh5p8gvb1aao9/freetts.jar?dl=1", "freetts.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/srssz73x0hiqf6h/freetts-jsapi10.jar?dl=1", "freetts-jsapi10.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/f369vf69mkjmwxd/jsapi.jar?dl=1", "jsapi.jar");
-            addRequiredLibrary("https://www.dropbox.com/s/tfsvbdkvvy41v8h/mbrola.jar?dl=1", "mbrola.jar");
+            addRequiredLibrary("https://www.dropbox.com/s/y3skf4runw20h6w/cmu_time_awb.jar?dl=1", "cmu_time_awb.jar", 1684);
+            addRequiredLibrary("https://www.dropbox.com/s/il7apy01wk4f8g9/cmu_us_kal.jar?dl=1", "cmu_us_kal.jar", 4785);
+            addRequiredLibrary("https://www.dropbox.com/s/9s1rdcvknjwctc5/cmudict04.jar?dl=1", "cmudict04.jar", 874);
+            addRequiredLibrary("https://www.dropbox.com/s/pn9q7dnkfhpx0xk/cmulex.jar?dl=1", "cmulex.jar", 586);
+            addRequiredLibrary("https://www.dropbox.com/s/ibg7wq65yzounuu/cmutimelex.jar?dl=1", "cmutimelex.jar", 2);
+            addRequiredLibrary("https://www.dropbox.com/s/9b7e8sa4sqf1tju/en_us.jar?dl=1", "en_us.jar", 847);
+            addRequiredLibrary("https://www.dropbox.com/s/n9zh5p8gvb1aao9/freetts.jar?dl=1", "freetts.jar", 204);
+            addRequiredLibrary("https://www.dropbox.com/s/srssz73x0hiqf6h/freetts-jsapi10.jar?dl=1", "freetts-jsapi10.jar", 55);
+            addRequiredLibrary("https://www.dropbox.com/s/f369vf69mkjmwxd/jsapi.jar?dl=1", "jsapi.jar", 51);
+            addRequiredLibrary("https://www.dropbox.com/s/tfsvbdkvvy41v8h/mbrola.jar?dl=1", "mbrola.jar", 12);
         }
     }
-    private static void addRequiredLibrary(String url, String filename){
-        requiredLibraries.add(new String[]{url,filename});
+    private static void addRequiredLibrary(String url, String filename, int sizeKB){
+        requiredLibraries.put(new String[]{url,filename}, sizeKB);
     }
     public static void main(String[] args) throws NoSuchMethodException, IOException, InterruptedException, URISyntaxException{
         args = update(args);
@@ -74,6 +78,9 @@ public class Main{
     }
     public static String getAppdataRoot(){
         return System.getenv("APPDATA")+"\\Thizzygaming Industries\\"+applicationName;
+    }
+    private static String getLibraryRoot(){
+        return System.getenv("APPDATA")+"\\Thizzygaming Industries\\Libraries";
     }
     private static String[] update(String[] args) throws URISyntaxException, IOException, InterruptedException{
         ArrayList<String> theargs = new ArrayList<>(Arrays.asList(args));
@@ -87,13 +94,7 @@ public class Main{
                 System.exit(0);
             }
             }
-            total = 8+requiredLibraries.size();
-            frame = new JFrame("Download Progress");
-            bar = new JProgressBar(0, total);
-            frame.add(bar);
-            frame.setSize(300, 70);
-            bar.setBounds(0, 0, 300, 70);
-            frame.setVisible(true);
+            //TODO check for existing libraries
             int OS_WINDOWS = 0;
             int OS_SOLARIS = 1;
             int OS_MACOSX = 2;
@@ -147,9 +148,49 @@ public class Main{
                 current++;
             }
             String[] osPaths = nativesPaths[whichOS];
-            File bit32 = downloadFile(osPaths[BIT_32], new File(getAppdataRoot()+"\\natives32.zip"), applicationName);
-            File bit64 = whichBitDepth==BIT_64?downloadFile(osPaths[BIT_64], new File(getAppdataRoot()+"\\natives64.zip"), applicationName):null;
-            File nativesDir = new File(getAppdataRoot()+"\\natives");
+            //32 bit
+            if(!new File(getAppdataRoot()+"\\natives32.zip").exists()){
+                downloadSize += 303;
+            }
+            if((!new File(getAppdataRoot()+"\\natives64.zip").exists())&&whichBitDepth==BIT_64){
+                downloadSize += 338;
+            }
+            addRequiredLibrary("https://dl.dropboxusercontent.com/s/p7v72lix4gl96co/lwjgl.jar?dl=1&token_hash=AAG5TMAYw0Oq1_xwgVjKoE8FkKXMaWOfpj5cau1UuWKZlA", "lwjgl.jar", 912);
+            addRequiredLibrary("https://dl.dropboxusercontent.com/s/9ylaq5w5vzj1lgi/jinput.jar?dl=1&token_hash=AAHILxU3uc-UU5vXj7N4i5s1huBKYSzKGgKq3MawNJB05w", "jinput.jar", 210);
+            addRequiredLibrary("https://dl.dropboxusercontent.com/s/fog6w5pcxqf4zd9/lwjgl_util.jar?dl=1&token_hash=AAHwYq0uL4zeuTrLoi8EiG_RiUeMDZDsnlm4KYNScpy0Sw", "lwjgl_util.jar", 170);
+            addRequiredLibrary("https://dl.dropboxusercontent.com/s/60en1x8in11leqn/lzma.jar?dl=1&token_hash=AAGUFJwmD9jKmk7j4M53Xr0_6Sisf5RSRW3JAjRgsml4gg", "lzma.jar", 6);
+            for(String[] lib : requiredLibraries.keySet()){
+                if(!new File(getLibraryRoot()+"\\"+lib[1]).exists()){
+                    downloadSize+=requiredLibraries.get(lib);
+                }
+            }
+            if(!new File(getLibraryRoot()+"\\Simplelibrary "+requiredSimpleLibraryVersion+".jar").exists()){
+                downloadSize+=simplelibrarySize+2;//2 kb for the versions file
+            }
+            if(requiredSimpleLibraryExtendedVersion!=null&&(!new File(getLibraryRoot()+"\\Simplelibrary_extended "+requiredSimpleLibraryExtendedVersion+".jar").exists())){
+                downloadSize+=simplelibraryExtendedSize+1;//1 kb for the versions file
+            }
+            if(downloadSize>0){
+                if(JOptionPane.showConfirmDialog(null, applicationName+" has a few dependencies that must be downloaded before play.\\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload them now?", applicationName+" - Dependencies", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+                        !=JOptionPane.YES_OPTION){
+                    //no download
+                    JOptionPane.showMessageDialog(null, applicationName+" will now exit.", "Exit", JOptionPane.OK_OPTION);
+                    System.exit(0);
+                }
+            }
+            allowDownload = true;
+            total = 8+requiredLibraries.size();
+            frame = new JFrame("Download Progress");
+            bar = new JProgressBar(0, total);
+            frame.add(bar);
+            frame.setSize(300, 70);
+            bar.setBounds(0, 0, 300, 70);
+            if(downloadSize>0){
+                frame.setVisible(true);
+            }
+            File bit32 = downloadFile(osPaths[BIT_32], new File(getLibraryRoot()+"\\natives32.zip"));
+            File bit64 = whichBitDepth==BIT_64?downloadFile(osPaths[BIT_64], new File(getLibraryRoot()+"\\natives64.zip")):null;
+            File nativesDir = new File(getLibraryRoot()+"\\natives");
             if(bit32==null||(whichBitDepth==BIT_64&&bit64==null&&osPaths[BIT_64]!=null)){
                 JOptionPane.showMessageDialog(null, "Could not download the required natives!  "+applicationName+" will now exit.", "Native Download Failed", JOptionPane.OK_OPTION);
                 System.exit(0);
@@ -158,7 +199,7 @@ public class Main{
             if(bit64!=null){
                 extractFile(bit64, nativesDir);
             }
-            File simplibVersions = downloadFile("https://www.dropbox.com/s/as5y1ik7gb8gp6k/versions.dat?dl=1", new File("C:\\temp\\simplib.versions"), applicationName);
+            File simplibVersions = downloadFile("https://www.dropbox.com/s/as5y1ik7gb8gp6k/versions.dat?dl=1", new File("C:\\temp\\simplib.versions"));
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(simplibVersions)));
             ArrayList<String> versions = new ArrayList<>();
             HashMap<String, String> simplib = new HashMap<>();
@@ -168,35 +209,47 @@ public class Main{
                 versions.add(line.split("=", 2)[0]);
                 simplib.put(line.split("=", 2)[0], line.split("=", 2)[1]);
             }
+            reader.close();
             if(!versions.contains(requiredSimpleLibraryVersion)){
                 System.err.println("Unknown simplelibrary version "+requiredSimpleLibraryVersion+"! Downloading latest version");
                 requiredSimpleLibraryVersion = versions.get(versions.size()-1);
             }
-            addRequiredLibrary(simplib.get(requiredSimpleLibraryVersion), "Simplelibrary "+requiredSimpleLibraryVersion+".jar");
-            reader.close();
+            addRequiredLibrary(simplib.get(requiredSimpleLibraryVersion), "Simplelibrary "+requiredSimpleLibraryVersion+".jar", simplelibrarySize);
+            if(requiredSimpleLibraryExtendedVersion!=null){
+                File simpLibExtendedVersions = downloadFile("https://www.dropbox.com/s/7k4ri81to8hc9n2/versions.dat?dl=1", new File("C:\\temp\\simplibextended.versions"));
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(simpLibExtendedVersions)));
+                versions = new ArrayList<>();
+                HashMap<String, String> simpLibExtended = new HashMap<>();
+                while((line = reader.readLine())!=null){
+                    if(line.isEmpty())continue;
+                    versions.add(line.split("=", 2)[0]);
+                    simpLibExtended.put(line.split("=", 2)[0], line.split("=", 2)[1]);
+                }
+                reader.close();
+                if(!versions.contains(requiredSimpleLibraryExtendedVersion)){
+                    System.err.println("Unknown Simplelibrary_extended version "+requiredSimpleLibraryExtendedVersion+"! Downloading latest version");
+                    requiredSimpleLibraryExtendedVersion = versions.get(versions.size()-1);
+                }
+                addRequiredLibrary(simpLibExtended.get(requiredSimpleLibraryExtendedVersion), "Simplelibrary_extended "+requiredSimpleLibraryExtendedVersion+".jar", simplelibraryExtendedSize);
+                simpLibExtendedVersions.delete();
+            }
+            simplibVersions.delete();
             File[] requiredLibs = new File[requiredLibraries.size()];
             int n = 0;
-            for(String[] lib : requiredLibraries){
+            for(String[] lib : requiredLibraries.keySet()){
                 String url = lib[0];
                 String filename = lib[1];
-                requiredLibs[n] = downloadFile(url, new File(getAppdataRoot()+"\\"+filename), applicationName);
+                requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+"\\"+filename));
                 n++;
             }
-            File[] lwjglJars = {
-                downloadFile("https://dl.dropboxusercontent.com/s/p7v72lix4gl96co/lwjgl.jar?dl=1&token_hash=AAG5TMAYw0Oq1_xwgVjKoE8FkKXMaWOfpj5cau1UuWKZlA", new File(getAppdataRoot()+"\\lwjgl.jar"), applicationName),
-                downloadFile("https://dl.dropboxusercontent.com/s/9ylaq5w5vzj1lgi/jinput.jar?dl=1&token_hash=AAHILxU3uc-UU5vXj7N4i5s1huBKYSzKGgKq3MawNJB05w", new File(getAppdataRoot()+"\\jinput.jar"), applicationName),
-                downloadFile("https://dl.dropboxusercontent.com/s/fog6w5pcxqf4zd9/lwjgl_util.jar?dl=1&token_hash=AAHwYq0uL4zeuTrLoi8EiG_RiUeMDZDsnlm4KYNScpy0Sw", new File(getAppdataRoot()+"\\lwjgl_util.jar"), applicationName),
-                downloadFile("https://dl.dropboxusercontent.com/s/60en1x8in11leqn/lzma.jar?dl=1&token_hash=AAGUFJwmD9jKmk7j4M53Xr0_6Sisf5RSRW3JAjRgsml4gg", new File(getAppdataRoot()+"\\lzma.jar"), applicationName)
-            };
             frame.dispose();
             String[] additionalClasspathElements = new String[requiredLibs.length+4];
-            for(int i = 0; i<requiredLibs.length+4; i++){
-                if(i<4){
-                    additionalClasspathElements[i] = lwjglJars[i].getAbsolutePath();
-                }else{
-                    int j = i-4;
-                    additionalClasspathElements[i] = requiredLibs[j].getAbsolutePath();
+            for(int i = 0; i<requiredLibs.length; i++){
+                if(requiredLibs[i]==null){
+                    JOptionPane.showMessageDialog(null, "Failed to download dependencies!\n"+applicationName+" will now exit.", "Exit", JOptionPane.OK_OPTION);
+                    System.exit(0);
                 }
+                additionalClasspathElements[i] = requiredLibs[i].getAbsolutePath();
             }
             System.out.println("Loading...");
             theargs.add(0, "Skip Dependencies");
@@ -256,11 +309,15 @@ public class Main{
         theargs.remove(0);
         return theargs.toArray(new String[theargs.size()]);
     }
-    private static File downloadFile(String link, File destinationFile, String applicationName){
+    private static File downloadFile(String link, File destinationFile){
         current++;
         bar.setValue(current);
         if(destinationFile.exists()||link==null){
             return destinationFile;
+        }
+        if(!allowDownload){
+            System.err.println("Failed to download file!\nDownload has not been allowed!");
+            return null;
         }
         destinationFile.getParentFile().mkdirs();
         try {

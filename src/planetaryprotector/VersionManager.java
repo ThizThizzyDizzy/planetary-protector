@@ -50,6 +50,7 @@ public class VersionManager{
         addVersion("1.7.3");
         addVersion("1.7.4");
         addVersion("1.7.5");
+        addVersion("1.8");
         currentVersion = versions.get(versions.size()-1);
     }
     /**

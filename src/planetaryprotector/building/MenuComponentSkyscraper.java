@@ -125,6 +125,7 @@ public class MenuComponentSkyscraper extends MenuComponentBuilding{
             }
         }
         GL11.glColor4d(1, 1, 1, 1);
+        renderDamages();
     }
     @Override
     public boolean onDamage(double x, double y){

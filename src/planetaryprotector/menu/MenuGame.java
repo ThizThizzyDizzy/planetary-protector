@@ -556,7 +556,7 @@ coal.render();
         }else if(won){
             if(phase>0){
                 centeredTextWithBackground(0, 0, Display.getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
-                if(winTimer<20&&Sounds.nowPlaying.equals("VictoryMusic1")){
+                if(winTimer<20&&Sounds.nowPlaying().equals("VictoryMusic1")){
                     centeredTextWithBackground(0, 35, Display.getWidth(), 85, "Only one problem remains...");
                 }
             }
@@ -799,7 +799,7 @@ for(MenuComponentWorker w : workers){
             paused = !paused;
         }
         if(key==Controls.mute&&pressed&&!repeat){
-            Sounds.mute = !Sounds.mute;
+            Sounds.vol = 1-Sounds.vol;
         }
         if(key==Controls.cheat&&pressed&&!repeat){
             if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
@@ -1175,7 +1175,7 @@ for(MenuComponentWorker w : workers){
                 }
                 shower.opacitizing = 1;
             }else{
-                if(Sounds.nowPlaying.equals("Music1")){
+                if(Sounds.nowPlaying().equals("Music1")){
                     Sounds.fadeSound("music");
                 }
                 firstShower = false;

@@ -14,65 +14,75 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import javazoom.jl.converter.Converter;
-import javazoom.jl.decoder.JavaLayerException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import org.lwjgl.LWJGLException;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.Util;
-import simplelibrary.Sys;
-import simplelibrary.error.ErrorCategory;
-import simplelibrary.error.ErrorLevel;
-import simplelibrary.openal.SoundStash;
+import simplelibrary.openal.Autoplayer;
+import simplelibrary.openal.SoundSystem;
 public class Sounds{
-    public static boolean autoplay = true;
-    private static boolean paused = false;
+    private static SoundSystem soundSystem;
+    private static Autoplayer autoplayer = new Autoplayer() {
+            @Override
+            public String next(){
+                ArrayList<String> strs = new ArrayList<>();
+                getPlayableMusic(strs);
+                if(!strs.isEmpty()){
+                    return soundNames.get(strs.get(new Random().nextInt(strs.size())));
+                }
+                return null;
+            }
+            @Override
+            public float getVolume(){
+                return vol;
+            }
+        };
     private static void addMusic(){
-        addSong("Music1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1");
-        addSong("Music2", "Clenched Teeth", "https://www.dropbox.com/s/jzstxq3404lai4q/Clenched%20Teeth.mp3?dl=1");
-        addSong("Music3", "Achilles", "https://www.dropbox.com/s/agtrfb81kmix3f2/Achilles.mp3?dl=1");
-        addSong("Music4", "Noble Race", "https://www.dropbox.com/s/jmqmcttfx9in4a5/Noble%20Race.mp3?dl=1");
-        addSong("Music5", "Rynos Theme", "https://www.dropbox.com/s/uodl6uu825hik38/Rynos%20Theme.mp3?dl=1");
-        addSong("Boss1Music1", "Eternal Terminal", "https://www.dropbox.com/s/rd2yfsma9994rvn/Eternal%20Terminal.mp3?dl=1");
-        addSong("Boss1Music2", "Five Armies", "https://www.dropbox.com/s/n2nnl7o3qp6pfmu/Five%20Armies.mp3?dl=1");
-        addSong("Boss2Music1", "Corruption", "https://www.dropbox.com/s/0wjbtmx2ya5t7f6/Corruption.mp3?dl=1");
-        addSong("Boss2Music2", "Clash Defiant", "https://www.dropbox.com/s/6p6ulhfp58jty24/Clash%20Defiant.mp3?dl=1");
-        addSong("Boss3Music1", "Metalmania", "https://www.dropbox.com/s/p6e99sa8z9kdckp/Metalmania.mp3?dl=1");
-        addSong("Boss3Music2", "Obliteration", "https://www.dropbox.com/s/2685hexub0a1tm0/Obliteration.mp3?dl=1");
-        addSong("Boss4Music1", "Death and Axes", "https://www.dropbox.com/s/uk9m4xnlcm5mqao/Death%20and%20Axes.mp3?dl=1");
-        addSong("Boss4Music2", "Grim Idol", "https://www.dropbox.com/s/606kbzltk24v307/Grim%20Idol.mp3?dl=1");
-        addSong("EndMusic1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1");
-        addSong("SadMusic1", "A Turn for the Worse", "https://www.dropbox.com/s/7xllni5jw99d7j1/A%20Turn%20for%20the%20Worse.mp3?dl=1");
-        addSong("SadMusic2", "A Little Faith", "https://www.dropbox.com/s/h2ygg4q05boayfk/A%20Little%20Faith.mp3?dl=1");
-        addSong("SadMusic3", "At Rest", "https://www.dropbox.com/s/xoh1zc2nztttuhw/At%20Rest.mp3?dl=1");
-        addSong("SadMusic4", "Awaiting Return", "https://www.dropbox.com/s/xcq6wpxqseoxy0b/Awaiting%20Return.mp3?dl=1");
-        addSong("SadMusic5", "Bittersweet", "https://www.dropbox.com/s/nsu2dzc5ua73wb4/Bittersweet.mp3?dl=1");
-        addSong("SadMusic6", "Colorless Aura", "https://www.dropbox.com/s/i9w7nmaicjkitse/Colorless%20Aura.mp3?dl=1");
-        addSong("SadMusic7", "Cryptic Sorrow", "https://www.dropbox.com/s/mbpq6q7x8qdmmed/Cryptic%20Sorrow.mp3?dl=1");
-        addSong("SadMusic8", "Dark Times", "https://www.dropbox.com/s/1kyom747avrm8le/Dark%20Times.mp3?dl=1");
-        addSong("SadMusic9", "Dark Walk", "https://www.dropbox.com/s/vthmioptxl13khf/Dark%20Walk.mp3?dl=1");
-        addSong("SadMusic10", "Despair and Triumph", "https://www.dropbox.com/s/alsswa1pi426qo7/Despair%20and%20Triumph.mp3?dl=1");
-        addSong("SadMusic11", "Disquiet", "https://www.dropbox.com/s/7t7s0rnwumi07fx/Disquiet.mp3?dl=1");
-        addSong("SadMusic12", "End of the Era", "https://www.dropbox.com/s/tr5e2jk74fk1fbd/End%20of%20the%20Era.mp3?dl=1");
-        addSong("SadMusic13", "Heartbreaking", "https://www.dropbox.com/s/vaejmyxhsq9ryok/Heartbreaking.mp3?dl=1");
-        addSong("SadMusic14", "Heavy Heart", "https://www.dropbox.com/s/l4q6j6rir5hkws8/Heavy%20Heart.mp3?dl=1");
-        addSong("SadMusic15", "Immersed", "https://www.dropbox.com/s/puoderxzd0odn9x/Immersed.mp3?dl=1");
-        addSong("SadMusic16", "Lasting Hope", "https://www.dropbox.com/s/fwkeuf273bh43sf/Lasting%20Hope.mp3?dl=1");
-        addSong("SadMusic17", "Lone Harvest", "https://www.dropbox.com/s/b54lp4mnls8yzj2/Lone%20Harvest.mp3?dl=1");
-        addSong("SadMusic18", "Lost Frontier", "https://www.dropbox.com/s/5jbvcsicfd4nxh8/Lost%20Frontier.mp3?dl=1");
-        addSong("SadMusic19", "Memory Lane", "https://www.dropbox.com/s/grtc76gfuh0n75s/Memory%20Lane.mp3?dl=1");
-        addSong("SadMusic20", "On the Passing of Time", "https://www.dropbox.com/s/8zmq188r0flij3v/On%20the%20Passing%20of%20Time.mp3?dl=1");
-        addSong("SadMusic21", "Rains Will Fall", "https://www.dropbox.com/s/ox2prgtrwh1xz2p/Rains%20Will%20Fall.mp3?dl=1");
-        addSong("SadMusic22", "Reaching Out", "https://www.dropbox.com/s/qtyrk790g3xd7kq/Reaching%20Out.mp3?dl=1");
-        addSong("SadMusic23", "Sad Trio", "https://www.dropbox.com/s/bsp72cdunr4ktep/Sad%20Trio.mp3?dl=1");
-        addSong("SadMusic24", "Stages of Grief", "https://www.dropbox.com/s/fmwiflng3dk4bz1/Stages%20of%20Grief.mp3?dl=1");
-        addSong("SadMusic25", "The Parting", "https://www.dropbox.com/s/vt6d11fdp4dh0gq/The%20Parting.mp3?dl=1");
-        addSong("SadMusic26", "Time Passes", "https://www.dropbox.com/s/3az3otjjqh8u0ij/Time%20Passes.mp3?dl=1");
-        addSong("SadMusic27", "When the Wind Blows", "https://www.dropbox.com/s/okofwwbz9ks5xlp/When%20The%20Wind%20Blows.mp3?dl=1");
-        addSong("SadMusic28", "Wounded", "https://www.dropbox.com/s/dmn6nfoetoiyko6/Wounded.mp3?dl=1");
-        addSong("WinMusic", "Americana", "https://www.dropbox.com/s/v2q3gcp17uync61/Americana.mp3?dl=1");
-        addSong("SuspenseMusic1", "Final Battle of the Dark Wizards", "https://www.dropbox.com/s/0yccf5vyouhiubn/Final%20Battle%20of%20the%20Dark%20Wizards.mp3?dl=1");
-        addSong("VictoryMusic1", "Jet Fueled Vixen", "https://www.dropbox.com/s/8604fjnzfggdd80/Jet%20Fueled%20Vixen.mp3?dl=1");
+        addSong("Music1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
+        addSong("Music2", "Clenched Teeth", "https://www.dropbox.com/s/jzstxq3404lai4q/Clenched%20Teeth.mp3?dl=1", 3563);
+        addSong("Music3", "Achilles", "https://www.dropbox.com/s/agtrfb81kmix3f2/Achilles.mp3?dl=1", 2482);
+        addSong("Music4", "Noble Race", "https://www.dropbox.com/s/jmqmcttfx9in4a5/Noble%20Race.mp3?dl=1", 10399);
+        addSong("Music5", "Rynos Theme", "https://www.dropbox.com/s/uodl6uu825hik38/Rynos%20Theme.mp3?dl=1", 5805);
+        addSong("Boss1Music1", "Eternal Terminal", "https://www.dropbox.com/s/rd2yfsma9994rvn/Eternal%20Terminal.mp3?dl=1", 6175);
+        addSong("Boss1Music2", "Five Armies", "https://www.dropbox.com/s/n2nnl7o3qp6pfmu/Five%20Armies.mp3?dl=1", 6090);
+        addSong("Boss2Music1", "Corruption", "https://www.dropbox.com/s/0wjbtmx2ya5t7f6/Corruption.mp3?dl=1", 13223);
+        addSong("Boss2Music2", "Clash Defiant", "https://www.dropbox.com/s/6p6ulhfp58jty24/Clash%20Defiant.mp3?dl=1", 11740);
+        addSong("Boss3Music1", "Metalmania", "https://www.dropbox.com/s/p6e99sa8z9kdckp/Metalmania.mp3?dl=1", 5955);
+        addSong("Boss3Music2", "Obliteration", "https://www.dropbox.com/s/2685hexub0a1tm0/Obliteration.mp3?dl=1", 4672);
+        addSong("Boss4Music1", "Death and Axes", "https://www.dropbox.com/s/uk9m4xnlcm5mqao/Death%20and%20Axes.mp3?dl=1", 5255);
+        addSong("Boss4Music2", "Grim Idol", "https://www.dropbox.com/s/606kbzltk24v307/Grim%20Idol.mp3?dl=1", 7030);
+        addSong("EndMusic1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
+        addSong("SadMusic1", "A Turn for the Worse", "https://www.dropbox.com/s/7xllni5jw99d7j1/A%20Turn%20for%20the%20Worse.mp3?dl=1", 2658);
+        addSong("SadMusic2", "A Little Faith", "https://www.dropbox.com/s/h2ygg4q05boayfk/A%20Little%20Faith.mp3?dl=1", 3539);
+        addSong("SadMusic3", "At Rest", "https://www.dropbox.com/s/xoh1zc2nztttuhw/At%20Rest.mp3?dl=1", 8072);
+        addSong("SadMusic4", "Awaiting Return", "https://www.dropbox.com/s/xcq6wpxqseoxy0b/Awaiting%20Return.mp3?dl=1", 3460);
+        addSong("SadMusic5", "Bittersweet", "https://www.dropbox.com/s/nsu2dzc5ua73wb4/Bittersweet.mp3?dl=1", 6317);
+        addSong("SadMusic6", "Colorless Aura", "https://www.dropbox.com/s/i9w7nmaicjkitse/Colorless%20Aura.mp3?dl=1", 6177);
+        addSong("SadMusic7", "Cryptic Sorrow", "https://www.dropbox.com/s/mbpq6q7x8qdmmed/Cryptic%20Sorrow.mp3?dl=1", 18907);
+        addSong("SadMusic8", "Dark Times", "https://www.dropbox.com/s/1kyom747avrm8le/Dark%20Times.mp3?dl=1", 7178);
+        addSong("SadMusic9", "Dark Walk", "https://www.dropbox.com/s/vthmioptxl13khf/Dark%20Walk.mp3?dl=1", 3456);
+        addSong("SadMusic10", "Despair and Triumph", "https://www.dropbox.com/s/alsswa1pi426qo7/Despair%20and%20Triumph.mp3?dl=1", 11164);
+        addSong("SadMusic11", "Disquiet", "https://www.dropbox.com/s/7t7s0rnwumi07fx/Disquiet.mp3?dl=1", 5786);
+        addSong("SadMusic12", "End of the Era", "https://www.dropbox.com/s/tr5e2jk74fk1fbd/End%20of%20the%20Era.mp3?dl=1", 8352);
+        addSong("SadMusic13", "Heartbreaking", "https://www.dropbox.com/s/vaejmyxhsq9ryok/Heartbreaking.mp3?dl=1", 3855);
+        addSong("SadMusic14", "Heavy Heart", "https://www.dropbox.com/s/l4q6j6rir5hkws8/Heavy%20Heart.mp3?dl=1", 9275);
+        addSong("SadMusic15", "Immersed", "https://www.dropbox.com/s/puoderxzd0odn9x/Immersed.mp3?dl=1", 7783);
+        addSong("SadMusic16", "Lasting Hope", "https://www.dropbox.com/s/fwkeuf273bh43sf/Lasting%20Hope.mp3?dl=1", 5739);
+        addSong("SadMusic17", "Lone Harvest", "https://www.dropbox.com/s/b54lp4mnls8yzj2/Lone%20Harvest.mp3?dl=1", 2444);
+        addSong("SadMusic18", "Lost Frontier", "https://www.dropbox.com/s/5jbvcsicfd4nxh8/Lost%20Frontier.mp3?dl=1", 10352);
+        addSong("SadMusic19", "Memory Lane", "https://www.dropbox.com/s/grtc76gfuh0n75s/Memory%20Lane.mp3?dl=1", 4447);
+        addSong("SadMusic20", "On the Passing of Time", "https://www.dropbox.com/s/8zmq188r0flij3v/On%20the%20Passing%20of%20Time.mp3?dl=1", 8919);
+        addSong("SadMusic21", "Rains Will Fall", "https://www.dropbox.com/s/ox2prgtrwh1xz2p/Rains%20Will%20Fall.mp3?dl=1", 8690);
+        addSong("SadMusic22", "Reaching Out", "https://www.dropbox.com/s/qtyrk790g3xd7kq/Reaching%20Out.mp3?dl=1", 2486);
+        addSong("SadMusic23", "Sad Trio", "https://www.dropbox.com/s/bsp72cdunr4ktep/Sad%20Trio.mp3?dl=1", 9960);
+        addSong("SadMusic24", "Stages of Grief", "https://www.dropbox.com/s/fmwiflng3dk4bz1/Stages%20of%20Grief.mp3?dl=1", 4323);
+        addSong("SadMusic25", "The Parting", "https://www.dropbox.com/s/vt6d11fdp4dh0gq/The%20Parting.mp3?dl=1", 7187);
+        addSong("SadMusic26", "Time Passes", "https://www.dropbox.com/s/3az3otjjqh8u0ij/Time%20Passes.mp3?dl=1", 2867);
+        addSong("SadMusic27", "When the Wind Blows", "https://www.dropbox.com/s/okofwwbz9ks5xlp/When%20The%20Wind%20Blows.mp3?dl=1", 10396);
+        addSong("SadMusic28", "Wounded", "https://www.dropbox.com/s/dmn6nfoetoiyko6/Wounded.mp3?dl=1", 7945);
+        addSong("WinMusic", "Americana", "https://www.dropbox.com/s/v2q3gcp17uync61/Americana.mp3?dl=1", 7902);
+        addSong("SuspenseMusic1", "Final Battle of the Dark Wizards", "https://www.dropbox.com/s/0yccf5vyouhiubn/Final%20Battle%20of%20the%20Dark%20Wizards.mp3?dl=1", 8491);
+        addSong("VictoryMusic1", "Jet Fueled Vixen", "https://www.dropbox.com/s/8604fjnzfggdd80/Jet%20Fueled%20Vixen.mp3?dl=1", 4992);
     }
     /**
      * Gets a list of all currently playable music.
@@ -117,21 +127,15 @@ public class Sounds{
     }
     private static boolean running = false;
     public static HashMap<String, String> soundNames = new HashMap<>();
+    public static HashMap<String, Integer> songSizes = new HashMap<>();
     public static HashMap<String, String> songURLs = new HashMap<>();
-    public static boolean mute;
-    public static String nowPlaying;
-    public static float vol = 2.5f;
-    private static float volume = 1f;
-    private static String fading = null;
-    private static String fadingSource = null;
-    private static long songTimer;
-    private static int whichSound = 0;
+    public static float vol = 1f;
     /**
      * Disables the sound system.
      * Equivalent to AL.destroy();
      */
     public static void destroy(){
-        AL.destroy();
+        soundSystem.destroy();
         running = false;
     }
     /**
@@ -143,60 +147,54 @@ public class Sounds{
         songURLs.clear();
         addMusic();
         running = true;
-        AL.create();
-        new Thread(() -> {
-                while(running){
-                    if(!isPlaying("music")){
-                        nowPlaying = null;
-                    }
-                    try{
-                        Thread.sleep(100);
-                    }catch(InterruptedException ex){
-                        Sys.error(ErrorLevel.severe, "Failed to wait: Too impatient!", ex, ErrorCategory.threading);
-                    }
-                    if(mute){
-                        if(isPlaying("music")){
-                            stopSound("music");
-                        }
-                        continue;
-                    }
-                    if(autoplay&&!isPlaying("music")){
-                        ArrayList<String> strs = new ArrayList<>();
-                        getPlayableMusic(strs);
-                        if(!strs.isEmpty()){
-                            playSoundOneChannel("music", strs.get(new Random().nextInt(strs.size())));
-                        }
-                    }
-                }
-        }).start();
+        soundSystem = new SoundSystem(10, "/sounds/", ".wav", "music");
         new Thread(() -> { //Music Downloader
-                System.out.println("Starting Music Download...");
-                for(String key : songURLs.keySet()){
-                    if(!running){
-                        return;
-                    }
-                    String filepath = soundNames.get(key);
-                    String url = songURLs.get(key);
-                    File from = new File(filepath.replace(".wav", ".mp3"));
-                    File to = new File(filepath.replace(".mp3", ".wav"));
-                    if(!from.exists()){
-                        System.out.println("Downloading Song "+key+"...");
-                        downloadFile(url, from);
-                        System.out.println("Song Downloaded: "+key+"...");
-                    }
-                    if(to.exists()) continue;
-                    Converter c = new Converter();
-                    try{
-                        System.out.println("Converting Song "+from.getName()+"...");
-                        c.convert(from.getAbsolutePath(), to.getAbsolutePath());
-                    }catch(JavaLayerException ex){
-                        Sys.error(ErrorLevel.severe, "Failed to convert file: "+from.getName()+". Deleting...", ex, ErrorCategory.audio);
-                        if(from.exists()) from.delete();
-                        if(to.exists()) to.delete();
-                    }
-                        System.out.println("Song Converted: "+from.getName()+"...");
+            int downloadSize = 0;
+            for(String key : songURLs.keySet()){
+                File file = new File(soundNames.get(key).replace(".wav", ".mp3"));
+                if(!file.exists()){
+                    downloadSize+=songSizes.get(key);
                 }
-                System.out.println("All songs are up to date.");
+            }
+            if(downloadSize<=0){
+                soundSystem.getSound(soundNames.get("VictoryMusic1"));
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ex) {
+                    System.err.println("Didn't work\nComputer is lazy");
+                }
+                soundSystem.getSound(soundNames.get("Music1"));
+                return;
+            }
+            Core.helper.setFullscreen(false);
+            if(JOptionPane.showConfirmDialog(null, Main.applicationName+" has music that can to be downloaded while you play.\\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload it now?", Main.applicationName+" - Music", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION){
+                Core.helper.setFullscreen(true);
+            }else{
+                Core.helper.setFullscreen(true);
+                return;
+            }
+            System.out.println("Starting Music Download...");
+            for(String key : songURLs.keySet()){
+                if(!running){
+                    return;
+                }
+                String filepath = soundNames.get(key);
+                String url = songURLs.get(key);
+                File from = new File(filepath);
+                if(!from.exists()){
+                    System.out.println("Downloading Song "+key+"...");
+                    downloadFile(url, from);
+                    System.out.println("Song Downloaded: "+key+"...");
+                }
+            }
+            System.out.println("All songs are up to date.");
+            soundSystem.getSound(soundNames.get("VictoryMusic1"));
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                System.err.println("Didn't work\nComputer is lazy");
+            }
+            soundSystem.getSound(soundNames.get("Music1"));
         }).start();
     }
     static void tick(boolean lastTick){
@@ -204,72 +202,41 @@ public class Sounds{
             destroy();
             return;
         }
-        vol = Math.max(0,Math.min(5,vol));
-        if(nowPlaying!=null&&!canPlayMusic(nowPlaying)){
+        if(soundSystem.getChannel("music").isStopped()){
+            enableAutoplay();
+        }
+        vol = Math.max(0,Math.min(1,vol));
+        if(soundSystem.getChannel("music").isPlaying()&&!canPlayMusic(soundSystem.getChannel("music").getCurrentSound())){
             fadeSound("music");
         }
-        AL10.alSourcef(SoundStash.getSource("music"), AL10.AL_GAIN, volume*vol);
-        if(fadingSource!=null){
-            AL10.alSourcef(SoundStash.getSource(fadingSource), AL10.AL_GAIN, volume*vol);
-            if(volume>0){
-                volume-=0.025;
-            }else{
-                stopSound(fadingSource);
-                volume = 1f;
-                if(fading!=null){
-                    playSoundOneChannel(fadingSource, fading);
-                    fading = null;
-                }
-                AL10.alSourcef(SoundStash.getSource(fadingSource), AL10.AL_GAIN, vol);
-                fadingSource = null;
-            }
-        }
+        soundSystem.setMasterVolume(vol);
     }
+    /**
+     * @return song time in TICKS
+     */
     public static int songTimer(){
-        return (int) ((System.currentTimeMillis()-songTimer)/50);
+        return soundSystem.getChannel("music").getPlayheadPosition()/50;
     }
     public static synchronized void playSound(String source, String sound){
-        whichSound++;
-        if(whichSound>20){
-            whichSound = 1;
-        }
-        if(isPlaying(source, whichSound)){
-            stopSound(source, whichSound);
-        }
-        AL10.alSourcef(SoundStash.getSource(source), AL10.AL_GAIN, vol);
-        try{
-            AL10.alSourceUnqueueBuffers(SoundStash.getSource(source+whichSound));
-            Util.checkALError();
-        }catch(Exception ex){
-            System.err.println(ex.getMessage());
-        }
-        AL10.alSourceQueueBuffers(SoundStash.getSource(source+whichSound), SoundStash.getBuffer(soundNames.get(sound)));
-        AL10.alSourcePlay(SoundStash.getSource(source+whichSound));
-    }
-    public static synchronized void playSoundOneChannel(String source, String sound){
-        if(!new File(soundNames.get(sound)).exists())return;
         if(source.equals("music")){
             if(!canPlayMusic(sound)) return;
+            soundSystem.getChannel(source).fadeTo(60, soundNames.get(sound));
+            enableAutoplay();
         }
-        if(isPlaying(source)){
-            fadeSound(source, sound);
-            return;
-        }
-        AL10.alSourcef(SoundStash.getSource(source), AL10.AL_GAIN, vol);
-        try{
-            AL10.alSourceUnqueueBuffers(SoundStash.getSource(source));
-            Util.checkALError();
-        }catch(Exception ex){
-            System.err.println(ex.getMessage());
-        }
-        AL10.alSourceQueueBuffers(SoundStash.getSource(source), SoundStash.getBuffer(soundNames.get(sound)));
-        AL10.alSourcePlay(SoundStash.getSource(source));
-        if(source.equals("music")){
-            nowPlaying = sound;
-            songTimer = System.currentTimeMillis();
-        }
+        soundSystem.getChannel(source).play(soundNames.get(sound));
+    }
+    @Deprecated
+    public static synchronized void playSoundOneChannel(String source, String sound){
+        playSound(source, sound);
     }
     public static boolean canPlayMusic(String music){
+        if(music.contains(".mp3")){
+            for(String key : soundNames.keySet()){
+                if(soundNames.get(key).equals(music)){
+                    music = key;
+                }
+            }
+        }
 //        ArrayList<String> playable = new ArrayList<>();
 //        getPlayableMusic(playable);
 //        if(!playable.contains(music)){
@@ -370,48 +337,29 @@ public class Sounds{
                 throw new IllegalArgumentException("Unknown music: "+music);
         }
     }
+    @Deprecated
     public static synchronized void stopSounds(String source){
-        for(int i = 1; i<=20; i++){
-            if(isPlaying(source, i)){
-                AL10.alSourceStop(SoundStash.getSource(source+i));
-            }
-        }
+        stopSound(source);
     }
+    @Deprecated
     public static synchronized void stopSound(String source, int channel){
-        if(isPlaying(source, channel)){
-            AL10.alSourceStop(SoundStash.getSource(source+channel));
-        }
+        stopSound(source);
     }
     public static synchronized void fadeSound(String source, String sound){
-        if(source.equals("music")&&sound.equals(nowPlaying)) return;
-        if(!isPlaying(source)){
-            playSoundOneChannel(source, sound);
-            return;
-        }
-        fadingSource = source;
-        fading = sound;
+        soundSystem.getChannel(source).fadeTo(60, sound);
     }
     public static synchronized void fadeSound(String source){
-        if(!isPlaying(source)){
-            return;
-        }
-        fadingSource = source;
+        soundSystem.getChannel(source).fadeSkip(60);
     }
     public static synchronized void stopSound(String source){
-        if(source.equals("music")){
-            nowPlaying = null;
-        }
-        if(isPlaying(source)){
-            AL10.alSourceStop(SoundStash.getSource(source));
-        }
+        soundSystem.getChannel(source).stop();
     }
     public static synchronized boolean isPlaying(String source){
-        if(!running)return false;
-        return AL10.alGetSourcei(SoundStash.getSource(source), AL10.AL_SOURCE_STATE)==AL10.AL_PLAYING;
+        return soundSystem.isPlaying(source);
     }
+    @Deprecated
     public static synchronized boolean isPlaying(String source, int channel){
-        if(!running)return false;
-        return AL10.alGetSourcei(SoundStash.getSource(source+channel), AL10.AL_SOURCE_STATE)==AL10.AL_PLAYING;
+        return isPlaying(source);
     }
     private static File downloadFile(String link, File destinationFile){
         if(destinationFile.exists()||link==null){
@@ -476,9 +424,10 @@ public class Sounds{
      * @param songName The file name, without the extention
      * @param url the URL the song can be downloaded at, as an MP3
      */
-    private static void addSong(String name, String songName, String url){
-        soundNames.put(name, Main.getAppdataRoot()+"\\Music\\"+songName+".wav");
+    private static void addSong(String name, String songName, String url, int kb){
+        soundNames.put(name, Main.getAppdataRoot()+"\\Music\\"+songName+".mp3");
         songURLs.put(name, url);
+        songSizes.put(name, kb);
     }
     /**
      * Adds a sound effect so it can be played. Sound effects are not downloaded. They are found in the jarfile under /sounds
@@ -489,24 +438,363 @@ public class Sounds{
     private static void addSound(String name, String songName){
         soundNames.put(name, "/sounds/"+songName+".wav");
     }
-    public static void pauseMusic(){
-        if(!paused)
-            AL10.alSourcePause(SoundStash.getSource("music"));
-        paused = true;
-    }
-    public static void unpauseMusic(){
-        if(paused)
-            AL10.alSourcePlay(SoundStash.getSource("music"));
-        paused = false;
-    }
     static boolean isPlayingMusic(){
-        return isPlaying("music")||paused;
+        return soundSystem.getChannel("music").isPlaying();
     }
     static void toggleMusic(){
-        if(paused){
-            unpauseMusic();
+        if(soundSystem.getChannel("music").isPaused()){
+            soundSystem.getChannel("music").play();
         }else{
-            pauseMusic();
+            soundSystem.getChannel("music").pause();
         }
     }
+    public static void enableAutoplay(){
+        soundSystem.getChannel("music").autoplay(autoplayer);
 }
+    public static void disableAutoplay(){
+        soundSystem.getChannel("music").stop();
+    }
+    public static String nowPlaying(){
+        for(String sound : soundNames.keySet()){
+            String path = soundNames.get(sound);
+            if(soundSystem.getChannel("music").getCurrentSound()==path){
+                return sound;
+            }
+        }
+        return null;
+    }
+}
+//<editor-fold defaultstate="collapsed" desc="Old Code">
+
+//import java.io.File;
+//import java.io.FileOutputStream;
+//import java.io.InputStream;
+//import java.net.HttpURLConnection;
+//import java.net.URL;
+//import java.net.URLConnection;
+//import java.util.ArrayList;
+//import java.util.HashMap;
+//import java.util.Random;
+//import javazoom.jl.converter.Converter;
+//import javazoom.jl.decoder.JavaLayerException;
+//import org.lwjgl.LWJGLException;
+//import org.lwjgl.openal.AL;
+//import org.lwjgl.openal.AL10;
+//import org.lwjgl.openal.Util;
+//import simplelibrary.Sys;
+//import simplelibrary.error.ErrorCategory;
+//import simplelibrary.error.ErrorLevel;
+//import simplelibrary.openal.SoundStash;
+//public class Sounds{
+//    public static boolean autoplay = false;
+//    private static boolean paused = false;
+//    private static void addMusic(){
+//        //TODO use addSound(...) and addSong(...) to add sound effects and music.
+//    }
+//    /**
+//     * Gets a list of all currently playable music.
+//     * @return a list of sound names that can be played as music at the current time (One will be randomly chosen)
+//     */
+//    private static void getPlayableMusic(ArrayList<String> playableMusic){
+//        throw new UnsupportedOperationException("Not yet implemented.");
+//        //TODO fill the list with the names of all songs that can be played at the moment.
+//    }
+//    private static boolean running = false;
+//    public static HashMap<String, String> soundNames = new HashMap<>();
+//    public static HashMap<String, String> songURLs = new HashMap<>();
+//    public static boolean mute;
+//    public static String nowPlaying;
+//    public static float vol = 2.5f;
+//    private static float volume = 1f;
+//    private static String fading = null;
+//    private static String fadingSource = null;
+//    private static long songTimer;
+//    private static int whichSound = 0;
+//    /**
+//     * Disables the sound system.
+//     * Equivalent to AL.destroy();
+//     */
+//    public static void destroy(){
+//        AL.destroy();
+//        running = false;
+//    }
+//    /**
+//     * Starts the sound system, music thread, and music downloading thread.
+//     * Equivalent to AL.destroy();
+//     */
+//    public static void create() throws LWJGLException{
+//        soundNames.clear();
+//        songURLs.clear();
+//        addMusic();
+//        running = true;
+//        AL.create();
+//        new Thread(() -> {
+//                while(running){
+//                    if(!isPlaying("music")){
+//                        nowPlaying = null;
+//                    }
+//                    try{
+//                        Thread.sleep(100);
+//                    }catch(InterruptedException ex){
+//                        Sys.error(ErrorLevel.severe, "Failed to wait: Too impatient!", ex, ErrorCategory.threading);
+//                    }
+//                    if(mute){
+//                        if(isPlaying("music")){
+//                            stopSound("music");
+//                        }
+//                        continue;
+//                    }
+//                    if(autoplay&&!isPlaying("music")){
+//                        ArrayList<String> strs = new ArrayList<>();
+//                        getPlayableMusic(strs);
+//                        if(!strs.isEmpty()){
+//                            playSoundOneChannel("music", strs.get(new Random().nextInt(strs.size())));
+//                        }
+//                    }
+//                }
+//        }).start();
+//        new Thread(() -> { //Music Downloader
+//                System.out.println("Starting Music Download...");
+//                for(String key : songURLs.keySet()){
+//                    if(!running){
+//                        return;
+//                    }
+//                    String filepath = soundNames.get(key);
+//                    String url = songURLs.get(key);
+//                    File from = new File(filepath.replace(".wav", ".mp3"));
+//                    File to = new File(filepath.replace(".mp3", ".wav"));
+//                    if(!from.exists()){
+//                        System.out.println("Downloading Song "+key+"...");
+//                        downloadFile(url, from);
+//                        System.out.println("Song Downloaded: "+key+"...");
+//                    }
+//                    if(to.exists()) continue;
+//                    Converter c = new Converter();
+//                    try{
+//                        System.out.println("Converting Song "+from.getName()+"...");
+//                        c.convert(from.getAbsolutePath(), to.getAbsolutePath());
+//                    }catch(JavaLayerException ex){
+//                        Sys.error(ErrorLevel.severe, "Failed to convert file: "+from.getName()+". Deleting...", ex, ErrorCategory.audio);
+//                        if(from.exists()) from.delete();
+//                        if(to.exists()) to.delete();
+//                    }
+//                        System.out.println("Song Converted: "+from.getName()+"...");
+//                }
+//                System.out.println("All songs are up to date.");
+//        }).start();
+//    }
+//    static void tick(boolean lastTick){
+//        if(lastTick){
+//            destroy();
+//            return;
+//        }
+//        vol = Math.max(0,Math.min(5,vol));
+//        if(nowPlaying!=null&&!canPlayMusic(nowPlaying)){
+//            fadeSound("music");
+//        }
+//        AL10.alSourcef(SoundStash.getSource("music"), AL10.AL_GAIN, volume*vol);
+//        if(fadingSource!=null){
+//            AL10.alSourcef(SoundStash.getSource(fadingSource), AL10.AL_GAIN, volume*vol);
+//            if(volume>0){
+//                volume-=0.025;
+//            }else{
+//                stopSound(fadingSource);
+//                volume = 1f;
+//                if(fading!=null){
+//                    playSoundOneChannel(fadingSource, fading);
+//                    fading = null;
+//                }
+//                AL10.alSourcef(SoundStash.getSource(fadingSource), AL10.AL_GAIN, vol);
+//                fadingSource = null;
+//            }
+//        }
+//    }
+//    public static int songTimer(){
+//        return (int) ((System.currentTimeMillis()-songTimer)/50);
+//    }
+//    public static synchronized void playSound(String source, String sound){
+//        whichSound++;
+//        if(whichSound>20){
+//            whichSound = 1;
+//        }
+//        if(isPlaying(source, whichSound)){
+//            stopSound(source, whichSound);
+//        }
+//        AL10.alSourcef(SoundStash.getSource(source), AL10.AL_GAIN, vol);
+//        try{
+//            AL10.alSourceUnqueueBuffers(SoundStash.getSource(source+whichSound));
+//            Util.checkALError();
+//        }catch(Exception ex){
+//            System.err.println(ex.getMessage());
+//        }
+//        AL10.alSourceQueueBuffers(SoundStash.getSource(source+whichSound), SoundStash.getBuffer(soundNames.get(sound)));
+//        AL10.alSourcePlay(SoundStash.getSource(source+whichSound));
+//    }
+//    public static synchronized void playSoundOneChannel(String source, String sound){
+//        if(source.equals("music")){
+//            if(!canPlayMusic(sound)) return;
+//        }
+//        if(isPlaying(source)){
+//            fadeSound(source, sound);
+//            return;
+//        }
+//        AL10.alSourcef(SoundStash.getSource(source), AL10.AL_GAIN, vol);
+//        try{
+//            AL10.alSourceUnqueueBuffers(SoundStash.getSource(source));
+//            Util.checkALError();
+//        }catch(Exception ex){
+//            System.err.println(ex.getMessage());
+//        }
+//        AL10.alSourceQueueBuffers(SoundStash.getSource(source), SoundStash.getBuffer(soundNames.get(sound)));
+//        AL10.alSourcePlay(SoundStash.getSource(source));
+//        if(source.equals("music")){
+//            nowPlaying = sound;
+//            songTimer = System.currentTimeMillis();
+//        }
+//    }
+//    public static boolean canPlayMusic(String music){
+//        ArrayList<String> playable = new ArrayList<>();
+//        getPlayableMusic(playable);
+//        return playable.contains(music);
+//    }
+//    public static synchronized void stopSounds(String source){
+//        for(int i = 1; i<=20; i++){
+//            if(isPlaying(source, i)){
+//                AL10.alSourceStop(SoundStash.getSource(source+i));
+//            }
+//        }
+//    }
+//    public static synchronized void stopSound(String source, int channel){
+//        if(isPlaying(source, channel)){
+//            AL10.alSourceStop(SoundStash.getSource(source+channel));
+//        }
+//    }
+//    public static synchronized void fadeSound(String source, String sound){
+//        if(source.equals("music")&&sound.equals(nowPlaying)) return;
+//        if(!isPlaying(source)){
+//            playSoundOneChannel(source, sound);
+//            return;
+//        }
+//        fadingSource = source;
+//        fading = sound;
+//    }
+//    public static synchronized void fadeSound(String source){
+//        if(!isPlaying(source)){
+//            return;
+//        }
+//        fadingSource = source;
+//    }
+//    public static synchronized void stopSound(String source){
+//        if(source.equals("music")){
+//            nowPlaying = null;
+//        }
+//        if(isPlaying(source)){
+//            AL10.alSourceStop(SoundStash.getSource(source));
+//        }
+//    }
+//    public static synchronized boolean isPlaying(String source){
+//        if(!running)return false;
+//        return AL10.alGetSourcei(SoundStash.getSource(source), AL10.AL_SOURCE_STATE)==AL10.AL_PLAYING;
+//    }
+//    public static synchronized boolean isPlaying(String source, int channel){
+//        if(!running)return false;
+//        return AL10.alGetSourcei(SoundStash.getSource(source+channel), AL10.AL_SOURCE_STATE)==AL10.AL_PLAYING;
+//    }
+//    private static File downloadFile(String link, File destinationFile){
+//        if(destinationFile.exists()||link==null){
+//            return destinationFile;
+//        }
+//        destinationFile.getParentFile().mkdirs();
+//        try {
+//            URL url = new URL(link);
+//            int fileSize;
+//            URLConnection connection = url.openConnection();
+//            connection.setDefaultUseCaches(false);
+//            if ((connection instanceof HttpURLConnection)) {
+//                ((HttpURLConnection)connection).setRequestMethod("HEAD");
+//                int code = ((HttpURLConnection)connection).getResponseCode();
+//                if (code / 100 == 3) {
+//                    return null;
+//                }
+//            }
+//            fileSize = connection.getContentLength();
+//            byte[] buffer = new byte[65535];
+//            int unsuccessfulAttempts = 0;
+//            int maxUnsuccessfulAttempts = 3;
+//            boolean downloadFile = true;
+//            while (downloadFile) {
+//                downloadFile = false;
+//                URLConnection urlconnection = url.openConnection();
+//                if ((urlconnection instanceof HttpURLConnection)) {
+//                    urlconnection.setRequestProperty("Cache-Control", "no-cache");
+//                    urlconnection.connect();
+//                }
+//                String targetFile = destinationFile.getName();
+//                FileOutputStream fos;
+//                int downloadedFileSize;
+//                try (InputStream inputstream=Main.getRemoteInputStream(targetFile, urlconnection)) {
+//                    fos=new FileOutputStream(destinationFile);
+//                    downloadedFileSize=0;
+//                    int read;
+//                    while ((read = inputstream.read(buffer)) != -1) {
+//                        fos.write(buffer, 0, read);
+//                        downloadedFileSize += read;
+//                    }
+//                }
+//                fos.close();
+//                if (((urlconnection instanceof HttpURLConnection)) &&
+//                    ((downloadedFileSize != fileSize) && (fileSize > 0))){
+//                    unsuccessfulAttempts++;
+//                    if (unsuccessfulAttempts < maxUnsuccessfulAttempts){
+//                        downloadFile = true;
+//                    }else{
+//                        throw new Exception("failed to download "+targetFile);
+//                    }
+//                }
+//            }
+//            return destinationFile;
+//        }catch (Exception ex){
+//            return null;
+//        }
+//    }
+//    /**
+//     * Adds a song so it can be played. Songs are downloaded on sound system startup as MP3s and decompressed into .wav files.
+//     * @param name the name of the song, used when playing it.
+//     * @param songName The file name, without the extention
+//     * @param url the URL the song can be downloaded at, as an MP3
+//     */
+//    private static void addSong(String name, String songName, String url){
+//        soundNames.put(name, Main.getAppdataRoot()+"\\Music\\"+songName+".wav");
+//        songURLs.put(name, url);
+//    }
+//    /**
+//     * Adds a sound effect so it can be played. Sound effects are not downloaded. They are found in the jarfile under /sounds
+//     * All sounds should be .wav files
+//     * @param name the name of the song, used when playing it.
+//     * @param songName The file name, without the extention.
+//     */
+//    private static void addSound(String name, String songName){
+//        soundNames.put(name, "/sounds/"+songName+".wav");
+//    }
+//    public static void pauseMusic(){
+//        if(!paused)
+//            AL10.alSourcePause(SoundStash.getSource("music"));
+//        paused = true;
+//    }
+//    public static void unpauseMusic(){
+//        if(paused)
+//            AL10.alSourcePlay(SoundStash.getSource("music"));
+//        paused = false;
+//    }
+//    static boolean isPlayingMusic(){
+//        return isPlaying("music")||paused;
+//    }
+//    static void toggleMusic(){
+//        if(paused){
+//            unpauseMusic();
+//        }else{
+//            pauseMusic();
+//        }
+//    }
+//}
+//</editor-fold>

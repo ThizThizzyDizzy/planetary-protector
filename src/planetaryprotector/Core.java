@@ -134,7 +134,7 @@ public class Core extends Renderer2D{
         }
     }
     public static void tickInit() throws LWJGLException{
-        if(Main.mediaButtons){
+        if(Main.intellitype){
             com.melloware.jintellitype.JIntellitype.getInstance().addIntellitypeListener((int command) -> {
                 System.err.println("Unhandeled Intellitype command: "+command);
             });
@@ -144,6 +144,7 @@ public class Core extends Renderer2D{
     public static void finalInit() throws LWJGLException{
         if(Main.jLayer){
             Sounds.create();
+            Sounds.enableAutoplay();
         }
     }
     public static void tick(boolean isLastTick){
@@ -155,7 +156,7 @@ public class Core extends Renderer2D{
                 gui.tick();
             }
         }else{
-            if(Main.mediaButtons){
+            if(Main.intellitype){
                 com.melloware.jintellitype.JIntellitype.getInstance().cleanUp();
             }
             saveOptions();
