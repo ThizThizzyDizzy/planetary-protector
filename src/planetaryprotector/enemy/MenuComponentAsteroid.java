@@ -11,17 +11,32 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
     public AsteroidMaterial material;
     private boolean hit;
     public boolean drop = true;
-    private final boolean canParticulate;
+    private final int canParticulate;
     private final int particleResolution = MenuOptionsGraphics.particles*6;
-    public MenuComponentAsteroid(double x, double y, AsteroidMaterial material, boolean canParticulate){
+    /**
+     * when the asteroid hits the ground, previously a constant 12, thus the name
+     */
+    private double twelve = 24;
+    /**
+     * @param x
+     * @param y
+     * @param material the material of the asteroid
+     * @param canParticulate 0=no, 1=only if settings allow, 2=yes
+     */
+    public MenuComponentAsteroid(double x, double y, AsteroidMaterial material, int canParticulate){
         super(x,y, 50, 50, material.images);
-        delay /= 2;
+        delay /= material.speedMult;
+        twelve /= material.speedMult;
         this.material = material;
         this.canParticulate = canParticulate;
     }
+    @Deprecated
+    public MenuComponentAsteroid(double x, double y, AsteroidMaterial material, boolean canParticulate){
+        this(x, y, material, canParticulate?1:0);
+    }
     @Override
     public void render(){
-        if(frame>=12&&!hit){
+        if(frame>=twelve&&!hit){
             hit = true;
             if(drop){
                 Core.game.damage(x+width/2,y+height/2, material);
@@ -34,9 +49,9 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
             x = -5000;
             Core.game.componentsToRemove.add(this);
         }
-        if(MenuOptionsGraphics.particulateMeteors&&canParticulate&&frame<=12){
+        if(isParticulate()&&frame<=twelve){
             removeRenderBound();
-            double fallProgress = (frame-1)/12d;
+            double fallProgress = (frame-1)/(double)twelve;
             double landX = x+width/2;
             double landY = y+height/2;
             double startX = landX-Display.getWidth()*.7;
@@ -52,14 +67,14 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
     @Override
     public void tick(){
         super.tick();
-        if(MenuOptionsGraphics.particulateMeteors&&canParticulate&&frame<=12){
-            double fallProgress = frame/12d;
+        if(isParticulate()&&frame<=twelve){
+            double fallProgress = frame/(double)twelve;
             double landX = x+width/2;
             double landY = y+height/2;
             double startX = landX-Display.getWidth()*.7;
             double startY = landY-Display.getHeight();
-            double frameDistanceX = (landX-startX)/12d;
-            double frameDistanceY = (landY-startY)/12d;
+            double frameDistanceX = (landX-startX)/(double)twelve;
+            double frameDistanceY = (landY-startY)/(double)twelve;
             double dX = frameDistanceX/particleResolution;
             double dY = frameDistanceY/particleResolution;
             double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);
@@ -76,5 +91,16 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
     @Override
     public double getZ(){
         return Math.max(5, 1-.05*frame+5.56);
+    }
+    private boolean isParticulate(){
+        switch(canParticulate){
+            case 0:
+                return false;
+            case 1:
+                return MenuOptionsGraphics.particulateMeteors;
+            case 2:
+                return true;
+        }
+        return true;
     }
 }

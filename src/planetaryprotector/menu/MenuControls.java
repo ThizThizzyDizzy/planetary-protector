@@ -3,12 +3,12 @@ import planetaryprotector.Controls;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.component.ZComponent;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuControls extends MenuComponent{
     private final MenuComponentButton back;
     private final MenuGame game;
+    double yOffset = 0;
     public MenuControls(MenuGame game){
         super(0, 0, Display.getWidth(), Display.getHeight());
         back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, "Back", true));
@@ -22,16 +22,29 @@ public class MenuControls extends MenuComponent{
         for(MenuComponent component : components){
             component.render();
         }
-        textWithBackground(0, 0, Display.getWidth(), 50, "Move up: "+getKeyName(Controls.up));
-        textWithBackground(0, 50, Display.getWidth(), 100, "Move left: "+getKeyName(Controls.left));
-        textWithBackground(0, 100, Display.getWidth(), 150, "Move down: "+getKeyName(Controls.down));
-        textWithBackground(0, 150, Display.getWidth(), 200, "Move right: "+getKeyName(Controls.right));
-        textWithBackground(0, 200, Display.getWidth(), 200, "Move to position: Right Click");
-        textWithBackground(0, 250, Display.getWidth(), 250, "Menu: "+getKeyName(Controls.menu));
-        textWithBackground(0, 300, Display.getWidth(), 300, "Deselect worker: "+getKeyName(Controls.deselect));
-        textWithBackground(0, 350, Display.getWidth(), 350, "Cancel current task: "+getKeyName(Controls.cancel));
-        textWithBackground(0, 400, Display.getWidth(), 400, "Pause: "+getKeyName(Controls.pause));
-        textWithBackground(0, 450, Display.getWidth(), 400, "Hide: LShift+"+getKeyName(Controls.hide));
+        yOffset = 0;
+        text("Move up: "+getKeyName(Controls.up));
+        text("Move left: "+getKeyName(Controls.left));
+        text("Move down: "+getKeyName(Controls.down));
+        text("Move right: "+getKeyName(Controls.right));
+        text("Move to position: Right Click");
+        text("Menu: "+getKeyName(Controls.menu));
+        text("Deselect worker: "+getKeyName(Controls.deselect));
+        text("Cancel current task: "+getKeyName(Controls.cancel));
+        text("Pause: "+getKeyName(Controls.pause));
+        text("Hide Overlay: LShift+"+getKeyName(Controls.hide));
+        text("Mute music: "+getKeyName(Controls.mute));
+        if(MenuGame.cheats){
+            text("Cheat | Lose: "+getKeyName(Controls.CHEAT_LOSE));
+            text("Cheat | Phase: "+getKeyName(Controls.CHEAT_PHASE));
+            text("Cheat | Secret: "+getKeyName(Controls.CHEAT_SECRET));
+            text("Cheat | Worker: "+getKeyName(Controls.CHEAT_WORKER));
+            text("Cheat | Cloud: "+getKeyName(Controls.CHEAT_CLOUD));
+            text("Cheat | Fog: "+getKeyName(Controls.CHEAT_FOG));
+            text("Cheat | Resources: "+getKeyName(Controls.CHEAT_RESOURCES));
+            text("Cheat | Enemy: "+getKeyName(Controls.CHEAT_ENEMY));
+            text("Cheat | Peace: "+getKeyName(Controls.CHEAT_PEACE));
+        }
     }
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
@@ -60,5 +73,9 @@ public class MenuControls extends MenuComponent{
     }
     private String getKeyName(int key){
         return key==-1?"NONE":Keyboard.getKeyName(key);
+    }
+    private void text(String string){
+        textWithBackground(0, yOffset, Display.getWidth(), yOffset+50, string);
+        yOffset+=50;
     }
 }

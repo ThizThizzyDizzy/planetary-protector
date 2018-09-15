@@ -12,4 +12,13 @@ public class Controls{
     public static int cheat = Keyboard.KEY_I;
     public static int hide = Keyboard.KEY_H;
     public static int mute = Keyboard.KEY_M;
+    public static int CHEAT_LOSE = Keyboard.KEY_L;
+    public static int CHEAT_PHASE = Keyboard.KEY_6;
+    public static int CHEAT_SECRET = Keyboard.KEY_S;
+    public static int CHEAT_WORKER = Keyboard.KEY_ADD;
+    public static int CHEAT_CLOUD = Keyboard.KEY_C;
+    public static int CHEAT_FOG = Keyboard.KEY_F;
+    public static int CHEAT_RESOURCES = Keyboard.KEY_R;
+    public static int CHEAT_ENEMY = Keyboard.KEY_GRAVE;
+    public static int CHEAT_PEACE = Keyboard.KEY_P;
 }

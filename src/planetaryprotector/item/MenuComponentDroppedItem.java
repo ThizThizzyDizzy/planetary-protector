@@ -2,7 +2,6 @@ package planetaryprotector.item;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.menu.MenuGame;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.component.ZComponent;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuComponentDroppedItem extends MenuComponent{
@@ -12,6 +11,7 @@ public class MenuComponentDroppedItem extends MenuComponent{
     private int flashTimer = 20;
     public int life = -1;//1200*5;
     private double opacity = 1;
+    private double rot;
     public MenuComponentDroppedItem(double x, double y, Item item, MenuGame myparent){
         super(x,y,10,10);
         this.item=item;
@@ -20,7 +20,16 @@ public class MenuComponentDroppedItem extends MenuComponent{
     @Override
     public void renderBackground(){
         GL11.glColor4d(1, 1, 1, opacity);
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/items/"+item.texture+".png"));
+        if(item==Item.star){
+            rot+=.75;
+            GL11.glPushMatrix();
+            GL11.glTranslated(x+width/2, y+height/2, 0);
+            GL11.glRotated(rot, 0, 0, 1);
+            drawRect(-width, -height, width, height, ImageStash.instance.getTexture("/textures/items/"+item.texture+".png"));
+            GL11.glPopMatrix();
+        }else{
+            drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/items/"+item.texture+".png"));
+        }
         GL11.glColor4d(1, 1, 1, 1);
     }
     public void render(){}

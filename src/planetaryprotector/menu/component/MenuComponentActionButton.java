@@ -11,6 +11,7 @@ public abstract class MenuComponentActionButton extends MenuComponentButton impl
     public MenuComponentActionButton(int x, int y, int width, int height, String label, boolean enabled, ItemStack... tooltip){
         super(x, y, width, height, label, enabled);
         this.tooltip = tooltip;
+        textInset+=10;
     }
     @Override
     public void render(){

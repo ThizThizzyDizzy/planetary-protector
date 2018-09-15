@@ -8,7 +8,7 @@ import simplelibrary.opengl.gui.components.MenuComponentButton;
 import simplelibrary.opengl.gui.components.MenuComponentOptionButton;
 public class MenuOptions3 extends Menu{
     private final MenuComponentButton back;
-    public static boolean music1,music2,music3,music4,music5,music6,music7,music8,music9,music10;
+    public static boolean music1,music2,music3,music4,music5,music6,music8,music9,music10;
     private final MenuComponentOptionButton button1,button2,button3,button4,button5,button6,button7,button8,button9,button10;
     private final MenuComponentButton nextPage,play1,play2,play3,play4,play5,play6,play7,play8,play9,play10;
     public MenuOptions3(GUI gui, Menu parent){
@@ -41,7 +41,7 @@ public class MenuOptions3 extends Menu{
         button4 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play4.y, back.width, back.height, "Awaiting Return", true, true, music4?0:1, "On", "Off"));
         button5 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play5.y, back.width, back.height, "Bittersweet", true, true, music5?0:1, "On", "Off"));
         button6 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play6.y, back.width, back.height, "Colorless Aura", true, true, music6?0:1, "On", "Off"));
-        button7 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play7.y, back.width, back.height, "Cryptic Sorrow", true, true, music7?0:1, "On", "Off"));
+        button7 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play7.y, back.width, back.height, "Cryptic Sorrow", true, true, 0, "On"));
         button8 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play8.y, back.width, back.height, "Dark Times", true, true, music8?0:1, "On", "Off"));
         button9 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play9.y, back.width, back.height, "Dark Walk", true, true, music9?0:1, "On", "Off"));
         button10 = add(new MenuComponentOptionButton(Display.getWidth()/2-200, play10.y, back.width, back.height, "Despair and Triumph", true, true, music10?0:1, "On", "Off"));
@@ -96,7 +96,6 @@ public class MenuOptions3 extends Menu{
         music4 = button4.getIndex()==0;
         music5 = button5.getIndex()==0;
         music6 = button6.getIndex()==0;
-        music7 = button7.getIndex()==0;
         music8 = button8.getIndex()==0;
         music9 = button8.getIndex()==0;
         music10 = button8.getIndex()==0;

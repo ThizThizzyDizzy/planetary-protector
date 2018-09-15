@@ -5,12 +5,10 @@ import planetaryprotector.enemy.MenuComponentEnemy;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoad;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentShieldGenerator extends MenuComponentBuilding{
-    public double power;
+public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
     public double shieldSize = 0;
     public double maxShieldSize = 500;
     public double shieldStrength = 1;
@@ -23,12 +21,13 @@ public class MenuComponentShieldGenerator extends MenuComponentBuilding{
     public MenuComponentShieldGenerator(double x, double y){
         super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
         shield = add(new MenuComponentShield(this));
+        maxPower = Integer.MAX_VALUE;
     }
     public MenuComponentShieldGenerator(double x, double y, int level){
         super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
         this.level = level;
-        canBlast = level>=20;
-        shieldStrength = level+1;
+        canBlast = level>=10;
+        shieldStrength = getStats(level);
         maxShieldSize += (level)*250;
         shield = add(new MenuComponentShield(this));
     }
@@ -66,16 +65,6 @@ public class MenuComponentShieldGenerator extends MenuComponentBuilding{
                 power = 0;
             }
         }//</editor-fold>
-        for(MenuComponentBuilding building : Core.game.buildings){
-            if(building instanceof MenuComponentGenerator&&Core.game.distance(building, this)<=250){
-                MenuComponentGenerator gen = (MenuComponentGenerator) building;
-                if(gen.power<gen.transferAmount){
-                    continue;
-                }
-                gen.power -= gen.transferAmount;
-                power += gen.transferAmount;
-            }
-        }
         double surface = 2*Math.PI*Math.pow(shieldSize/2,2);
         double powerDrawFactor = 50_000D;
         power -= surface/powerDrawFactor;
@@ -110,7 +99,7 @@ public class MenuComponentShieldGenerator extends MenuComponentBuilding{
     }
     @Override
     public boolean canUpgrade(){
-        return level<49;
+        return level<19;
     }
     @Override
     public MenuComponentBuilding getUpgraded(){
@@ -190,5 +179,13 @@ public class MenuComponentShieldGenerator extends MenuComponentBuilding{
     @Override
     protected double getIgnitionChance(){
         return .8;
+    }
+    @Override
+    public String getName(){
+        return "Level "+(level+1)+" Shield Generator";
+    }
+    private double getStats(int level){
+        level++;
+        return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
     }
 }

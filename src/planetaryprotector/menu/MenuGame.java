@@ -61,7 +61,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.component.ZComponent;
+import planetaryprotector.building.MenuComponentObservatory;
+import planetaryprotector.building.MenuComponentWorkshop;
+import planetaryprotector.building.task.TaskTrainWorker;
 import planetaryprotector.particle.ParticleEffectType;
 import simplelibrary.config2.Config;
 import simplelibrary.font.FontManager;
@@ -72,6 +74,7 @@ import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuGame extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
+    public static final int actionButtonWidth = 350;
     public ArrayList<MenuComponentDroppedItem> droppedItems = new ArrayList<>();
     public MenuComponentBase base;
     public static Random rand = new Random();
@@ -83,11 +86,10 @@ public class MenuGame extends Menu{
     public boolean lost = false;
     public MenuComponentMeteorShower shower;
     public boolean meteorShower;
-    public MenuComponentClickable stone;
-    public MenuComponentClickable ironIngots;
     public MenuComponentClickable ironChunks;
     public MenuComponentClickable coal;
-    private int meteorShowerTimer = 80;
+    public int meteorShowerTimer = 100;
+    public int actionButtonOffset = 0;
     public ArrayList<MenuComponentWorker> workers = new ArrayList<>();
     public ArrayList<EnemyAlien> aliens = new ArrayList<>();
     public ArrayList<MenuComponentBuilding> buildings = new ArrayList<>();
@@ -99,7 +101,6 @@ public class MenuGame extends Menu{
     private Task oldSelectedTask;
     private Task selectedTask;
     public boolean paused;
-    public boolean firstShower = true;
     public int workerCooldown = 1020;
     public MenuComponent overlay;
     private MenuComponent phaseMarker;
@@ -128,7 +129,7 @@ public class MenuGame extends Menu{
     public static boolean cheats = false;
     public static int tick;
     public boolean won;
-    private int cloudTimer = rand.nextInt(500)+350;
+    private int cloudTimer = rand.nextInt(750)+500;
     //FOG
     private static final int maxFogTime = 20*60*15;
     private static final int minFogTime = 20*60*5;
@@ -139,13 +140,22 @@ public class MenuGame extends Menu{
     double fogHeightIntensity = 0.5;
     public boolean losing = false;
     private ArrayList<String> debugData = new ArrayList<>();
+    private int lostTimer;
+    private boolean allowArmogeddon = true;
+    private int loseSongLength = 20*60*8;
+    public int secretWaiting = -1;
+    private int secrets = 1;
+    private static final int maxSecretTime = 20*60*60*12;
+    private static final int minSecretTime = 20*60*60;
+    public int secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
+    private boolean observatory;
+    public int time = 0;
+    private static final int dayNightCycle = 12000;
 //</editor-fold>
     public MenuGame(GUI gui){
         super(gui, null);
-        stone = add(new MenuComponentClickable(Display.getWidth()-100, 0, 20, 20, "/textures/items/Stone.png"));
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        ironIngots = add(new MenuComponentClickable(Display.getWidth()-100, 60, 20, 20, "/textures/items/Iron Ingot.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
         shower = add(new MenuComponentMeteorShower());
         phase = 1;
@@ -166,10 +176,8 @@ public class MenuGame extends Menu{
             }
             buildings.add(add(building));
         }
-        stone = add(new MenuComponentClickable(Display.getWidth()-100, 0, 20, 20, "/textures/items/Stone.png"));
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        ironIngots = add(new MenuComponentClickable(Display.getWidth()-100, 60, 20, 20, "/textures/items/Iron Ingot.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
         shower = add(new MenuComponentMeteorShower());
         addWorker();
@@ -189,10 +197,8 @@ public class MenuGame extends Menu{
         for(MenuComponentBuilding building : buildings){
             this.buildings.add(add(building));
         }
-        stone = add(new MenuComponentClickable(Display.getWidth()-100, 0, 20, 20, "/textures/items/Stone.png"));
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        ironIngots = add(new MenuComponentClickable(Display.getWidth()-100, 60, 20, 20, "/textures/items/Iron Ingot.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
         shower = add(new MenuComponentMeteorShower());
         addWorker();
@@ -299,7 +305,7 @@ public class MenuGame extends Menu{
                         if(o1==shower){
                             y1 += Display.getHeight()*2;
                         }
-                        if(o1==stone||o1==coal||o1==ironChunks||o1==ironIngots||o1==furnace){
+                        if(o1==furnace){
                             y1 += Display.getHeight()*2;
                         }
                         if(o1 instanceof MenuComponentTaskAnimation){
@@ -358,7 +364,7 @@ public class MenuGame extends Menu{
                         if(o2==shower){
                             y2 += Display.getHeight()*2;
                         }
-                        if(o2==stone||o2==coal||o2==ironChunks||o2==ironIngots||o2==furnace){
+                        if(o2==furnace){
                             y2 += Display.getHeight()*2;
                         }
                         if(o2 instanceof MenuComponentTaskAnimation){
@@ -410,10 +416,8 @@ public class MenuGame extends Menu{
         }
         //<editor-fold defaultstate="collapsed" desc="BaseGUI location">
         if(baseGUI){
-            stone.x=Display.getWidth()-100;
             coal.x=Display.getWidth()-100;
             ironChunks.x=Display.getWidth()-100;
-            ironIngots.x=Display.getWidth()-100;
             furnace.x=Display.getWidth()-100;
             for(MenuComponentWorker worker : workers){
                 worker.button.x = 0;
@@ -424,10 +428,8 @@ public class MenuGame extends Menu{
                 button.x = 50;
             }
         }else{
-            stone.x=-100;
             coal.x=-100;
             ironChunks.x=-100;
-            ironIngots.x=-100;
             furnace.x=-100;
             for(MenuComponentWorker worker : workers){
                 worker.button.x = -50;
@@ -455,6 +457,7 @@ public class MenuGame extends Menu{
     @Override
     public void render(int millisSinceLastTick){
         super.render(millisSinceLastTick);
+        drawDayNightCycle();
         if(baseGUI){
             drawRect(Display.getWidth()-100, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/sidebar.png"));
         }
@@ -466,7 +469,7 @@ public class MenuGame extends Menu{
         }
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="BAD - Furnace re-rendering">
-furnace.render();
+        furnace.render();
 //</editor-fold>
         if(Mouse.isButtonDown(1)&&selectedWorker!=null){
             selectedWorker.selectedTarget = new double[]{Mouse.getX(),Display.getHeight()-Mouse.getY()};
@@ -534,16 +537,13 @@ if(phase==2){
                 }
             }
             //</editor-fold>
+            if(selectedBuilding!=null){
+                textWithBackground(baseGUI?50:0, 0, (baseGUI?50:0)+actionButtonWidth, 20, selectedBuilding.getName());
+            }
             //<editor-fold defaultstate="collapsed" desc="BAD - Action Button Re-rendering">
             for(MenuComponentActionButton actionButton : actionButtons){
                 actionButton.render();
             }
-//</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="BAD - resource amount re-rendering">
-stone.render();
-ironChunks.render();
-ironIngots.render();
-coal.render();
 //</editor-fold>
             drawText(furnace.x+10, Display.getHeight()-60, Display.getWidth()-10, Display.getHeight()-40, furnace.ironOre+" Iron");
             drawText(furnace.x+10, Display.getHeight()-40, Display.getWidth()-10, Display.getHeight()-20, furnace.coal+" Coal");
@@ -551,6 +551,7 @@ coal.render();
             if(baseGUI){
                 for(int i = 0; i<base.resources.size(); i++){
                     drawText(Display.getWidth()-80, i*20, Display.getWidth(), (i+1)*20, base.resources.get(i).count+"");
+                    drawRect(Display.getWidth()-100, i*20, Display.getWidth()-80, (i+1)*20, ImageStash.instance.getTexture("/textures/items/"+base.resources.get(i).item.texture+".png"));
                 }
             }
         }else if(won){
@@ -574,6 +575,7 @@ coal.render();
         if(oldSelectedBuilding!=selectedBuilding||oldSelectedTask!=selectedTask){
             componentsToRemove.addAll(actionButtons);
             actionButtons.clear();
+            actionButtonOffset = 20;
             if(selectedBuilding!=null&&selectedWorker!=null){
                 switch(selectedBuilding.type){
                     case SKYSCRAPER:
@@ -581,6 +583,32 @@ coal.render();
                         taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
                         taskButton("Add Floor", selectedWorker, new TaskSkyscraperAddFloor((MenuComponentSkyscraper)selectedBuilding));
                         taskButton("Add 10 Floors", selectedWorker, new TaskSkyscraperAddFloor((MenuComponentSkyscraper)selectedBuilding,10));
+                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
+                        break;
+                    case WORKSHOP:
+                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
+                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
+                        taskButton("Train Worker", selectedWorker, new TaskTrainWorker((MenuComponentWorkshop)selectedBuilding));
+                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
+                        break;
+                    case OBSERVATORY:
+                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
+                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
+                        action("Add Star", hasResources(new ItemStack(Item.star)), new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if(hasResources(new ItemStack(Item.star))){
+                            ((MenuComponentObservatory)selectedBuilding).addStar();
+                            removeResources(new ItemStack(Item.star));
+                        }
+                    }
+                });
+                        action("Toggle Scan", true, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ((MenuComponentObservatory)selectedBuilding).toggleScan();
+                    }
+                });
                         taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
                     case BUNKER:
@@ -600,10 +628,7 @@ coal.render();
                         if(selectedBuilding.canUpgrade()){
                             taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
                         }else{
-                            action("Maxed", false, new ActionListener(){
-                                @Override
-                                public void actionPerformed(ActionEvent ae){}
-                            });
+                            action("Maxed", false, null);
                         }
                         action("Build Missile", ((MenuComponentSilo)selectedBuilding).canBuildMissile(), new ActionListener(){
                             @Override
@@ -633,10 +658,7 @@ coal.render();
                         if(selectedBuilding.canUpgrade()){
                             taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
                         }else{
-                            action("Maxed", false, new ActionListener(){
-                                @Override
-                                public void actionPerformed(ActionEvent ae){}
-                            });
+                            action("Maxed", false, null);
                         }
                         taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
@@ -646,10 +668,7 @@ coal.render();
                         if(selectedBuilding.canUpgrade()){
                             taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
                         }else{
-                            action("Maxed", false, new ActionListener(){
-                                @Override
-                                public void actionPerformed(ActionEvent ae){}
-                            });
+                            action("Maxed", false, null);
                         }
                         taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
@@ -671,10 +690,7 @@ coal.render();
                         if(selectedBuilding.canUpgrade()){
                             taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
                         }else{
-                            action("Maxed", false, new ActionListener(){
-                                @Override
-                                public void actionPerformed(ActionEvent ae){}
-                            });
+                            action("Maxed", false, null);
                         }
                         if(phase>=3&&((MenuComponentShieldGenerator)selectedBuilding).canBlast){
                             action("Blast", ((MenuComponentShieldGenerator)selectedBuilding).blastRecharge==0, new ActionListener() {
@@ -721,6 +737,10 @@ coal.render();
                         taskButton("Build Mine", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentMine(selectedBuilding.x, selectedBuilding.y)));
                         taskButton("Build Generator", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentGenerator(selectedBuilding.x, selectedBuilding.y)));
                         taskButton("Build Shield Generator", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentShieldGenerator(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Workshop", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentWorkshop(selectedBuilding.x, selectedBuilding.y)));
+                        if(observatory){
+                            taskButton("Build Observatory", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentObservatory(selectedBuilding.x, selectedBuilding.y)));
+                        }
                         break;
                     default:
                         throw new IllegalBuildingException(selectedBuilding.type);
@@ -730,6 +750,23 @@ coal.render();
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             selectedWorker.task = selectedBuilding.task;
+                        }
+                    });
+                }
+                if(selectedBuilding.task!=null){
+                    action("Add Worker", getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2)!=null, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if(selectedBuilding==null)return;
+                            MenuComponentWorker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
+                            if(worker==null)return;
+                            worker.targetTask = selectedBuilding.task;
+                        }
+                    });
+                    action("Cancel Task", true, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e){
+                            selectedWorker.cancelTask();
                         }
                     });
                 }
@@ -747,7 +784,7 @@ for(MenuComponentWorker w : workers){
         oldSelectedTask = selectedTask;
         if(selectedBuilding!=null&&selectedBuilding.task!=null){
             for(int i = 0; i<selectedBuilding.task.getDetails().length; i++){
-                textWithBackground(baseGUI?300:250, 30*i, Display.getWidth(), 30*(i+1), selectedBuilding.task.getDetails()[i]);
+                textWithBackground((baseGUI?50:0)+actionButtonWidth, 30*i, Display.getWidth(), 30*(i+1), selectedBuilding.task.getDetails()[i], selectedBuilding.task.important);
             }
         }
         if(Core.debugMode&&cheats){
@@ -769,6 +806,7 @@ for(MenuComponentWorker w : workers){
         //</editor-fold>
         renderForeground();
     }
+    @Override
     public void renderForeground(){
         if(fading){
             blackScreenOpacity+=0.01;
@@ -806,89 +844,140 @@ for(MenuComponentWorker w : workers){
                 cheats = !cheats;
             }
         }
+        if(key==Controls.CHEAT_LOSE&&pressed&&!repeat){
+            if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+                gui.open(new MenuLost(gui, this));
+            }
+        }
         if(cheats&&pressed&&!repeat){
-            if(key==Keyboard.KEY_6&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+            if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)&&Keyboard.isKeyDown(Controls.CHEAT_SECRET)){
+                if(key==Keyboard.KEY_1){
+                    secretWaiting = 0;
+                }
+                if(key==Keyboard.KEY_2){
+                    secretWaiting = 1;
+                }
+                if(key==Keyboard.KEY_3){
+                    secretWaiting = 2;
+                }
+                if(key==Keyboard.KEY_4){
+                    secretWaiting = 3;
+                }
+                if(key==Keyboard.KEY_5){
+                    secretWaiting = 4;
+                }
+                if(key==Keyboard.KEY_6){
+                    secretWaiting = 5;
+                }
+                if(key==Keyboard.KEY_7){
+                    secretWaiting = 6;
+                }
+                if(key==Keyboard.KEY_8){
+                    secretWaiting = 7;
+                }
+                if(key==Keyboard.KEY_9){
+                    secretWaiting = 8;
+                }
+                if(key==Keyboard.KEY_0){
+                    secretWaiting = 9;
+                }
+            }
+            if(key==Controls.CHEAT_PHASE&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
                 phase(phase+1);
                 paused = false;
             }
-            if(key==Keyboard.KEY_R){
+            if(key==Controls.CHEAT_RESOURCES){
                 for(ItemStack resource : base.resources){
                     resource.count+=100;
                 }
             }
-            if(key==Keyboard.KEY_C){
+            if(key==Controls.CHEAT_CLOUD){
                 addCloud(Mouse.getX(), Display.getHeight()-Mouse.getY());
             }
-            if(key==Keyboard.KEY_F){
+            if(key==Controls.CHEAT_FOG){
                 startFog();
             }
             if(!actionButtons.isEmpty()&&selectedBuilding!=null&&selectedBuilding.task==null){
                 if(key==Keyboard.KEY_1){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(0).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_2&&actionButtons.size()>1){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(1).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_3&&actionButtons.size()>2){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(2).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_4&&actionButtons.size()>3){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(3).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_5&&actionButtons.size()>4){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(4).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_6&&actionButtons.size()>5){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(5).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_7&&actionButtons.size()>6){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(6).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_8&&actionButtons.size()>7){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(7).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_9&&actionButtons.size()>8){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(8).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_0&&actionButtons.size()>9){
+                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
                     actionButtons.get(9).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
             }
-            if(key==Keyboard.KEY_ADD){
+            if(key==Controls.CHEAT_WORKER){
                 addWorker();
             }
-            if(key==Keyboard.KEY_GRAVE){
-                if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)){
+            if(key==Controls.CHEAT_ENEMY){
+                if(Keyboard.isKeyDown(Controls.CHEAT_SECRET)&&Keyboard.isKeyDown(Keyboard.KEY_1)){
+                    int X = Mouse.getX()-25;
+                    int Y = Display.getHeight()-Mouse.getY()-25;
+                    add(new MenuComponentAsteroid(X, Y, AsteroidMaterial.SHOOTING_STAR, 2));
+                }else if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)){
                     MenuComponentEnemy.strength++;
                 }else{
                     if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
@@ -910,15 +999,12 @@ for(MenuComponentWorker w : workers){
                     }
                 }
             }
-            if(key==Keyboard.KEY_P){
-                if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
-                    meteorShowerDelayMultiplier *= 10;
-                    meteorShowerIntensityMultiplier *= 0.1;
-                    if(mothership!=null){
-                        mothership.health-=mothership.maxHealth/4;
-                    }
+            if(key==Controls.CHEAT_PEACE){
+                if(mothership!=null){
+                    mothership.health-=mothership.maxHealth/4;
                 }
                 meteorShower = false;
+                meteorShowerTimer += 20*60*60;
                 shower.opacitizing = -1;
             }
         }else if(pressed&&!repeat){
@@ -1004,7 +1090,6 @@ for(MenuComponentWorker w : workers){
         if(mothership!=null){
             debugData.add("Mothership Health: "+mothership.health+"/"+mothership.maxHealth+" ("+Math.round(mothership.health/(double)mothership.maxHealth*100)+"%)");
         }
-        debugData.add("First shower: "+firstShower);
         debugData.add("Furnace XP: "+furnace.total);
         debugData.add("Enemy Strength: "+MenuComponentEnemy.strength);
         debugData.add("Enemy Timer: "+enemyTimer);
@@ -1061,13 +1146,38 @@ for(MenuComponentWorker w : workers){
         debugData.add("Fog intensity: "+fogIntensity);
         debugData.add("Fog Height intensity: "+fogHeightIntensity);
 //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
+        if(lost&&phase>3){
+            lostTimer++;
+            if(lostTimer>loseSongLength/10){
+                if(Sounds.songTimer()<loseSongLength/20){
+                    allowArmogeddon = false;
+                    for(MenuComponent comp : components){
+                        if(comp instanceof MenuComponentParticle){
+                            ((MenuComponentParticle)comp).strength-=.1;
+                        }
+                    }
+                    if(lostTimer>loseSongLength/20+20*5){
+                        gui.open(new MenuLost(gui, this));
+                    }
+                }
+            }
+        }
+//</editor-fold>
         tick++;
+        time++;
+        if(time>=dayNightCycle){
+            time -= dayNightCycle;
+        }
         fogTime+=fogTimeIncrease;
         if(fogTime>1){
             stopFog();
         }
         if(tick%20==0){
             drawFog();
+        }
+        if(hasResources(new ItemStack(Item.star))){
+            observatory = true;
         }
         if(selectedWorker!=null&&selectedWorker.dead){
             selectedWorker = null;
@@ -1134,7 +1244,7 @@ for(MenuComponentWorker w : workers){
             }
         });
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
-        if(lost){
+        if(lost&&allowArmogeddon){
             for(int i = 0; i<2; i++){
                 switch(rand.nextInt(3)){
                     case 0:
@@ -1158,7 +1268,7 @@ for(MenuComponentWorker w : workers){
         }else{
             meteorShowerTimer--;
         }
-        if(meteorShowerTimer==20*3.5){
+        if(meteorShowerTimer==20*4.5){
             Sounds.fadeSound("music", "Music1");
         }
         if(meteorShower&&meteorShowerTimer>0){
@@ -1171,17 +1281,24 @@ for(MenuComponentWorker w : workers){
             meteorShower = !meteorShower;
             if(meteorShower){
                 for(AsteroidMaterial m : AsteroidMaterial.values()){
+                    if(m.timer>=Integer.MAX_VALUE)continue;
                     m.timer = 0;
                 }
                 shower.opacitizing = 1;
             }else{
-                if(Sounds.nowPlaying().equals("Music1")){
+                if(Sounds.nowPlaying()!=null&&Sounds.nowPlaying().equals("Music1")){
                     Sounds.fadeSound("music");
                 }
-                firstShower = false;
                 shower.opacitizing = -1;
             }
             meteorShowerTimer = (int)Math.round((meteorShower?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
+        }
+        if(secretWaiting==-1&&workers.size()>0){
+            secretTimer--;
+            if(secretTimer<=0){
+                secretWaiting = rand.nextInt(secrets);
+                secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
+            }
         }
         if(fogTime==0){
             fogTimer--;
@@ -1194,7 +1311,7 @@ for(MenuComponentWorker w : workers){
             cloudTimer--;
             if(cloudTimer<=0){
                 addCloud();
-                cloudTimer = rand.nextInt(500)+350;
+                cloudTimer = rand.nextInt(750)+500;
                 if(lost){
                     cloudTimer*=1.5;
                 }
@@ -1204,6 +1321,7 @@ for(MenuComponentWorker w : workers){
             }
         }
         for(AsteroidMaterial m : AsteroidMaterial.values()){
+            if(m.timer>=Integer.MAX_VALUE)continue;
             m.timer--;
             if(m.timer<=0){
                 add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), m, true));
@@ -1332,7 +1450,7 @@ for(MenuComponentWorker w : workers){
                 if(building.type==BuildingType.SKYSCRAPER){
                     sky = (MenuComponentSkyscraper) building;
                 }
-                if(selectedWorker!=null&&((!selectedWorker.isWorking()&&!(Keyboard.isKeyDown(Controls.up)||selectedWorker.selectedTarget!=null||Keyboard.isKeyDown(Controls.left)||Keyboard.isKeyDown(Controls.down)||Keyboard.isKeyDown(Controls.right)))||selectedWorker.isWorking())&&Core.game.distanceTo(selectedWorker, building.x+(building.width/2),building.y+(building.width/2)-(sky==null?0:sky.fallen))<=building.width/2){
+                if(selectedWorker!=null&&((!selectedWorker.isWorking()&&!(Keyboard.isKeyDown(Controls.up)||selectedWorker.selectedTarget!=null||Keyboard.isKeyDown(Controls.left)||Keyboard.isKeyDown(Controls.down)||Keyboard.isKeyDown(Controls.right)))||selectedWorker.isWorking())&&Core.isClickWithinBounds(selectedWorker.x+selectedWorker.width/2, selectedWorker.y+selectedWorker.height/2, building.x, building.y-(sky==null?0:sky.fallen), building.x+building.width, building.y+building.height-(sky==null?0:sky.fallen))){
                     selectedBuilding = building;
                     break DO;
                 }
@@ -1420,7 +1538,7 @@ for(MenuComponentWorker w : workers){
                 }
             }
         }).start();
-        Sounds.fadeSound("music", "SadMusic28");
+        Sounds.fadeSound("music", "SadMusic7");//cryptic sorrow
         if(mothership!=null){
             mothership.leaving = true;
         }
@@ -1468,20 +1586,25 @@ for(MenuComponentWorker w : workers){
         return particle;
     }
     public void addWorker(){
-        MenuComponentWorker worker = new MenuComponentWorker(base.x+base.width/2, base.y+base.height-12, this);
-        workers.add(add(worker));
-        add(worker.button);
+        addWorker(base.x+base.width/2, base.y+base.height-12);
     }
     public void replaceBuilding(MenuComponentBuilding start, MenuComponentBuilding end){
         if(buildings.contains(start)){
             buildingsToReplace.put(start,end);
         }
     }
-    private void textWithBackground(double left, double top, double right, double bottom, String str) {
+    private void textWithBackground(double left, double top, double right, double bottom, String str){
+        textWithBackground(left, top, right, bottom, str, false);
+    }
+    private void textWithBackground(double left, double top, double right, double bottom, String str, boolean pulsing){
         GL11.glColor4d(0, 0, 0, 0.75);
         drawRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        GL11.glColor4d(1, 1, 1, 1); 
+        if(pulsing){
+            GL11.glColor4d(Math.sin(tick/5d)/4+.75, 0, 0, 1);
+        }
         drawText(left,top,right,bottom, str);
+        GL11.glColor4d(1, 1, 1, 1);
     }
     public void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {
         GL11.glColor4d(0, 0, 0, 0.75);
@@ -1490,12 +1613,20 @@ for(MenuComponentWorker w : workers){
         drawCenteredText(left,top,right,bottom, str);
     }
     private void action(String label, boolean enabled, ActionListener listener, ItemStack... tooltip){
-        actionButtons.add(add(new MenuComponentActionButton(50/*+(actionButtons.size()*200)*/, /*Display.getHeight()-50*/actionButtons.size()*50, 250, 50, label, enabled, tooltip){
+        if(label.contains("Demolish")||label.contains("Cancel Task")){
+            actionButtonOffset+=15;
+        }
+        actionButtons.add(add(new MenuComponentActionButton(50/*+(actionButtons.size()*200)*/, /*Display.getHeight()-50*/actionButtons.size()*50+actionButtonOffset, actionButtonWidth, 50, label, enabled, tooltip){
             @Override
             public void actionPerformed(ActionEvent e) {
+                if(listener==null)return;
                 listener.actionPerformed(e);
+                selectedBuilding = null;
             }
         }));
+        if(label.contains("Demolish")||label.contains("Cancel Task")){
+            actionButtonOffset+=15;
+        }
     }
     private void taskButton(String label, MenuComponentWorker worker, Task task){
         action(label, task.canPerform(), new ActionListener() {
@@ -1621,7 +1752,6 @@ for(MenuComponentWorker w : workers){
         if(mothership!=null){
             config.set("mothership health", mothership.health);
         }
-        config.set("first shower", firstShower);
         config.set("furnace level", furnace.level);
         config.set("autotask", autoTask);
         config.set("furnace iron", furnace.ironOre);
@@ -1678,6 +1808,10 @@ for(MenuComponentWorker w : workers){
         config.set("fog time increase", fogTimeIncrease);
         config.set("fog intensity", fogIntensity);
         config.set("fog height intensity", fogHeightIntensity);
+        config.set("secret timer", secretTimer);
+        config.set("secret waiting", secretWaiting);
+        config.set("observatoryUnlocked", observatory);
+        config.set("time", time);
         config.save();
     }
     public static MenuGame load(GUI gui){
@@ -1689,7 +1823,6 @@ for(MenuComponentWorker w : workers){
         Config config = Config.newConfig(file);
         config.load();
         int hp = config.get("mothership health", -1);
-        game.firstShower = config.get("first shower", false);
         if(hp!=-1){
             EnemyMothership ship = new EnemyMothership();
             ship.health = hp;
@@ -1746,6 +1879,10 @@ for(MenuComponentWorker w : workers){
         game.fogTimeIncrease = config.get("fog time increase", game.fogTimeIncrease);
         game.fogIntensity = config.get("fog intensity", game.fogIntensity);
         game.fogHeightIntensity = config.get("fog height intensity", game.fogHeightIntensity);
+        game.secretTimer = config.get("secret timer", game.secretTimer);
+        game.secretWaiting = config.get("secret waiting", game.secretWaiting);
+        game.observatory = config.get("observatoryUnlocked", game.observatory);
+        game.time = config.get("time", game.time);
         config.save();
         return game;
     }
@@ -2011,7 +2148,7 @@ for(MenuComponentWorker w : workers){
                     }
                 }
             }
-            if(hit==null||!hit.damage(x,y)){
+            if(hit==null||!hit.damage(x,y)||material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
                 double dmgRad = 25;
                 for(MenuComponentWorker worker : workers){
@@ -2025,17 +2162,21 @@ for(MenuComponentWorker w : workers){
                     }
                 }
                 if(material!=null){
-                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                        itemsToDrop.add(new MenuComponentDroppedItem(x+15, y+8, getItem(material), this));
-                    }
-                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                        itemsToDrop.add(new MenuComponentDroppedItem(x+8, y+28, getItem(material), this));
-                    }
-                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                        itemsToDrop.add(new MenuComponentDroppedItem(x+38, y+24, getItem(material),  this));
-                    }
-                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                        itemsToDrop.add(new MenuComponentDroppedItem(x+23, y+34, getItem(material), this));
+                    if(material.forceDrop){
+                        itemsToDrop.add(new MenuComponentDroppedItem(x, y, getItem(material), this));
+                    }else{
+                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                            itemsToDrop.add(new MenuComponentDroppedItem(x+15-25, y+8-25, getItem(material), this));
+                        }
+                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                            itemsToDrop.add(new MenuComponentDroppedItem(x+8-25, y+28-25, getItem(material), this));
+                        }
+                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                            itemsToDrop.add(new MenuComponentDroppedItem(x+38-25, y+24-25, getItem(material),  this));
+                        }
+                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                            itemsToDrop.add(new MenuComponentDroppedItem(x+23-25, y+34-25, getItem(material), this));
+                        }
                     }
                 }
 //</editor-fold>
@@ -2050,6 +2191,8 @@ for(MenuComponentWorker w : workers){
                 return Item.ironOre;
             case COAL:
                 return Item.coal;
+            case SHOOTING_STAR:
+                return Item.star;
         }
         return null;
     }
@@ -2092,5 +2235,94 @@ for(MenuComponentWorker w : workers){
         text = drawTextWithWrap(1, debugYOffset+1, Display.getWidth()-1, debugYOffset+textHeight-1, text);
         debugYOffset+=textHeight;
         return text;
+    }
+    public void addWorker(double x, double y){
+        MenuComponentWorker worker = new MenuComponentWorker(x, y, this);
+        workers.add(add(worker));
+        add(worker.button);
+    }
+    public void playSecret(){
+        playSecret(secretWaiting);
+        secretWaiting = -1;
+    }
+    private void playSecret(int secret){
+        switch(secret){
+            case 0://observatory
+                Sounds.playSound("music", "MysteryMusic3");
+                addShootingStar();
+                break;
+        }
+    }
+    private void addShootingStar(){
+        add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.SHOOTING_STAR, 2));
+    }
+    private void drawDayNightCycle(){
+        Color noon = new Color(255, 216, 0, 32);
+        Color night = new Color(22, 36, 114, 72);
+        if(time>=dayNightCycle/8&&time<dayNightCycle/2-dayNightCycle/8){
+            GL11.glColor4d(noon.getRed()/255d, noon.getGreen()/255d, noon.getBlue()/255d, noon.getAlpha()/255d);
+        }
+        if(time>=dayNightCycle/2-dayNightCycle/8&&time<dayNightCycle/2+dayNightCycle/8){
+            double percent = (time-dayNightCycle/2+dayNightCycle/8)/(dayNightCycle/4d);
+            double r = Core.getValueBetweenTwoValues(0, noon.getRed(), 1, night.getRed(), percent)/255d;
+            double g = Core.getValueBetweenTwoValues(0, noon.getGreen(), 1, night.getGreen(), percent)/255d;
+            double b = Core.getValueBetweenTwoValues(0, noon.getBlue(), 1, night.getBlue(), percent)/255d;
+            double a = Core.getValueBetweenTwoValues(0, noon.getAlpha(), 1, night.getAlpha(), percent)/255d;
+            GL11.glColor4d(r, g, b, a);
+        }
+        if(time>=dayNightCycle/2+dayNightCycle/9&&time<dayNightCycle-dayNightCycle/8){
+            GL11.glColor4d(night.getRed()/255d, night.getGreen()/255d, night.getBlue()/255d, night.getAlpha()/255d);
+        }
+        if(time<dayNightCycle/8||time>=dayNightCycle-dayNightCycle/8){
+            double newTime = time+dayNightCycle/8;
+            if(newTime>=dayNightCycle){
+                newTime-=dayNightCycle;
+            }
+            double percent = newTime/(dayNightCycle/4d);
+            double r = Core.getValueBetweenTwoValues(0, night.getRed(), 1, noon.getRed(), percent)/255d;
+            double g = Core.getValueBetweenTwoValues(0, night.getGreen(), 1, noon.getGreen(), percent)/255d;
+            double b = Core.getValueBetweenTwoValues(0, night.getBlue(), 1, noon.getBlue(), percent)/255d;
+            double a = Core.getValueBetweenTwoValues(0, night.getAlpha(), 1, noon.getAlpha(), percent)/255d;
+            GL11.glColor4d(r, g, b, a);
+        }
+        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        GL11.glColor4d(1, 1, 1, 1);
+    }
+    private MenuComponentWorker getAvailableWorker(double x, double y){
+        MenuComponentWorker closest = null;
+        double distance = Double.MAX_VALUE;
+        for(MenuComponentWorker worker : workers){
+            if(!worker.isWorking()&&selectedWorker!=worker){
+                if(distanceTo(worker, x, y)<distance){
+                    closest = worker;
+                    distance = distanceTo(worker, x, y);
+                }
+            }
+        }
+        return closest;
+    }
+    /**
+     * @return the amount of sunlight, 0 - 1
+     */
+    public double getSunlight(){
+        if(time>=dayNightCycle/8&&time<dayNightCycle/2-dayNightCycle/8){
+            return 1;
+        }
+        if(time>=dayNightCycle/2-dayNightCycle/8&&time<dayNightCycle/2+dayNightCycle/8){
+            double percent = (time-dayNightCycle/2+dayNightCycle/8)/(dayNightCycle/4d);
+            return 1-percent;
+        }
+        if(time>=dayNightCycle/2+dayNightCycle/9&&time<dayNightCycle-dayNightCycle/8){
+            return 0;
+        }
+        if(time<dayNightCycle/8||time>=dayNightCycle-dayNightCycle/8){
+            double newTime = time+dayNightCycle/8;
+            if(newTime>=dayNightCycle){
+                newTime-=dayNightCycle;
+            }
+            double percent = newTime/(dayNightCycle/4d);
+            return percent;
+        }
+        return -1;
     }
 }

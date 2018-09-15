@@ -4,12 +4,11 @@ import planetaryprotector.Sounds;
 import planetaryprotector.particle.MenuComponentParticle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.MenuComponentShieldGenerator;
 import planetaryprotector.building.MenuComponentBuilding;
 import planetaryprotector.building.MenuComponentGenerator;
-import planetaryprotector.building.MenuComponentSilo;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.building.BuildingPowerConsumer;
 import simplelibrary.opengl.ImageStash;
 public class EnemyMothership extends MenuComponentEnemy{
     public int initialDelay = 20*10;
@@ -271,18 +270,13 @@ public class EnemyMothership extends MenuComponentEnemy{
     private void firePowerLaserRandomly(){
         boolean redo = false;
         if(powerLaserFiring!=null){
-            if(powerLaserFiring instanceof MenuComponentShieldGenerator){
-                if(((MenuComponentShieldGenerator) powerLaserFiring).power<powerLaserPower){
-                    redo = true;
-                }
-            }
             if(powerLaserFiring instanceof MenuComponentGenerator){
                 if(((MenuComponentGenerator) powerLaserFiring).power<powerLaserPower){
                     redo = true;
                 }
             }
-            if(powerLaserFiring instanceof MenuComponentSilo){
-                if(((MenuComponentSilo) powerLaserFiring).power<powerLaserPower){
+            if(powerLaserFiring instanceof BuildingPowerConsumer){
+                if(((BuildingPowerConsumer) powerLaserFiring).power<powerLaserPower){
                     redo = true;
                 }
             }
@@ -292,20 +286,14 @@ public class EnemyMothership extends MenuComponentEnemy{
             powerLaserTimer--;
             if(powerLaserTimer==0||redo){
                 for(MenuComponentBuilding b : game.buildings){
-                    if(b instanceof MenuComponentShieldGenerator){
-                        if(((MenuComponentShieldGenerator) b).power>=powerLaserPower){
-                            powerLaserFiring = b;
-                            break;
-                        }
-                    }
-                    if(b instanceof MenuComponentSilo){
-                        if(((MenuComponentSilo) b).power>=powerLaserPower){
-                            powerLaserFiring = b;
-                            break;
-                        }
-                    }
                     if(b instanceof MenuComponentGenerator){
                         if(((MenuComponentGenerator) b).power>=powerLaserPower){
+                            powerLaserFiring = b;
+                            break;
+                        }
+                    }
+                    if(b instanceof BuildingPowerConsumer){
+                        if(((BuildingPowerConsumer) b).power>=powerLaserPower){
                             powerLaserFiring = b;
                             break;
                         }
@@ -319,14 +307,11 @@ public class EnemyMothership extends MenuComponentEnemy{
             }
         }else{
             powerLaserTimer++;
-            if(powerLaserFiring instanceof MenuComponentSilo){
-                ((MenuComponentSilo)powerLaserFiring).power-=powerLaserPower;
+            if(powerLaserFiring instanceof BuildingPowerConsumer){
+                ((BuildingPowerConsumer)powerLaserFiring).power-=powerLaserPower;
             }
             if(powerLaserFiring instanceof MenuComponentGenerator){
                 ((MenuComponentGenerator)powerLaserFiring).power-=powerLaserPower;
-            }
-            if(powerLaserFiring instanceof MenuComponentShieldGenerator){
-                ((MenuComponentShieldGenerator)powerLaserFiring).power-=powerLaserPower;
             }
             firePowerLaser();
             if(powerLaserTimer==0){

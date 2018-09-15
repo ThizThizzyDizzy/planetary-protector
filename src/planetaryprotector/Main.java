@@ -20,8 +20,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 public class Main{
-    private static String requiredSimpleLibraryVersion = "10.1.2";
-    private static int simplelibrarySize = 539;
+    private static String requiredSimpleLibraryVersion = "10.1.3";
+    private static int simplelibrarySize = 540;
     private static int simplelibraryExtendedSize = 628;
     /**
      * Set to "" for latest, otherwise exact version #
@@ -33,7 +33,7 @@ public class Main{
     public static final boolean jLayer = true;
     public static final boolean webcam = false;
     public static final boolean textToSpeech = false;
-    public static final boolean intellitype = false;
+    public static final boolean intellitype = true;
     private static int downloadSize = 0;
     //Download details
     private static int total;

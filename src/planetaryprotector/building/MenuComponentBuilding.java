@@ -6,7 +6,6 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.task.Task;
 import java.util.ArrayList;
-import java.util.Iterator;
 import static planetaryprotector.menu.MenuGame.rand;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Random;
@@ -141,6 +140,12 @@ public abstract class MenuComponentBuilding extends MenuComponentButton{
         MenuComponentBuilding b = null;
         //TODO save and load fires and fire stats
         switch(BuildingType.valueOf(cfg.get("type", "EMPTY"))){
+            case WORKSHOP:
+                b = MenuComponentWorkshop.loadSpecific(cfg);
+                break;
+            case OBSERVATORY:
+                b = MenuComponentObservatory.loadSpecific(cfg);
+                break;
             case BASE:
                 b = MenuComponentBase.loadSpecific(cfg);
                 break;
@@ -256,4 +261,5 @@ public abstract class MenuComponentBuilding extends MenuComponentButton{
         components.removeAll(fires);
         fires.clear();
     }
+    public abstract String getName();
 }

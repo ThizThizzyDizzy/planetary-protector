@@ -2,11 +2,9 @@ package planetaryprotector.menu;
 import planetaryprotector.Controls;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.component.ZComponent;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuIngame extends MenuComponent{
-    private final MenuComponentButton restart;
     private final MenuComponentButton controls;
     private final MenuComponentButton back;
     private final MenuComponentButton save;
@@ -17,9 +15,8 @@ public class MenuIngame extends MenuComponent{
     private final MenuGame game;
     public MenuIngame(MenuGame game){
         super(0, 0, Display.getWidth(), Display.getHeight());
-        restart = add(new MenuComponentButton(Display.getWidth()/2-400, 80, 800, 80, "Restart game", true));
         controls = add(new MenuComponentButton(Display.getWidth()/2-400, 240, 800, 80, "Controls", true));
-        back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-400, 800, 80, "Back to game", true));
+        back = add(new MenuComponentButton(Display.getWidth()/2-400, 80, 800, 80, "Back to game", true));
         saveAs = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-320, 800, 80, "Save As...", true));
         save = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-240, 800, 80, "Save Game", true));
         exit = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, "Exit to menu", true));
@@ -66,13 +63,10 @@ public class MenuIngame extends MenuComponent{
         }
         if(button==exitSave){
             game.save();
-            gui.open(new MenuMain(gui, null));
+            gui.open(new MenuMain(gui));
         }
         if(button==exitNosave){
-            gui.open(new MenuMain(gui, null));
-        }
-        if(button==restart){
-            gui.open(new MenuLoad(gui, parent));
+            gui.open(new MenuMain(gui));
         }
     }
 }

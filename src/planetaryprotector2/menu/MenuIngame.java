@@ -65,10 +65,10 @@ public class MenuIngame extends Menu{
         }
         if(button==exitSave){
             game.save();
-            gui.open(new MenuMain(gui, null));
+            gui.open(new MenuMain(gui));
         }
         if(button==exitNosave){
-            gui.open(new MenuMain(gui, null));
+            gui.open(new MenuMain(gui));
         }
         if(button==restart){
             gui.open(new MenuGame(gui));

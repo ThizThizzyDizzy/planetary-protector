@@ -11,15 +11,12 @@ import planetaryprotector.particle.MenuComponentParticle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentSilo extends MenuComponentBuilding{
+public class MenuComponentSilo extends BuildingPowerConsumer{
     public int drones = 0;
     int missiles = 0;
-    public int power = 0;
-    int maxPower = 10000;
     public ArrayList<MenuComponentDrone> droneList = new ArrayList<>();
     public boolean outline;
     public static final ItemStack missileCost = new ItemStack(Item.ironIngot, 75);
@@ -36,9 +33,8 @@ public class MenuComponentSilo extends MenuComponentBuilding{
         power = silo.power;
     }
     public MenuComponentSilo(double x, double y, int level){
-        super(x, y, 100, 100, BuildingType.SILO);
+        super(x, y, 100, 100, BuildingType.SILO, level==1?100000:(level==2?250000:1000000));
         this.level = level;
-        maxPower = level==1?100000:(level==2?250000:1000000);
     }
     @Override
     public void renderBackground(){
@@ -71,23 +67,23 @@ public class MenuComponentSilo extends MenuComponentBuilding{
                 droneList.add(Core.game.addDrone(new MenuComponentDrone(this, 20*60*5)));
             }
         }
-        if(power<maxPower){
-            for(MenuComponentBuilding building : Core.game.buildings){
-                if(building instanceof MenuComponentGenerator&&Core.game.distance(building, this)<=250){
-                    MenuComponentGenerator gen = (MenuComponentGenerator) building;
-                    if(gen.power<gen.transferAmount){
-                        continue;
-                    }
-                    if(power+gen.transferAmount>maxPower){
-                        continue;
-                    }
-                    gen.power -= gen.transferAmount;
-                    power += gen.transferAmount;
-                }
-            }
-        }else{
-            power = maxPower;
-        }
+//        if(power<maxPower){
+//            for(MenuComponentBuilding building : Core.game.buildings){
+//                if(building instanceof MenuComponentGenerator&&Core.game.distance(building, this)<=250){
+//                    MenuComponentGenerator gen = (MenuComponentGenerator) building;
+//                    if(gen.power<gen.transferAmount){
+//                        continue;
+//                    }
+//                    if(power+gen.transferAmount>maxPower){
+//                        continue;
+//                    }
+//                    gen.power -= gen.transferAmount;
+//                    power += gen.transferAmount;
+//                }
+//            }
+//        }else{
+//            power = maxPower;
+//        }
     }
     public boolean canBuildMissile(){
         switch(level){
@@ -218,5 +214,9 @@ public class MenuComponentSilo extends MenuComponentBuilding{
     @Override
     protected double getIgnitionChance(){
         return .2;
+    }
+    @Override
+    public String getName(){
+        return "Level "+(level+1)+" Silo";
     }
 }

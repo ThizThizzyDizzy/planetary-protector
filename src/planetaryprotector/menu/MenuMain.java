@@ -61,8 +61,8 @@ public class MenuMain extends Menu{
             }
         }
     }
-    public MenuMain(GUI gui, Menu parent){
-        super(gui, parent);
+    public MenuMain(GUI gui){
+        super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-80, 200, 40, "Exit", true));
         newSave = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 400, 40, "New Game", true));
         play = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-160, 200, 40, "Play", false));
@@ -269,7 +269,7 @@ public class MenuMain extends Menu{
         String name = save.label+".dat";
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+name);
         file.delete();
-        gui.open(new MenuMain(gui, parent));
+        gui.open(new MenuMain(gui));
     }
     private void rename(MenuComponentButton save){
         gui.open(new MenuRename(gui, this, save));

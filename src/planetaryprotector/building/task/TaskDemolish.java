@@ -9,8 +9,8 @@ import planetaryprotector.item.ItemStack;
 import java.util.ArrayList;
 public class TaskDemolish extends Task{
     public TaskDemolish(MenuComponentBuilding building){
-        super(building, TaskType.CONSTRUCT, 1);
-        time = 200;
+        super(building, TaskType.CONSTRUCT, 200);
+        important = true;
     }
     @Override
     public boolean canPerform(){
@@ -68,9 +68,7 @@ public class TaskDemolish extends Task{
     @Override
     public void start(){}
     @Override
-    public void cancel(){
-        finish();
-    }
+    public void cancel(){}
     @Override
     public ItemStack[] getTooltip(){
         return new ItemStack[0];

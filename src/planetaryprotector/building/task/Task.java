@@ -10,6 +10,7 @@ public abstract class Task{
     public int progress = 0;
     public final MenuGame game;
     public boolean finished = false;
+    public boolean important = false;
     public Task(MenuComponentBuilding building, TaskType type, int time){
         this.building = building;
         this.type = type;

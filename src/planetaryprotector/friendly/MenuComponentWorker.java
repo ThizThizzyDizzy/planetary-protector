@@ -375,11 +375,6 @@ public class MenuComponentWorker extends MenuComponent{
         return !(dead||isWorking()||grabbedItem!=null||game.selectedWorker==this);
     }
     public void damage(double x, double y){
-        if(game.firstShower){
-            x = game.base.x+game.base.width/2;
-            y = game.base.y+12;
-            return;
-        }
         for(MenuComponentBuilding building : game.buildings){
             if(building.type==BuildingType.BUNKER){
                 if(game.distance(this, building)<=50){

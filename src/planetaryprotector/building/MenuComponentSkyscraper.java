@@ -207,4 +207,8 @@ public class MenuComponentSkyscraper extends MenuComponentBuilding{
     protected double getRandY(Random rand){
         return rand.nextDouble()*(height+(floorCount-1)*floorHeight)-(floorCount-1)*floorHeight;
     }
+    @Override
+    public String getName(){
+        return floorCount+" Floor Skyscraper";
+    }
 }

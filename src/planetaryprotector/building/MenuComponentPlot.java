@@ -84,4 +84,8 @@ public class MenuComponentPlot extends MenuComponentBuilding{
     protected double getIgnitionChance(){
         return 0;
     }
+    @Override
+    public String getName(){
+        return "Empty Plot";
+    }
 }

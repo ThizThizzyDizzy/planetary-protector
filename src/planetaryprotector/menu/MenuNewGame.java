@@ -57,7 +57,7 @@ public class MenuNewGame extends Menu{
         }
     }
     private void back(){
-        gui.open(new MenuMain(gui, parent.parent));
+        gui.open(new MenuMain(gui));
     }
     private void create(String name){
         Core.save = name;

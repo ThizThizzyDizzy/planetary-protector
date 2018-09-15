@@ -39,10 +39,10 @@ public class MenuPrologue extends Menu{
         if(Sounds.songTimer()>=3073||opacity>0){
             opacity += .01;
             if(opacity>=1){
-                if(Core.allowLevel2){
+                if(Core.canPlayLevel(2)){
                     gui.open(new MenuGame(gui));
                 }else{
-                    gui.open(new MenuMain(gui, null));
+                    gui.open(new MenuMain(gui));
                 }
             }
         }

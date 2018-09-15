@@ -7,6 +7,7 @@ public class Item{
     public static final Item ironOre = new Item("Iron Chunk", "Iron Chunk");
     public static final Item ironIngot = new Item("Iron Ingot", "Iron Ingot");
     public static final Item coal = new Item("Coal", "Coal");
+    public static final Item star = new Item("Shooting Star", "Shooting Star");
     static{
         items.add(stone);
         items.add(ironOre);

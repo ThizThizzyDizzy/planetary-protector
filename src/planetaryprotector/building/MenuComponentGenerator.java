@@ -1,4 +1,5 @@
 package planetaryprotector.building;
+import planetaryprotector.Core;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -12,9 +13,7 @@ public class MenuComponentGenerator extends MenuComponentBuilding{
     }
     public MenuComponentGenerator(double x, double y, int level) {
         super(x, y, 100, 100, BuildingType.GENERATOR);
-        powerIncrease*=level+1;
-        transferAmount*=level+1;
-        maxPower*=level+1;
+        maxPower = powerIncrease = transferAmount = (int) getStats(level);
         this.level = level;
     }
     @Override
@@ -22,12 +21,26 @@ public class MenuComponentGenerator extends MenuComponentBuilding{
         super.update();
         power+= powerIncrease;
         power = Math.max(0, Math.min(maxPower, power));
+        for(MenuComponentBuilding building : Core.game.buildings){
+            if(building instanceof BuildingPowerConsumer&&Core.game.distance(building, this)<=250){
+                BuildingPowerConsumer consumer = (BuildingPowerConsumer) building;
+                if(consumer.power+transferAmount>consumer.maxPower){
+                    if(power<(consumer.maxPower-consumer.power))continue;
+                    power -= (consumer.maxPower-consumer.power);
+                    consumer.power = consumer.maxPower;
+                }else{
+                    if(power<transferAmount)continue;
+                    power -= transferAmount;
+                    consumer.power += transferAmount;
+                }
+            }
+        }
     }
     @Override
     public void render(){
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+" "+((int)((x%2)+1))+".png"));
         renderDamages();
-        drawCenteredText(x, y, x+width, y+20, "Power: "+power);
+        drawCenteredText(x, y, x+width, y+18, "Power: "+power);
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+(level+1));
     }
     @Override
@@ -37,7 +50,7 @@ public class MenuComponentGenerator extends MenuComponentBuilding{
     }
     @Override
     public boolean canUpgrade(){
-        return level<49;
+        return level<19;
     }
     @Override
     public MenuComponentBuilding getUpgraded() {
@@ -75,5 +88,13 @@ public class MenuComponentGenerator extends MenuComponentBuilding{
     @Override
     protected double getIgnitionChance(){
         return .75;
+    }
+    @Override
+    public String getName(){
+        return "Level "+(level+1)+" Generator";
+    }
+    private double getStats(int level){
+        level++;
+        return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
     }
 }

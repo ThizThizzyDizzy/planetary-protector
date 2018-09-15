@@ -92,6 +92,10 @@ public class TaskRepairAll extends Task{
     public void start(){
         building.fireIncreaseRate = 0;
         initialFire = building.fire;
+        if(damages.isEmpty()){
+            finish();
+            return;
+        }
         progress = (int) Math.round((1-damages.get(0).opacity)*time);
         game.removeResources(new ItemStack(building.type.repairCost[0].item, building.type.repairCost[0].count*damages.size()));
     }

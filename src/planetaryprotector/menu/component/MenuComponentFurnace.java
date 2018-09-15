@@ -5,6 +5,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
+import planetaryprotector.Core;
 public class MenuComponentFurnace extends MenuComponentButton{
     public int coal;
     public int ironOre;
@@ -20,6 +21,12 @@ public class MenuComponentFurnace extends MenuComponentButton{
     }
     @Override
     public void render(){
+        removeRenderBound();
+        if(canUpgrade()){
+            GL11.glColor4d(0, Math.sin(Core.game.tick/5d)/4+.75, 0, 1);
+            MenuGame.drawRegularPolygon(x+5, y+5, 5, 25, 0);
+            GL11.glColor4d(1, 1, 1, 1);
+        }
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/pot "+level+".png"));
         if(isMouseOver&&level<maxLevel){
             GL11.glColor4d(0, 1, 0, .25);
@@ -28,9 +35,12 @@ public class MenuComponentFurnace extends MenuComponentButton{
             GL11.glColor4d(1, 1, 1, 1);
         }
     }
+    private boolean canUpgrade(){
+        if(level>=maxLevel)return false;
+        return total>=Math.pow(20, level+1);
+    }
     public void upgrade(){
-        if(level>=maxLevel)return;
-        if(total>=Math.pow(20, level+1)){
+        if(canUpgrade()){
             level++;
             if(level>=2){
                 auto = true;

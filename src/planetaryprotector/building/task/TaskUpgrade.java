@@ -16,7 +16,7 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public boolean canPerform(){
-        return game.hasResources(target.type.costs[1])&&building.task==null&&building.damages.isEmpty()&&building.canUpgrade();
+        return game.hasResources(target.type.getCosts(target.level))&&building.task==null&&building.damages.isEmpty()&&building.canUpgrade();
     }
     @Override
     public String[] getDetails(){
@@ -72,11 +72,11 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public void start(){
-        game.removeResources(target.type.costs[1]);
+        game.removeResources(target.type.getCosts(target.level));
     }
     @Override
     public void cancel() {
-        for(ItemStack stack : target.type.costs[1]){
+        for(ItemStack stack : target.type.getCosts(target.level)){
             for(int i = 0; i<stack.count; i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
@@ -88,6 +88,6 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public ItemStack[] getTooltip(){
-        return target.type.costs[1];
+        return target.type.getCosts(target.level);
     }
 }

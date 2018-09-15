@@ -3,9 +3,7 @@ import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.MenuComponentDroppedItem;
 import planetaryprotector.menu.MenuGame;
-import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class MenuComponentMine extends MenuComponentBuilding{
     private int timer = 0;
     private int delay = 20;
@@ -98,5 +96,9 @@ public class MenuComponentMine extends MenuComponentBuilding{
     @Override
     protected double getIgnitionChance(){
         return 1/3d;
+    }
+    @Override
+    public String getName(){
+        return "Level "+(level+1)+" Mine";
     }
 }

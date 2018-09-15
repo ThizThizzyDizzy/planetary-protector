@@ -2,15 +2,17 @@ package planetaryprotector.building;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 public enum BuildingType{
-    SKYSCRAPER("Skyscraper","skyscraper"),
-    MINE("Mine","mine"),
-    GENERATOR("Generator","generator"),
-    SHIELD_GENERATOR("Shield Generator","shield generator"),
-    EMPTY("Empty Plot","empty plot"),
-    WRECK("Wreck","wreck"),
-    BUNKER("Bunker","bunker"),
-    SILO("Silo","silo"),
-    BASE("Base","base");
+    SKYSCRAPER("Skyscraper"),
+    MINE("Mine"),
+    GENERATOR("Generator"),
+    SHIELD_GENERATOR("Shield Generator"),
+    EMPTY("Empty Plot"),
+    WRECK("Wreck"),
+    BUNKER("Bunker"),
+    SILO("Silo"),
+    BASE("Base"),
+    WORKSHOP("Workshop"),
+    OBSERVATORY("Observatory");
     static{
         //<editor-fold defaultstate="collapsed" desc="SKYSCRAPER">
         SKYSCRAPER.repairCost = new ItemStack[]{
@@ -51,6 +53,63 @@ public enum BuildingType{
             },
             new ItemStack[]{
                 new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
             }
         };
         GENERATOR.constructionTime = new int[]{
@@ -67,6 +126,63 @@ public enum BuildingType{
             },
             new ItemStack[]{
                 new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 70)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 80)
             }
         };
         SHIELD_GENERATOR.constructionTime = new int[]{
@@ -116,6 +232,34 @@ public enum BuildingType{
             (int)(20*60*7.5)
         };
 //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="WORKSHOP">
+        WORKSHOP.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 10)
+        };
+        WORKSHOP.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 100)
+            }
+        };
+        WORKSHOP.constructionTime = new int[]{
+            3000
+        };
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="OBSERVATORY">
+        OBSERVATORY.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 15)
+        };
+        OBSERVATORY.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.stone, 250),
+                new ItemStack(Item.ironIngot, 100),
+                new ItemStack(Item.star, 1)
+            }
+        };
+        OBSERVATORY.constructionTime = new int[]{
+            4000
+        };
+//</editor-fold>
         BASE.repairCost = new ItemStack[]{
             new ItemStack(Item.ironIngot, 10)
         };
@@ -125,10 +269,13 @@ public enum BuildingType{
     public ItemStack[] repairCost;
     public int[] constructionTime;
     public final String name;
-    private BuildingType(String name, String texture){
+    private BuildingType(String name){
         this.name = name;
-        this.texture = texture;
+        texture = name.toLowerCase();
         costs = new ItemStack[0][0];
         repairCost = new ItemStack[0];
+    }
+    public ItemStack[] getCosts(int level){
+        return costs[Math.min(costs.length-1, level+1)];
     }
 }

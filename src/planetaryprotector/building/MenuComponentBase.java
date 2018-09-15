@@ -52,7 +52,8 @@ public class MenuComponentBase extends MenuComponentBuilding{
             MenuGame game = (MenuGame) parent;
             game.losing = true;
             if(deathTick==0){
-                Sounds.fadeSound("music");
+                Sounds.stopSound("music");
+                Sounds.playSound("music", "EndMusic1");
             }
             if(deathTick%10==0&&deathTick<100){
                 game.addParticleEffect(new MenuComponentParticle(x+rand.nextInt(100), y+rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
@@ -129,6 +130,7 @@ public class MenuComponentBase extends MenuComponentBuilding{
         c.set("count", resources.size());
         for(int i = 0; i<resources.size(); i++){
             ItemStack stack = resources.get(i);
+            if(stack.item==null)continue;
             c.set(i+" item", stack.item.name);
             c.set(i+" count", stack.count);
         }
@@ -143,7 +145,9 @@ public class MenuComponentBase extends MenuComponentBuilding{
         base.resources.clear();
         Config c = cfg.get("Resources", Config.newConfig());
         for(int i = 0; i<c.get("count", 0); i++){
-            base.resources.add(new ItemStack(Item.getItemByName(c.get(i+" item", "")), c.get(i+" count", 0)));
+            Item item = Item.getItemByName(c.get(i+" item", ""));
+            if(item==null)continue;
+            base.resources.add(new ItemStack(item, c.get(i+" count", 0)));
         }
         return base;
     }
@@ -166,5 +170,9 @@ public class MenuComponentBase extends MenuComponentBuilding{
     @Override
     protected double getRandY(Random rand){
         return rand.nextDouble()*(height+25)-25;
+    }
+    @Override
+    public String getName(){
+        return "Base";
     }
 }

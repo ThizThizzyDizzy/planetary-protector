@@ -77,6 +77,13 @@ public class MenuCredits extends Menu{
         credits.add("Suspense Music");
         credits.add("\"Final Battle of the Dark Wizards\"");
         credits.add("");
+        credits.add("Mystery Music");
+        credits.add("\"Almost New\"&\"Constancy Part Three\"&\"Earth Prelude\"");
+        credits.add("\"Floating Cities\"&\"Frost Waltz\"&\"Frost Waltz (Alternate)\"");
+        credits.add("\"The Chamber\"&\"The Other Side of the Door\"&\"The Snow Queen\"");
+        credits.add("\"Comfortable Mystery\"&\"Comfortable Mystery 2\"");
+        credits.add("\"Comfortable Mystery 3\"&\"Comfortable Mystery 4\"");
+        credits.add("");
         credits.add("Kevin MacLeod (incompetech.com)");
         credits.add("Licensed under Creative Commons: By Attribution 3.0 License");
         credits.add("http://creativecommons.org/licenses/by/3.0/");
@@ -105,7 +112,7 @@ public class MenuCredits extends Menu{
     @Override
     public void buttonClicked(MenuComponentButton button){
         if(button==back){
-            gui.open(new MenuMain(gui, null));
+            gui.open(new MenuMain(gui));
         }
     }
     @Override

@@ -59,4 +59,8 @@ public class MenuComponentWreck extends MenuComponentBuilding{
     protected double getIgnitionChance(){
         return 0;
     }
+    @Override
+    public String getName(){
+        return "Wreck ("+ingots+" ingots)";
+    }
 }

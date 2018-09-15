@@ -14,10 +14,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import org.lwjgl.LWJGLException;
+import planetaryprotector.menu.MenuLost;
+import planetaryprotector.menu.MenuMusicDownload;
 import simplelibrary.openal.Autoplayer;
 import simplelibrary.openal.SoundSystem;
 public class Sounds{
@@ -28,7 +27,10 @@ public class Sounds{
                 ArrayList<String> strs = new ArrayList<>();
                 getPlayableMusic(strs);
                 if(!strs.isEmpty()){
-                    return soundNames.get(strs.get(new Random().nextInt(strs.size())));
+                    String sound = strs.get(new Random().nextInt(strs.size()));
+                    if(canPlayMusic(sound)){
+                        return soundNames.get(sound);
+                    }
                 }
                 return null;
             }
@@ -37,7 +39,10 @@ public class Sounds{
                 return vol;
             }
         };
+    public static boolean autoplay = true;
+    public static boolean allowDownload = false;
     private static void addMusic(){
+        addSong("EndMusic1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
         addSong("Music1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
         addSong("Music2", "Clenched Teeth", "https://www.dropbox.com/s/jzstxq3404lai4q/Clenched%20Teeth.mp3?dl=1", 3563);
         addSong("Music3", "Achilles", "https://www.dropbox.com/s/agtrfb81kmix3f2/Achilles.mp3?dl=1", 2482);
@@ -51,10 +56,9 @@ public class Sounds{
         addSong("Boss3Music2", "Obliteration", "https://www.dropbox.com/s/2685hexub0a1tm0/Obliteration.mp3?dl=1", 4672);
         addSong("Boss4Music1", "Death and Axes", "https://www.dropbox.com/s/uk9m4xnlcm5mqao/Death%20and%20Axes.mp3?dl=1", 5255);
         addSong("Boss4Music2", "Grim Idol", "https://www.dropbox.com/s/606kbzltk24v307/Grim%20Idol.mp3?dl=1", 7030);
-        addSong("EndMusic1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
         addSong("SadMusic1", "A Turn for the Worse", "https://www.dropbox.com/s/7xllni5jw99d7j1/A%20Turn%20for%20the%20Worse.mp3?dl=1", 2658);
         addSong("SadMusic2", "A Little Faith", "https://www.dropbox.com/s/h2ygg4q05boayfk/A%20Little%20Faith.mp3?dl=1", 3539);
-        addSong("SadMusic3", "At Rest", "https://www.dropbox.com/s/xoh1zc2nztttuhw/At%20Rest.mp3?dl=1", 8072);
+        addSong("SadMusic3", "At Rest");
         addSong("SadMusic4", "Awaiting Return", "https://www.dropbox.com/s/xcq6wpxqseoxy0b/Awaiting%20Return.mp3?dl=1", 3460);
         addSong("SadMusic5", "Bittersweet", "https://www.dropbox.com/s/nsu2dzc5ua73wb4/Bittersweet.mp3?dl=1", 6317);
         addSong("SadMusic6", "Colorless Aura", "https://www.dropbox.com/s/i9w7nmaicjkitse/Colorless%20Aura.mp3?dl=1", 6177);
@@ -82,21 +86,45 @@ public class Sounds{
         addSong("SadMusic28", "Wounded", "https://www.dropbox.com/s/dmn6nfoetoiyko6/Wounded.mp3?dl=1", 7945);
         addSong("WinMusic", "Americana", "https://www.dropbox.com/s/v2q3gcp17uync61/Americana.mp3?dl=1", 7902);
         addSong("SuspenseMusic1", "Final Battle of the Dark Wizards", "https://www.dropbox.com/s/0yccf5vyouhiubn/Final%20Battle%20of%20the%20Dark%20Wizards.mp3?dl=1", 8491);
-        addSong("VictoryMusic1", "Jet Fueled Vixen", "https://www.dropbox.com/s/8604fjnzfggdd80/Jet%20Fueled%20Vixen.mp3?dl=1", 4992);
+        addSong("VictoryMusic1", "Jet Fueled Vixen");
+        addSong("MysteryMusic1", "Almost New", "https://www.dropbox.com/s/8395bxrhjy27024/Almost%20New.mp3?dl=1", 6332);
+        addSong("MysteryMusic2", "Comfortable Mystery", "https://www.dropbox.com/s/zxen3zdteuho6i5/Comfortable%20Mystery.mp3?dl=1", 7626);//shooting star hits the ground, and fades after the song is over. if you collect it, you unlock the Observatory, which lets you go stargazing, and some other stuff too
+        addSong("MysteryMusic3", "Comfortable Mystery 2", "https://www.dropbox.com/s/i72a2bevg5ea5eo/Comfortable%20Mystery%202.mp3?dl=1", 2195);//shooting star hits the ground, and fades after the song is over. if you collect it, you unlock the Observatory, which lets you go stargazing, and some other stuff too
+        addSong("MysteryMusic4", "Comfortable Mystery 3", "https://www.dropbox.com/s/q3c1j4c9a6tvrnf/Comfortable%20Mystery%203.mp3?dl=1", 2690);//shooting star hits the ground, and fades after the song is over. if you collect it, you unlock the Observatory, which lets you go stargazing, and some other stuff too
+        addSong("MysteryMusic5", "Comfortable Mystery 4", "https://www.dropbox.com/s/qt8quuz4bcvdt4j/Comfortable%20Mystery%204.mp3?dl=1", 3052);//shooting star hits the ground, and fades after the song is over. if you collect it, you unlock the Observatory, which lets you go stargazing, and some other stuff too
+        addSong("MysteryMusic6", "Constancy Part Three", "https://www.dropbox.com/s/3184fyu6skqcisg/Constancy%20Part%20Three.mp3?dl=1", 2493);
+        addSong("MysteryMusic7", "Earth Prelude", "https://www.dropbox.com/s/cbu9ahxwhj8kfc9/Earth%20Prelude.mp3?dl=1", 4573);
+        addSong("MysteryMusic8", "Floating Cities", "https://www.dropbox.com/s/r4j7sjwz7p8tf2l/Floating%20Cities.mp3?dl=1", 5755);
+        addSong("MysteryMusic9", "Frost Waltz (Alternate", "https://www.dropbox.com/s/0ocb8t5gz9xkc67/Frost%20Waltz%20%28Alternate%29.mp3?dl=1", 5421);
+        addSong("MysteryMusic10", "Frost Waltz", "https://www.dropbox.com/s/rzpmbn5j231zmi0/Frost%20Waltz.mp3?dl=1", 5398);
+        addSong("MysteryMusic11", "The Chamber", "https://www.dropbox.com/s/ede0uy4mgcxwhbi/The%20Chamber.mp3?dl=1", 4551);
+        addSong("MysteryMusic12", "The Other Side of the Door", "https://www.dropbox.com/s/u96wzzbwa59k5ap/The%20Other%20Side%20of%20the%20Door.mp3?dl=1", 6558);
+        addSong("MysteryMusic13", "The Snow Queen", "https://www.dropbox.com/s/vnku5ywj9x512ru/The%20Snow%20Queen.mp3?dl=1", 8600);
     }
     /**
      * Gets a list of all currently playable music.
      * @return a list of sound names that can be played as music at the current time (One will be randomly chosen)
      */
     private static void getPlayableMusic(ArrayList<String> playableMusic){
+        if(Core.gui.menu instanceof MenuLost){
+            playableMusic.add("SadMusic3");
+            return;
+        }
         if(Core.game!=null&&Core.game.isDestroyed()){
-            for(int i = 1; i<=28; i++){
-                playableMusic.add("SadMusic"+i);
+            if(Core.game!=null&&Core.game.phase>3){
+                playableMusic.add("SadMusic7");
+            }else{
+                for(int i = 1; i<=28; i++){
+                    if(i==3)continue;
+                    playableMusic.add("SadMusic"+i);
+                }
             }
         }else if(Core.game!=null&&Core.game.won){
             for(int i = 1; i<=1; i++){
                 playableMusic.add("VictoryMusic"+i);
             }
+        }else if(Core.game!=null&&Core.game.secretWaiting>-1){
+            Core.game.playSecret();
         }else{
             if(Core.game!=null&&Core.game.mothership!=null){
                 switch(Core.game.mothership.phase){
@@ -157,21 +185,17 @@ public class Sounds{
                 }
             }
             if(downloadSize<=0){
-                soundSystem.getSound(soundNames.get("VictoryMusic1"));
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ex) {
-                    System.err.println("Didn't work\nComputer is lazy");
-                }
-                soundSystem.getSound(soundNames.get("Music1"));
+                loadSounds();
                 return;
             }
-            Core.helper.setFullscreen(false);
-            if(JOptionPane.showConfirmDialog(null, Main.applicationName+" has music that can to be downloaded while you play.\\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload it now?", Main.applicationName+" - Music", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION){
-                Core.helper.setFullscreen(true);
-            }else{
-                Core.helper.setFullscreen(true);
-                return;
+            Core.gui.open(new MenuMusicDownload(Core.gui, Core.gui.menu, downloadSize));
+            while(!allowDownload){
+                try{
+                    Thread.sleep(100);
+                }catch(InterruptedException ex){}
+                if(!Core.helper.running){
+                    return;
+                }
             }
             System.out.println("Starting Music Download...");
             for(String key : songURLs.keySet()){
@@ -187,14 +211,6 @@ public class Sounds{
                     System.out.println("Song Downloaded: "+key+"...");
                 }
             }
-            System.out.println("All songs are up to date.");
-            soundSystem.getSound(soundNames.get("VictoryMusic1"));
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-                System.err.println("Didn't work\nComputer is lazy");
-            }
-            soundSystem.getSound(soundNames.get("Music1"));
         }).start();
     }
     static void tick(boolean lastTick){
@@ -206,8 +222,8 @@ public class Sounds{
             enableAutoplay();
         }
         vol = Math.max(0,Math.min(1,vol));
-        if(soundSystem.getChannel("music").isPlaying()&&!canPlayMusic(soundSystem.getChannel("music").getCurrentSound())){
-            fadeSound("music");
+        if(nowPlaying()!=null&&!canPlayMusic(nowPlaying())){
+            stopSound("music");
         }
         soundSystem.setMasterVolume(vol);
     }
@@ -220,7 +236,7 @@ public class Sounds{
     public static synchronized void playSound(String source, String sound){
         if(source.equals("music")){
             if(!canPlayMusic(sound)) return;
-            soundSystem.getChannel(source).fadeTo(60, soundNames.get(sound));
+            soundSystem.getChannel(source).fadeTo(120, soundNames.get(sound));
             enableAutoplay();
         }
         soundSystem.getChannel(source).play(soundNames.get(sound));
@@ -230,6 +246,9 @@ public class Sounds{
         playSound(source, sound);
     }
     public static boolean canPlayMusic(String music){
+        if(music==null){
+            return false;
+        }
         if(music.contains(".mp3")){
             for(String key : soundNames.keySet()){
                 if(soundNames.get(key).equals(music)){
@@ -242,6 +261,7 @@ public class Sounds{
 //        if(!playable.contains(music)){
 //            return false;
 //        }
+        if(music.startsWith("Mystery"))return true;
         switch(music){
             case "Music1":
                 return MenuOptions1.song1;
@@ -284,7 +304,7 @@ public class Sounds{
             case "SadMusic6":
                 return MenuOptions3.music6;
             case "SadMusic7":
-                return MenuOptions3.music7;
+                return true;
             case "SadMusic8":
                 return MenuOptions3.music8;
             case "SadMusic9":
@@ -332,7 +352,7 @@ public class Sounds{
             case "SuspenseMusic1":
                 return MenuOptions6.music2;
             case "VictoryMusic1":
-                return MenuOptions6.music3;
+                return true;
             default:
                 throw new IllegalArgumentException("Unknown music: "+music);
         }
@@ -346,10 +366,10 @@ public class Sounds{
         stopSound(source);
     }
     public static synchronized void fadeSound(String source, String sound){
-        soundSystem.getChannel(source).fadeTo(60, sound);
+        soundSystem.getChannel(source).fadeTo(120, soundNames.get(sound));
     }
     public static synchronized void fadeSound(String source){
-        soundSystem.getChannel(source).fadeSkip(60);
+        soundSystem.getChannel(source).fadeSkip(120);
     }
     public static synchronized void stopSound(String source){
         soundSystem.getChannel(source).stop();
@@ -429,6 +449,9 @@ public class Sounds{
         songURLs.put(name, url);
         songSizes.put(name, kb);
     }
+    private static void addSong(String name, String songName){
+        soundNames.put(name, "/sounds/music/"+songName+".mp3");
+    }
     /**
      * Adds a sound effect so it can be played. Sound effects are not downloaded. They are found in the jarfile under /sounds
      * All sounds should be .wav files
@@ -462,6 +485,13 @@ public class Sounds{
             }
         }
         return null;
+    }
+    private static void loadSounds(){
+        soundSystem.getSound(soundNames.get("VictoryMusic1"));
+        soundSystem.getSound(soundNames.get("Music1"));
+        soundSystem.getSound(soundNames.get("Music2"));
+        soundSystem.getSound(soundNames.get("Music3"));
+        soundSystem.getSound(soundNames.get("Music4"));
     }
 }
 //<editor-fold defaultstate="collapsed" desc="Old Code">

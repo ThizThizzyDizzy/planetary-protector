@@ -44,12 +44,12 @@ public class MenuRename extends Menu{
         }
     }
     private void back(){
-        gui.open(new MenuMain(gui, parent.parent));
+        gui.open(new MenuMain(gui));
     }
     private void rename(String from, String to){
         File From = new File(Main.getAppdataRoot()+"\\saves\\"+from+".dat");
         File To = new File(Main.getAppdataRoot()+"\\saves\\"+to+".dat");
         From.renameTo(To);
-        gui.open(new MenuMain(gui, parent.parent));
+        gui.open(new MenuMain(gui));
     }
 }

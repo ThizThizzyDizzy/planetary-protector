@@ -48,7 +48,7 @@ public class Core extends Renderer2D{
     public static final boolean supportTyping = false;
     public static MenuGame game;
     public static String save = "unnamed";
-    public static boolean allowLevel2 = false;
+    private static int maxLevel = 1;
     public static int latestLevel = 0;
     public static int speedMult = 1;
     public static void main(String[] args) throws NoSuchMethodException{
@@ -115,8 +115,14 @@ public class Core extends Renderer2D{
             }
         });
         gui = new GUI(is3D?GameHelper.MODE_HYBRID:GameHelper.MODE_2D, helper);
-        gui.open(new MenuMain(gui, null));
+        gui.open(new MenuMain(gui));
         for(AsteroidMaterial m : AsteroidMaterial.values()){
+            if(m==AsteroidMaterial.SHOOTING_STAR){
+                for(int i = 0; i<40+36; i++){
+                    m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
+                }
+                continue;
+            }
             for(int i = 0; i<10; i++){
                 m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
                 if(i<9) {
@@ -136,7 +142,11 @@ public class Core extends Renderer2D{
     public static void tickInit() throws LWJGLException{
         if(Main.intellitype){
             com.melloware.jintellitype.JIntellitype.getInstance().addIntellitypeListener((int command) -> {
-                System.err.println("Unhandeled Intellitype command: "+command);
+                if(command==com.melloware.jintellitype.JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK){
+                    Sounds.stopSound("music");
+                }else{
+                    System.err.println("Unhandeled Intellitype command: "+command);
+                }
             });
         }
         loadOptions();
@@ -200,7 +210,6 @@ public class Core extends Renderer2D{
         config.set("music4", MenuOptions3.music4);
         config.set("music5", MenuOptions3.music5);
         config.set("music6", MenuOptions3.music6);
-        config.set("music7", MenuOptions3.music7);
         config.set("music8", MenuOptions3.music8);
         config.set("music9", MenuOptions3.music9);
         config.set("music10", MenuOptions3.music10);
@@ -224,7 +233,6 @@ public class Core extends Renderer2D{
         config.set("music28", MenuOptions5.music8);
         config.set("music29", MenuOptions6.music1);
         config.set("music30", MenuOptions6.music2);
-        config.set("music31", MenuOptions6.music3);
         config.set("fog", MenuOptionsGraphics.fog);
         config.set("clouds", MenuOptionsGraphics.clouds);
         config.set("particle meteors", MenuOptionsGraphics.particulateMeteors);
@@ -256,7 +264,6 @@ public class Core extends Renderer2D{
         MenuOptions3.music4 = config.get("music4", true);
         MenuOptions3.music5 = config.get("music5", true);
         MenuOptions3.music6 = config.get("music6", true);
-        MenuOptions3.music7 = config.get("music7", true);
         MenuOptions3.music8 = config.get("music8", true);
         MenuOptions3.music9 = config.get("music9", true);
         MenuOptions3.music10 = config.get("music10", true);
@@ -280,7 +287,6 @@ public class Core extends Renderer2D{
         MenuOptions5.music8 = config.get("music28", true);
         MenuOptions6.music1 = config.get("music29", true);
         MenuOptions6.music2 = config.get("music30", true);
-        MenuOptions6.music3 = config.get("music31", true);
         MenuOptionsGraphics.fog = config.get("fog", false);
         MenuOptionsGraphics.clouds = config.get("clouds", false);
         MenuOptionsGraphics.particulateMeteors = config.get("particle meteors", false);
@@ -324,5 +330,8 @@ public class Core extends Renderer2D{
         double percent = pos/posDiff;
         double valDiff = val2-val1;
         return percent*valDiff+val1;
+    }
+    public static boolean canPlayLevel(int i){
+        return debugMode||maxLevel>=i;
     }
 }
