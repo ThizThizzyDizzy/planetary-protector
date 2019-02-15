@@ -1,10 +1,11 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
+import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 public enum BuildingType{
     SKYSCRAPER("Skyscraper"),
     MINE("Mine"),
-    GENERATOR("Generator"),
     SHIELD_GENERATOR("Shield Generator"),
     EMPTY("Empty Plot"),
     WRECK("Wreck"),
@@ -12,7 +13,12 @@ public enum BuildingType{
     SILO("Silo"),
     BASE("Base"),
     WORKSHOP("Workshop"),
-    OBSERVATORY("Observatory");
+    OBSERVATORY("Observatory"),
+    SOLAR_GENERATOR("Solar Generator"),
+    COAL_GENERATOR("Coal Generator"),
+    POWER_STORAGE("Battery");
+//    LABORATORY("Laboratory");
+//    INFUSION_ALTAR("Infusion Altar");
     static{
         //<editor-fold defaultstate="collapsed" desc="SKYSCRAPER">
         SKYSCRAPER.repairCost = new ItemStack[]{
@@ -24,7 +30,7 @@ public enum BuildingType{
             }
         };
         SKYSCRAPER.constructionTime = new int[]{
-            12000
+            11500
         };
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="MINE">
@@ -41,79 +47,6 @@ public enum BuildingType{
         };
         MINE.constructionTime = new int[]{
             1800
-        };
-//</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="GENERATOR">
-        GENERATOR.repairCost = new ItemStack[]{
-            new ItemStack(Item.ironIngot, 15)
-        };
-        GENERATOR.costs = new ItemStack[][]{
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 50)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 25)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 30)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 30)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 30)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 30)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 30)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 35)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 35)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 35)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 40)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 45)
-            },
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 50)
-            }
-        };
-        GENERATOR.constructionTime = new int[]{
-            900
         };
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="SHIELD_GENERATOR">
@@ -260,6 +193,239 @@ public enum BuildingType{
             4000
         };
 //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="SOLAR_GENERATOR">
+        SOLAR_GENERATOR.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 10)
+        };
+        SOLAR_GENERATOR.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 20)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 25)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 30)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            }
+        };
+        SOLAR_GENERATOR.constructionTime = new int[]{
+            1000
+        };
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="COAL_GENERATOR">
+        COAL_GENERATOR.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 20)
+        };
+        COAL_GENERATOR.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 75)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 35)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 40)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 45)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 55)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            }
+        };
+        COAL_GENERATOR.constructionTime = new int[]{
+            1400
+        };
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="POWER_STORAGE">
+        POWER_STORAGE.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 40)
+        };
+        POWER_STORAGE.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 100)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 50)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 60)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 70)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 70)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 70)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 80)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 90)
+            },
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 100)
+            }
+        };
+        POWER_STORAGE.constructionTime = new int[]{
+            2000
+        };
+//</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="LABORATORY">
+//        LABORATORY.repairCost = new ItemStack[]{
+//            new ItemStack(Item.ironIngot, 100)
+//        };
+//        LABORATORY.costs = new ItemStack[][]{
+//            new ItemStack[]{
+//                new ItemStack(Item.ironIngot, 100),
+//                new ItemStack(Item.stone, 50)
+//            }
+//        };
+//        LABORATORY.constructionTime = new int[]{
+//            6000
+//        };
+//</editor-fold>
         BASE.repairCost = new ItemStack[]{
             new ItemStack(Item.ironIngot, 10)
         };
@@ -269,6 +435,7 @@ public enum BuildingType{
     public ItemStack[] repairCost;
     public int[] constructionTime;
     public final String name;
+    public ArrayList<Upgrade> upgrades = new ArrayList<>();
     private BuildingType(String name){
         this.name = name;
         texture = name.toLowerCase();
@@ -276,6 +443,6 @@ public enum BuildingType{
         repairCost = new ItemStack[0];
     }
     public ItemStack[] getCosts(int level){
-        return costs[Math.min(costs.length-1, level+1)];
+        return costs[Math.min(costs.length-1, level)];
     }
 }

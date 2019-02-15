@@ -7,14 +7,14 @@ import planetaryprotector.item.ItemStack;
 import planetaryprotector.friendly.MenuComponentDrone;
 import planetaryprotector.enemy.MenuComponentEnemy;
 import planetaryprotector.friendly.MenuComponentMissile;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentSilo extends BuildingPowerConsumer{
+public class Silo extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
     public int drones = 0;
     int missiles = 0;
     public ArrayList<MenuComponentDrone> droneList = new ArrayList<>();
@@ -23,18 +23,18 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
     public static final ItemStack droneCost = new ItemStack(Item.ironIngot, 100);
     private int missilePowerCost = 2500;
     private int dronePowerCost = 5000;
-    public MenuComponentSilo(double x, double y){
-        this(x, y, 1);
+    private int power = 0;
+    public Silo(double x, double y){
+        this(x, y, 1, new ArrayList<>());
     }
-    public MenuComponentSilo(MenuComponentSilo silo, int level){
-        this(silo.x, silo.y, level);
+    public Silo(Silo silo, int level, ArrayList<Upgrade> upgrades){
+        this(silo.x, silo.y, level, upgrades);
         drones = silo.drones;
         missiles = silo.missiles;
         power = silo.power;
     }
-    public MenuComponentSilo(double x, double y, int level){
-        super(x, y, 100, 100, BuildingType.SILO, level==1?100000:(level==2?250000:1000000));
-        this.level = level;
+    public Silo(double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(x, y, 100, 100, BuildingType.SILO, level, upgrades);
     }
     @Override
     public void renderBackground(){
@@ -42,9 +42,9 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
         renderDamages();
         drawCenteredText(x, y, x+width, y+20, ""+power);
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
     }
-    public void render(){
+    public void draw(){
         if(drones>0){
             drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
         }
@@ -86,7 +86,7 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
 //        }
     }
     public boolean canBuildMissile(){
-        switch(level){
+        switch(getLevel()){
             case 1:
                 if(missiles>=5){
                     return false;
@@ -103,7 +103,7 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
         return Core.game.hasResources(missileCost)&&power>=missilePowerCost;
     }
     public boolean canBuildDrone(){
-        switch(level){
+        switch(getLevel()){
             case 2:
                 if(drones>=1){
                     return false;
@@ -113,7 +113,7 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
                     return false;
                 }
         }
-        return Core.game.hasResources(droneCost)&&power>=dronePowerCost&&level>=2;
+        return Core.game.hasResources(droneCost)&&power>=dronePowerCost&&getLevel()>=2;
     }
     public boolean canLaunchMissile(){
         return missiles>0;
@@ -154,30 +154,17 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
     }
     @Override
     public boolean onDamage(double x, double y){
-        if(MenuGame.rand.nextBoolean()){
+        if(damages.size()>=5&&MenuGame.rand.nextBoolean()){
             explosionInHangar();
         }
-        damages.add(add(new MenuComponentBuildingDamage(x-25, y-25, 50, 50)));
-        return false;
+        return super.onDamage(x, y);
     }
     @Override
-    public MenuComponentBuilding getUpgraded(){
-        return new MenuComponentSilo(this, level+1);
-    }
-    @Override
-    public boolean canUpgrade(){
-        return level<3;
+    public int getMaxLevel(){
+        return 3;
     }
     @Override
     public Config save(Config cfg){
-        cfg.set("type", type.name());
-        cfg.set("count", damages.size());
-        for(int i = 0; i<damages.size(); i++){
-            MenuComponentBuildingDamage damage = damages.get(i);
-            cfg.set(i+" x", damage.x);
-            cfg.set(i+" y", damage.y);
-        }
-        cfg.set("level", level);
         cfg.set("energy", power);
         cfg.set("drones", drones);
         cfg.set("missiles", missiles);
@@ -185,11 +172,8 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
         cfg.set("y", y);
         return cfg;
     }
-    public static MenuComponentSilo loadSpecific(Config config) {
-        MenuComponentSilo silo = new MenuComponentSilo(config.get("x", 0d), config.get("y",0d), config.get("level",1));
-        for(int i = 0; i<config.get("count", 0); i++){
-            silo.damages.add(new MenuComponentBuildingDamage(config.get(i+" x", 0d), config.get(i+" y", 0d), 50, 50));
-        }
+    public static Silo loadSpecific(Config config, double x, double y, int level, ArrayList<Upgrade> upgrades) {
+        Silo silo = new Silo(x, y, level, upgrades);
         silo.power = config.get("energy", 0);
         silo.drones = config.get("drones", 0);
         silo.missiles = config.get("missiles", 0);
@@ -197,9 +181,9 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
     }
     public void explosionInHangar(){
         for(int i = 0; i<missiles; i++){
-            damages.add(add(new MenuComponentBuildingDamage(MenuGame.rand.nextInt((int) width), MenuGame.rand.nextInt((int) height), 50, 50)));
+            damages.add(new BuildingDamage(this, MenuGame.rand.nextInt((int) width), MenuGame.rand.nextInt((int) height)));
         }
-        Core.game.addParticleEffect(new MenuComponentParticle(x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
+        Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
     }
     public ItemStack[] missileCost(){
         return new ItemStack[]{new ItemStack(missileCost)};
@@ -217,6 +201,25 @@ public class MenuComponentSilo extends BuildingPowerConsumer{
     }
     @Override
     public String getName(){
-        return "Level "+(level+1)+" Silo";
+        return "Level "+getLevel()+" Silo";
+    }
+    private static int getMaxPower(int level){
+        return level==1?100000:(level==2?250000:1000000);
+    }
+    @Override
+    public double getMaxPower(){
+        return getMaxPower(getLevel());
+    }
+    @Override
+    public double getDemand(){
+        return 100;
+    }
+    @Override
+    public void addPower(double power){
+        this.power+=power;
+    }
+    @Override
+    public double getPower(){
+        return power;
     }
 }

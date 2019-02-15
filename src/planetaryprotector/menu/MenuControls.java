@@ -32,9 +32,8 @@ public class MenuControls extends MenuComponent{
         text("Deselect worker: "+getKeyName(Controls.deselect));
         text("Cancel current task: "+getKeyName(Controls.cancel));
         text("Pause: "+getKeyName(Controls.pause));
-        text("Hide Overlay: LShift+"+getKeyName(Controls.hide));
         text("Mute music: "+getKeyName(Controls.mute));
-        if(MenuGame.cheats){
+        if(game.cheats){
             text("Cheat | Lose: "+getKeyName(Controls.CHEAT_LOSE));
             text("Cheat | Phase: "+getKeyName(Controls.CHEAT_PHASE));
             text("Cheat | Secret: "+getKeyName(Controls.CHEAT_SECRET));

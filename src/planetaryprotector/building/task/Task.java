@@ -1,25 +1,23 @@
 package planetaryprotector.building.task;
-import planetaryprotector.friendly.MenuComponentWorker;
-import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentBuilding;
+import planetaryprotector.Core;
+import planetaryprotector.friendly.Worker;
+import planetaryprotector.building.Building;
 import planetaryprotector.item.ItemStack;
 public abstract class Task{
-    public final MenuComponentBuilding building;
+    public final Building building;
     public final TaskType type;
     public int time;
     public int progress = 0;
-    public final MenuGame game;
     public boolean finished = false;
     public boolean important = false;
-    public Task(MenuComponentBuilding building, TaskType type, int time){
+    public Task(Building building, TaskType type, int time){
         this.building = building;
         this.type = type;
         this.time = time;
-        game = (MenuGame) building.parent;
     }
     public int getWorkers(){
         int workers = 0;
-        for(MenuComponentWorker worker : game.workers){
+        for(Worker worker : Core.game.workers){
             if(worker.task==this){
                 workers++;
             }
@@ -35,8 +33,14 @@ public abstract class Task{
     public abstract boolean canPerform();
     public abstract String[] getDetails();
     public abstract void start();
+    public void finishTask(){
+        if(!finished){
+            finish();
+            finished = true;
+        }
+    }
     public abstract void work();
-    public abstract void finish();
+    protected abstract void finish();
     public abstract void cancel();
     public abstract ItemStack[] getTooltip();
 }

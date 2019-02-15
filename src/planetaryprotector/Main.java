@@ -20,8 +20,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 public class Main{
-    private static String requiredSimpleLibraryVersion = "10.1.3";
-    private static int simplelibrarySize = 540;
+    private static String requiredSimpleLibraryVersion = "10.2";
+    private static int simplelibrarySize = 560;
     private static int simplelibraryExtendedSize = 628;
     /**
      * Set to "" for latest, otherwise exact version #
@@ -94,7 +94,6 @@ public class Main{
                 System.exit(0);
             }
             }
-            //TODO check for existing libraries
             int OS_WINDOWS = 0;
             int OS_SOLARIS = 1;
             int OS_MACOSX = 2;

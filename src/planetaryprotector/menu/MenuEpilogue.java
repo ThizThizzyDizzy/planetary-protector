@@ -1,21 +1,28 @@
 package planetaryprotector.menu;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentWreck;
-import planetaryprotector.building.MenuComponentPlot;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.Wreck;
+import planetaryprotector.building.Plot;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
-import planetaryprotector.building.MenuComponentBase;
+import planetaryprotector.building.Skyscraper;
+import planetaryprotector.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector2.menu.MenuPrologue;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.GameObject;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.task.MenuComponentTaskAnimation;
+import planetaryprotector.enemy.Asteroid;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
+import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
 public class MenuEpilogue extends MenuGame{
     private int timer = 195;
@@ -23,21 +30,21 @@ public class MenuEpilogue extends MenuGame{
     private String[] texts = new String[]{"All of the other cities on the planet are still in ruins.", "Let the people of the city set out and rebuild.", "Thanks for playing!"};
     private Queue<Point> w = new Queue<>();
     private static double offset = 0;
-    private ArrayList<MenuComponentParticle> clouds = new ArrayList<>();
+    private ArrayList<Particle> clouds = new ArrayList<>();
     public MenuEpilogue(GUI gui){
-        super(gui, null, new MenuComponentBase(Display.getWidth(), Display.getHeight()), new ArrayList<>());
+        super(gui, null, new Base(Display.getWidth(), Display.getHeight()), new ArrayList<>());
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
-            MenuComponentBuilding building = MenuComponentBuilding.generateRandomBuilding(base, buildings);
+            Building building = Building.generateRandomBuilding(base, buildings);
             if(building==null){
                 continue;
             }
-            buildings.add(add(new MenuComponentWreck(building.x, building.y, i)));
+            buildings.add(new Wreck(building.x, building.y, i));
         }
         phase = 0;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentBase)continue;
-            replaceBuilding(building, new MenuComponentWreck(building.x, building.y, 0));
+        for(Building building : buildings){
+            if(building instanceof Base)continue;
+            replaceBuilding(building, new Wreck(building.x, building.y, 0));
         }
         addWorker();
         doNotDisturb = true;
@@ -71,7 +78,7 @@ public class MenuEpilogue extends MenuGame{
         }
         if(offset>=Display.getHeight())return;
         if((Sounds.songTimer()>576&&i>1)||i>=10){
-            for(MenuComponentParticle p : clouds){
+            for(Particle p : clouds){
                 p.tick();
             }
             if(rand.nextDouble()<.1){
@@ -84,28 +91,28 @@ public class MenuEpilogue extends MenuGame{
             for(int i = 0; i<Display.getHeight()/100; i++){
                 w.enqueue(new Point(rand.nextInt(Display.getWidth()), rand.nextInt(Display.getHeight())));
             }
-            for(MenuComponentBuilding building : buildings){
+            for(Building building : buildings){
                 if(building.type==BuildingType.WRECK&&rand.nextInt(25)==1){
-                    replaceBuilding(building, new MenuComponentPlot(building.x, building.y));
+                    replaceBuilding(building, new Plot(building.x, building.y));
                 }
                 if(building.type==BuildingType.EMPTY&&rand.nextInt(15)==1){
-                    MenuComponentSkyscraper s = new MenuComponentSkyscraper(building.x, building.y);
+                    Skyscraper s = new Skyscraper(building.x, building.y);
                     s.floorCount = 1;
                     replaceBuilding(building, s);
                 }
                 if(building.type==BuildingType.SKYSCRAPER&&rand.nextInt(4)==1){
-                    MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+                    Skyscraper sky = (Skyscraper) building;
                     sky.floorCount++;
                 }
             }
         }
         while(!buildingsToReplace.isEmpty()){
-            ArrayList<MenuComponentBuilding> list = new ArrayList<>(buildingsToReplace.keySet());
-            MenuComponentBuilding start = list.get(0);
-            MenuComponentBuilding end = buildingsToReplace.remove(start);
+            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
+            Building start = list.get(0);
+            Building end = buildingsToReplace.remove(start);
             components.remove(start);
             buildings.remove(start);
-            buildings.add(add(end));
+            buildings.add(end);
         }
         super.tick();
     }
@@ -115,14 +122,79 @@ public class MenuEpilogue extends MenuGame{
         if(i>2&&Sounds.songTimer()>=1726){
             offset = (Sounds.songTimer()-1726)/97.5D;
         }
+    }
+    @Override
+    public void renderWorld(int millisSinceLastTick){
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+        synchronized(buildings){
+            for(Building building : buildings){
+                building.renderBackground();
+            }
+        }
         for(Point p : w){
             drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/him.png"));
         }
+        for(MenuComponentTaskAnimation anim : taskAnimations){
+            anim.render();
+        }
+        ArrayList<Particle> groundParticles = new ArrayList<>();
+        synchronized(particles){
+            for(Particle particle : particles){
+                if(!particle.air)groundParticles.add(particle);
+            }
+        }
+        ArrayList<GameObject> mainLayer = new ArrayList<>();
+        mainLayer.addAll(groundParticles);
+        mainLayer.addAll(buildings);
+        mainLayer.addAll(droppedItems);
+        mainLayer.addAll(workers);
+        Collections.sort(mainLayer, new Comparator<GameObject>(){
+            @Override
+            public int compare(GameObject o1, GameObject o2){
+                int y1 = (int)o1.y;
+                int height1 = (int)o1.height;
+                int y2 = (int)o2.y;
+                int height2 = (int)o2.height;
+                if(o1 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o1;
+                    y1 -= sky.fallen;
+                }
+                if(o2 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o2;
+                    y2 -= sky.fallen;
+                }
+                y1 += height1/2;
+                y2 += height2/2;
+                return y1-y2;
+            }
+        });
+        for(GameObject o : mainLayer){
+            o.render();
+        }
+        synchronized(particles){
+            for(Particle particle : particles){
+                if(particle.air)particle.render();
+            }
+        }
+        //<editor-fold defaultstate="collapsed" desc="Shields">
+        for(Building building : buildings){
+            if(building instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) building;
+                gen.shield.renderOnWorld();
+            }
+        }
+        //</editor-fold>
+        synchronized(asteroids){
+            for(Asteroid asteroid : asteroids){
+                asteroid.render();
+            }
+        }
+        drawDayNightCycle();
     }
     @Override
     public void render(int millisSinceLastTick){
         GL11.glTranslated(0, -Display.getHeight()*offset, 0);
-        super.render(millisSinceLastTick);
+        renderWorld(millisSinceLastTick);
         drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/gui/dirtBackground.png"));
         drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/gui/stoneBackground.png"));
         if(blackScreenOpacity>0&&i<10){
@@ -146,6 +218,7 @@ public class MenuEpilogue extends MenuGame{
     private void restart(){
         gui.open(new MenuEpilogue(gui, i+1));
     }
+    @Override
     public void addCloud(){
         if(!MenuOptionsGraphics.clouds)return;
         double strength = rand.nextInt(42);
@@ -172,14 +245,18 @@ public class MenuEpilogue extends MenuGame{
             if(Math.round(X)==Math.round(X*10)/10d){
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    clouds.add(add(new MenuComponentParticle(x, y, strength, rateOfChange, speed)));
+                    Particle p = new Particle(x, y, strength, rateOfChange, speed);
+                    clouds.add(p);
+                    addParticleEffect(p);
                     y-=40;
                 }
                 y = Y;
             }else{
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    clouds.add(add(new MenuComponentParticle(x, y-20, strength, rateOfChange, speed)));
+                    Particle p = new Particle(x, y-20, strength, rateOfChange, speed);
+                    clouds.add(p);
+                    addParticleEffect(p);
                     y-=40;
                 }
                 y = Y;

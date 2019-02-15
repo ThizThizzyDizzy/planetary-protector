@@ -56,6 +56,11 @@ public class VersionManager{
         addVersion("1.8.3");
         addVersion("1.9");
         addVersion("1.9.1");
+        addVersion("1.9.2");
+        breakBackCompatability();
+        addVersion("1.10");
+        addVersion("1.10.1");
+        addVersion("1.10.2");
         currentVersion = versions.get(versions.size()-1);
     }
     /**

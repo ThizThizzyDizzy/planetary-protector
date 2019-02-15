@@ -1,17 +1,18 @@
 package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.MenuComponentDroppedItem;
+import planetaryprotector.item.DroppedItem;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentBuilding;
+import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
-import planetaryprotector.building.MenuComponentBuildingDamage;
+import planetaryprotector.building.Skyscraper;
+import planetaryprotector.building.BuildingDamage;
 import java.util.ArrayList;
+import planetaryprotector.Core;
 public class TaskRepair extends Task{
-    public MenuComponentBuildingDamage damage;
+    public BuildingDamage damage;
     private double initialFire;
-    public TaskRepair(MenuComponentBuilding building){
+    public TaskRepair(Building building){
         super(building, TaskType.REPAIR, 0);
         time = getRepairTime(building.type);
         if(building.damages.size()>0){
@@ -34,13 +35,13 @@ public class TaskRepair extends Task{
     public boolean canPerform(){
         switch(building.type){
             case SKYSCRAPER:
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+                Skyscraper sky = (Skyscraper) building;
                 if(sky.falling){
                     return false;
                 }
                 break;
         }
-        return building.task==null&&building.damages.size()>0&&game.hasResources(building.type.repairCost);
+        return building.task==null&&building.damages.size()>0&&Core.game.hasResources(building.type.repairCost);
     }
     @Override
     public String[] getDetails(){
@@ -80,7 +81,6 @@ public class TaskRepair extends Task{
     @Override
     public void finish(){
         building.damages.remove(damage);
-        building.components.remove(damage);
         building.fire = building.fireIncreaseRate = building.fireDamage = 0;
         building.clearFires();
     }
@@ -89,7 +89,7 @@ public class TaskRepair extends Task{
         building.fireIncreaseRate = 0;
         initialFire = building.fire;
         progress = (int) Math.round((1-damage.opacity)*time);
-        game.removeResources(building.type.repairCost);
+        Core.game.removeResources(building.type.repairCost);
     }
     @Override
     public void cancel(){
@@ -99,7 +99,7 @@ public class TaskRepair extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                game.addItem(new MenuComponentDroppedItem(itemX, itemY, stack.item, game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
             }
         }
     }

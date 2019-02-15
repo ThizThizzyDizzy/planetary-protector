@@ -1,10 +1,11 @@
 package planetaryprotector.enemy;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.MenuComponentShieldGenerator;
-import planetaryprotector.building.MenuComponentBuilding;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.Building;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import simplelibrary.opengl.ImageStash;
 public class EnemyLaser extends MenuComponentEnemy{
     public int initialDelay = 20*5;
@@ -62,7 +63,7 @@ public class EnemyLaser extends MenuComponentEnemy{
         if(dead){
             increase = true;
             game.componentsToRemove.add(this);
-            game.addParticleEffect(new MenuComponentParticle(x, y, ParticleEffectType.EXPLOSION, 1, true));
+            game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<7.5){
                 strength+=.375;
             }
@@ -89,11 +90,11 @@ public class EnemyLaser extends MenuComponentEnemy{
     private void fireLaser(){
         laserFiring = null;
         double dist = Double.POSITIVE_INFINITY;
-        MenuComponentShieldGenerator gen = null;
-        for(MenuComponentBuilding building : game.buildings){
-            if(building instanceof MenuComponentShieldGenerator){
-                MenuComponentShieldGenerator g = (MenuComponentShieldGenerator) building;
-                dist = Math.min(dist,game.distance(this, g));
+        ShieldGenerator gen = null;
+        for(Building building : game.buildings){
+            if(building instanceof ShieldGenerator){
+                ShieldGenerator g = (ShieldGenerator) building;
+                dist = Math.min(dist,Core.distance(this, g));
                 gen = g;
             }
         }

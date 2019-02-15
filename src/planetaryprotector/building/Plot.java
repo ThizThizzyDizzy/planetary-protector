@@ -6,8 +6,8 @@ import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentPlot extends MenuComponentBuilding{
-    public MenuComponentPlot(double x, double y) {
+public class Plot extends Building implements BuildingDamagable{
+    public Plot(double x, double y) {
         super(x, y, 100, 100, BuildingType.EMPTY);
     }
     @Override
@@ -22,18 +22,18 @@ public class MenuComponentPlot extends MenuComponentBuilding{
         renderDamages();
     }
     @Override
-    public void render(){
+    public void draw(){
         removeRenderBound();
         if(task!=null&&task.type==TaskType.CONSTRUCT){
             TaskConstruct c = (TaskConstruct) task;
             GL11.glColor4d(1, 1, 1, task.progress());
-            if(c.target instanceof MenuComponentGenerator){
+            if(c.target instanceof CoalGenerator){
                 drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+c.target.type.texture+" "+((int)((x%2)+1))+".png"));
             }else{
                 drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+c.target.type.texture+".png"));
             }
-            if(c.target instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) c.target;
+            if(c.target instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) c.target;
                 for(int i = 1; i<sky.floorCount; i++){
                     drawRect(x, y-i*sky.floorHeight, x+width, y+height-i*sky.floorHeight, ImageStash.instance.getTexture("/textures/buildings/"+c.target.type.texture+".png"));
                 }
@@ -44,41 +44,19 @@ public class MenuComponentPlot extends MenuComponentBuilding{
     @Override
     public void update(){
         if(damages.size()>10){
-            Core.game.replaceBuilding(this, new MenuComponentWreck(x, y, 0));
+            Core.game.replaceBuilding(this, new Wreck(x, y, 0));
         }
     }
     @Override
-    public boolean onDamage(double x, double y){
-        damages.add(add(new MenuComponentBuildingDamage(x-25, y-25, 50, 50)));
-        return false;
-    }
-    @Override
-    public boolean canUpgrade(){
-        return false;
-    }
-    @Override
-    public MenuComponentBuilding getUpgraded() {
-        return null;
+    public int getMaxLevel(){
+        return -1;
     }
     @Override
     public Config save(Config cfg) {
-        cfg.set("type", type.name());
-        cfg.set("count", damages.size());
-        for(int i = 0; i<damages.size(); i++){
-            MenuComponentBuildingDamage damage = damages.get(i);
-            cfg.set(i+" x", damage.x);
-            cfg.set(i+" y", damage.y);
-        }
-        cfg.set("x", x);
-        cfg.set("y", y);
         return cfg;
     }
-    public static MenuComponentPlot loadSpecific(Config cfg) {
-        MenuComponentPlot plot = new MenuComponentPlot(cfg.get("x", 0d), cfg.get("y",0d));
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            plot.damages.add(new MenuComponentBuildingDamage(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), 50, 50));
-        }
-        return plot;
+    public static Plot loadSpecific(Config cfg, double x, double y) {
+        return new Plot(x, y);
     }
     @Override
     protected double getIgnitionChance(){

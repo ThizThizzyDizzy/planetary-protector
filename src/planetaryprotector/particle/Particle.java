@@ -1,26 +1,23 @@
 package planetaryprotector.particle;
 import planetaryprotector.Core;
-import planetaryprotector.menu.component.MenuComponentAnimation;
-import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentBuilding;
+import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentBuildingDamage;
+import planetaryprotector.building.BuildingDamage;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.component.ZComponent;
+import planetaryprotector.menu.component.GameObjectAnimated;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentParticle extends MenuComponentAnimation{
+public class Particle extends GameObjectAnimated{
     public final ParticleEffectType type;
     protected int rotation;
     public double opacity = 1;
     private int radius;
     private final int size;
     public boolean air = false;
-    public boolean dead;
     //clouds
     public double strength;
     private double rateOfChange;
@@ -32,13 +29,13 @@ public class MenuComponentParticle extends MenuComponentAnimation{
     //FIRE
     public boolean fading;
     public Lightning lightning = null;
-    public MenuComponentParticle(double x, double y, ParticleEffectType type){
+    public Particle(double x, double y, ParticleEffectType type){
         this(x, y, type, 1);
     }
-    public MenuComponentParticle(double x, double y, ParticleEffectType type, int size){
+    public Particle(double x, double y, ParticleEffectType type, int size){
         this(x, y, type, size, false);
     }
-    public MenuComponentParticle(double x, double y, ParticleEffectType type, int size, boolean air){
+    public Particle(double x, double y, ParticleEffectType type, int size, boolean air){
         super(x, y, 50, 50, type.images);
         this.type = type;
         this.size = size;
@@ -50,7 +47,7 @@ public class MenuComponentParticle extends MenuComponentAnimation{
             this.air = true;
         }
     }
-    public MenuComponentParticle(double x, double y, double cloudStrength, double cloudRateOfChange, double speed){
+    public Particle(double x, double y, double cloudStrength, double cloudRateOfChange, double speed){
         this(x, y, ParticleEffectType.CLOUD);
         strength = cloudStrength;
         rateOfChange = cloudRateOfChange;
@@ -58,13 +55,10 @@ public class MenuComponentParticle extends MenuComponentAnimation{
     }
     @Override
     public void render(){
-        removeRenderBound();
         if(opacity<=0){
             dead = true;
         }
         if(dead){
-            MenuGame game = (MenuGame) parent;
-            game.componentsToRemove.add(this);
             return;
         }
         if(type==ParticleEffectType.EXPLOSION){
@@ -164,15 +158,17 @@ public class MenuComponentParticle extends MenuComponentAnimation{
             return;
         }
         if(type==ParticleEffectType.FIRE){
-            for(double[] i : smoke){
-                double r = Math.max(0,Math.min(1,(10-i[4])/10));
-                double g = Math.max(0,Math.min(1,(10-i[4])/20));
-                GL11.glColor4d(r, g, 0, i[3]);
-                GL11.glPushMatrix();
-                GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
-                GL11.glRotated(i[2], 0, 0, 1);
-                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-                GL11.glPopMatrix();
+            synchronized(smoke){
+                for(double[] i : smoke){
+                    double r = Math.max(0,Math.min(1,(10-i[4])/10));
+                    double g = Math.max(0,Math.min(1,(10-i[4])/20));
+                    GL11.glColor4d(r, g, 0, i[3]);
+                    GL11.glPushMatrix();
+                    GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
+                    GL11.glRotated(i[2], 0, 0, 1);
+                    drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
+                    GL11.glPopMatrix();
+                }
             }
             GL11.glColor4d(1, 1, 1, 1);
             if(fading)return;
@@ -205,13 +201,12 @@ public class MenuComponentParticle extends MenuComponentAnimation{
             radius+=5+0.5*((11-size));
             Core.game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5));
             if(size>=10){
-                MenuGame game = (MenuGame) parent;
-                for(MenuComponentBuilding building : game.buildings){
+                for(Building building : Core.game.buildings){
                     if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
                         continue;
                     }
-                    if(game.distanceTo(building, x, y)<=radius&&building.damages.size()<=10){
-                        building.damages.add(building.add(new MenuComponentBuildingDamage(building.x-25, building.y+building.height-25, 150, 50)));
+                    if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
+                        building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
                     }
                 }
             }
@@ -234,17 +229,21 @@ public class MenuComponentParticle extends MenuComponentAnimation{
             if(fading&&smoke.isEmpty())dead = true;
             if(smokeTimer>=5&&!fading){
                 smokeTimer = 0;
-                smoke.add(new double[]{0,0,0,0,0,0});
+                synchronized(smoke){
+                    smoke.add(new double[]{0,0,0,0,0,0});
+                }
             }
-            for(Iterator<double[]> it = smoke.iterator(); it.hasNext();){
-                double[] i = it.next();
-                i[4]++;
-                i[0] = i[4]*3;
-                i[1] = -Math.sqrt(i[4])*10;
-                i[2] = i[4]*10;
-                i[3] = 1-(i[4]/200);
-                if(i[3]<=0){
-                    it.remove();
+            synchronized(smoke){
+                for(Iterator<double[]> it = smoke.iterator(); it.hasNext();){
+                    double[] i = it.next();
+                    i[4]++;
+                    i[0] = i[4]*3;
+                    i[1] = -Math.sqrt(i[4])*10;
+                    i[2] = i[4]*10;
+                    i[3] = 1-(i[4]/200);
+                    if(i[3]<=0){
+                        it.remove();
+                    }
                 }
             }
         }

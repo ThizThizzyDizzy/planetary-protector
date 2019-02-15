@@ -1,14 +1,16 @@
 package planetaryprotector.building.task;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentWreck;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
+import planetaryprotector.building.Skyscraper;
 import planetaryprotector.item.ItemStack;
 import java.util.ArrayList;
+import planetaryprotector.Core;
+import planetaryprotector.friendly.Worker;
 public class TaskDemolish extends Task{
-    public TaskDemolish(MenuComponentBuilding building){
+    public TaskDemolish(Building building){
         super(building, TaskType.CONSTRUCT, 200);
         important = true;
     }
@@ -52,16 +54,15 @@ public class TaskDemolish extends Task{
     }
     @Override
     public void finish(){
-        game.addParticleEffect(new MenuComponentParticle(building.x+building.width/2, building.y+building.height/2-1, ParticleEffectType.EXPLOSION, 5));
+        Core.game.addParticleEffect(new Particle(building.x+building.width/2, building.y+building.height/2-1, ParticleEffectType.EXPLOSION, 5));
         if(building.type==BuildingType.SKYSCRAPER){
-            MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+            Skyscraper sky = (Skyscraper) building;
             sky.falling = true;
-            game.addWorker();
         }else{
             if(building.type.costs.length==1){
-                game.replaceBuilding(building, new MenuComponentWreck(building.x, building.y, building.type.costs[0][0].count));
+                Core.game.replaceBuilding(building, new Wreck(building.x, building.y, building.type.costs[0][0].count));
             }else{
-                game.replaceBuilding(building, new MenuComponentWreck(building.x, building.y, building.type.costs[0][0].count+(building.type.costs[1][0].count*building.level)));
+                Core.game.replaceBuilding(building, new Wreck(building.x, building.y, building.type.costs[0][0].count+(building.type.costs[1][0].count*building.getLevel())));
             }
         }
     }

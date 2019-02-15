@@ -1,11 +1,11 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentShieldGenerator;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentWreck;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
+import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
 import java.util.Iterator;
 import planetaryprotector.menu.component.ZComponent;
@@ -46,22 +46,22 @@ public abstract class MenuComponentEnemy extends MenuComponent{
         return EnemyMeteorStrike.getMeteorStrike()!=null;
     }
     public static double[] getBestStrike(){
-        ArrayList<MenuComponentShieldGenerator> shieldGen = new ArrayList<>();
-        for(MenuComponentBuilding building : Core.game.buildings){
+        ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
+        for(Building building : Core.game.buildings){
             if(building.type==BuildingType.SHIELD_GENERATOR){
-                shieldGen.add((MenuComponentShieldGenerator) building);
+                shieldGen.add((ShieldGenerator) building);
             }
         }
         ArrayList<Double[]> possibleStrikes = new ArrayList<>();
-        for(MenuComponentBuilding building : Core.game.buildings){
+        for(Building building : Core.game.buildings){
             if(building.type==BuildingType.WRECK){
-                if(((MenuComponentWreck)building).ingots<=1){
+                if(((Wreck)building).ingots<=1){
                     continue;
                 }
             }
             double[] hitBox = new double[]{building.x, building.y, building.x+building.width, building.y+building.height};
-            if(building instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+            if(building instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) building;
                 hitBox = new double[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
             }
             double[][] corners = new double[][]{new double[]{hitBox[0]+1,hitBox[1]+1}, new double[]{hitBox[2]-1,hitBox[1]+1}, new double[]{hitBox[0]+1,hitBox[3]-1}, new double[]{hitBox[2]-1,hitBox[3]-1}};
@@ -76,8 +76,8 @@ public abstract class MenuComponentEnemy extends MenuComponent{
                 if(shieldGen.isEmpty()){
                     possibleStrikes.add(new Double[]{X,Y,0d});
                 }
-                for(MenuComponentShieldGenerator gen : shieldGen){
-                    double dist = Core.game.distanceTo(gen,X,Y);
+                for(ShieldGenerator gen : shieldGen){
+                    double dist = Core.distance(gen,X,Y);
                     possibleStrikes.add(new Double[]{X,Y,dist});
                 }
             }

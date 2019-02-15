@@ -1,14 +1,15 @@
 package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
-import planetaryprotector.item.MenuComponentDroppedItem;
+import planetaryprotector.item.DroppedItem;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentWreck;
-import planetaryprotector.building.MenuComponentPlot;
+import planetaryprotector.building.Wreck;
+import planetaryprotector.building.Plot;
 import java.util.ArrayList;
+import planetaryprotector.Core;
 import planetaryprotector.item.ItemStack;
 public class TaskWreckClean extends Task{
-    private final MenuComponentWreck wreck;
-    public TaskWreckClean(MenuComponentWreck wreck){
+    private final Wreck wreck;
+    public TaskWreckClean(Wreck wreck){
         super(wreck, TaskType.WRECK_CLEAN, Math.max(100,wreck.ingots));
         this.wreck = wreck;
     }
@@ -50,19 +51,19 @@ public class TaskWreckClean extends Task{
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            game.addItem(new MenuComponentDroppedItem(itemX, itemY, Item.ironIngot, game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
             wreck.ingots--;
         }
     }
     @Override
     public void finish(){
-        game.replaceBuilding(building, new MenuComponentPlot(building.x, building.y));
+        Core.game.replaceBuilding(building, new Plot(building.x, building.y));
         while(wreck.ingots>0){
             double itemX = building.x+MenuGame.rand.nextInt(79)+11;
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            game.addItem(new MenuComponentDroppedItem(itemX, itemY, Item.ironIngot, game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
             wreck.ingots--;
         }
     }
@@ -72,11 +73,11 @@ public class TaskWreckClean extends Task{
     }
     @Override
     public void start(){
-        game.startAnim(this);
+        Core.game.startAnim(this);
     }
     @Override
     public void cancel(){
-        game.cancelAnim(this);
+        Core.game.cancelAnim(this);
     }
     @Override
     public ItemStack[] getTooltip(){

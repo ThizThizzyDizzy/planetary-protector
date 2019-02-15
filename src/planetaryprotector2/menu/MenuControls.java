@@ -33,7 +33,6 @@ public class MenuControls extends Menu{
         textWithBackground(0, 300, Display.getWidth(), 350, "Deselect worker: "+getKeyName(Controls.deselect));
         textWithBackground(0, 350, Display.getWidth(), 400, "Cancel current task: "+getKeyName(Controls.cancel));
         textWithBackground(0, 400, Display.getWidth(), 450, "Pause: "+getKeyName(Controls.pause));
-        textWithBackground(0, 450, Display.getWidth(), 500, "Hide: LShift+"+getKeyName(Controls.hide));
     }
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {

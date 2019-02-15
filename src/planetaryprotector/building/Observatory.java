@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class MenuComponentObservatory extends BuildingPowerConsumer{
+public class Observatory extends Building implements BuildingPowerConsumer, BuildingStarlightProducer, BuildingDamagable, BuildingDemolishable{
     public double starlight = 0;
     private static final double powerPerStarlight = 2000;
     private static final double starlightSpeed = 0.01;
@@ -16,13 +16,9 @@ public class MenuComponentObservatory extends BuildingPowerConsumer{
     private ArrayList<String> scan = new ArrayList<>();
     private int textHeight = 15;
     private double yOff;
-    public MenuComponentObservatory(double x, double y){
-        super(x, y, 100, 100, BuildingType.OBSERVATORY, 1000);
-    }
-    @Override
-    public boolean onDamage(double x, double y){
-        damages.add(add(new MenuComponentBuildingDamage(x-25, y-25, 50, 50)));
-        return true;
+    private double power;
+    public Observatory(double x, double y){
+        super(x, y, 100, 100, BuildingType.OBSERVATORY);
     }
     @Override
     public void update(){
@@ -52,8 +48,8 @@ public class MenuComponentObservatory extends BuildingPowerConsumer{
         }
     }
     @Override
-    public void render(){
-        super.render();
+    public void draw(){
+        super.draw();
         GL11.glColor4d(1, 1, 1, 1);
         drawCenteredText(x, y, x+width, y+15, "Power: "+Math.round(power));
         if(scanning==1){
@@ -93,38 +89,19 @@ public class MenuComponentObservatory extends BuildingPowerConsumer{
         }
     }
     @Override
-    public boolean canUpgrade(){
-        return false;
-    }
-    @Override
-    public MenuComponentBuilding getUpgraded() {
-        return null;
+    public int getMaxLevel(){
+        return -1;
     }
     @Override
     public Config save(Config cfg) {
-        cfg.set("type", type.name());
-        cfg.set("count", damages.size());
-        for(int i = 0; i<damages.size(); i++){
-            MenuComponentBuildingDamage damage = damages.get(i);
-            cfg.set(i+" x", damage.x);
-            cfg.set(i+" y", damage.y);
-        }
-        cfg.set("x", x);
-        cfg.set("y", y);
-        cfg.set("power", power);
-        cfg.set("max power", maxPower);
         cfg.set("starlight", starlight);
         cfg.set("scanning", scanning);
         cfg.set("collecting", collecting);
         return cfg;
     }
-    public static MenuComponentObservatory loadSpecific(Config cfg) {
-        MenuComponentObservatory observatory = new MenuComponentObservatory(cfg.get("x", 0d), cfg.get("y",0d));
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            observatory.damages.add(new MenuComponentBuildingDamage(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), 50, 50));
-        }
+    public static Observatory loadSpecific(Config cfg, double x, double y) {
+        Observatory observatory = new Observatory(x, y);
         observatory.power = cfg.get("power", observatory.power);
-        observatory.maxPower = cfg.get("max power", observatory.maxPower);
         observatory.starlight = cfg.get("starlight", observatory.starlight);
         observatory.scanning = cfg.get("scanning", observatory.scanning);
         observatory.collecting = cfg.get("collecting", observatory.collecting);
@@ -176,14 +153,47 @@ public class MenuComponentObservatory extends BuildingPowerConsumer{
         drawText(x, y+yOff, x+width, y+yOff+textHeight, str);
         yOff+=textHeight;
     }
-    public void addStar(){
+    public boolean canAddStar(){
+        return starlight+100<=maxStarlight;
+    }
+    public boolean addStar(){
         starlight += 100;
         if(starlight>maxStarlight){
-            starlight = maxStarlight;
+            starlight-=100;
+            return false;
         }
+        return true;
     }
     @Override
     public String getName(){
         return "Observatory";
+    }
+    @Override
+    public double getMaxPower(){
+        return 1000;
+    }
+    @Override
+    public double getDemand(){
+        return 10;
+    }
+    @Override
+    public double getPower(){
+        return power;
+    }
+    @Override
+    public void addPower(double power){
+        this.power += power;
+    }
+    @Override
+    public double getStarlightProduction(){
+        return Math.min(.2, starlight);
+    }
+    @Override
+    public void produceStarlight(double starlight){
+        this.starlight-=starlight;
+    }
+    @Override
+    public boolean isStarlightRenewable(){
+        return true;
     }
 }

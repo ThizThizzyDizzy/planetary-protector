@@ -14,8 +14,8 @@ public class MenuNewGame extends Menu{
     private final MenuComponentButton create;
     private final MenuComponentTextBox name;
     private final MenuComponentSlider selectedLevel = new MenuComponentSlider(Display.getWidth()/2-200, 60, 400, 40, 1, Core.latestLevel+1, 1, true);
-    public MenuNewGame(GUI gui, Menu parent){
-        super(gui, parent);
+    public MenuNewGame(GUI gui){
+        super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 400, 40, "Back", true));
         create = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-160, 400, 40, "Create", false));
         name = add(new MenuComponentTextBox(Display.getWidth()/2-200, 120, 400, 40, "", true));
@@ -57,7 +57,7 @@ public class MenuNewGame extends Menu{
         }
     }
     private void back(){
-        gui.open(new MenuMain(gui));
+        gui.open(new MenuMain(gui, false));
     }
     private void create(String name){
         Core.save = name;

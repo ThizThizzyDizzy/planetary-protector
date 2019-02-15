@@ -1,14 +1,14 @@
 package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.MenuComponentDroppedItem;
+import planetaryprotector.item.DroppedItem;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentSkyscraper;
 import java.util.ArrayList;
-import planetaryprotector.building.MenuComponentWorkshop;
+import planetaryprotector.Core;
+import planetaryprotector.building.Workshop;
 public class TaskTrainWorker extends Task{
-    private final MenuComponentWorkshop workshop;
-    public TaskTrainWorker(MenuComponentWorkshop workshop){
+    private final Workshop workshop;
+    public TaskTrainWorker(Workshop workshop){
         super(workshop, TaskType.TRAIN_WORKER, 60*20);
         this.workshop = workshop;
     }
@@ -45,19 +45,15 @@ public class TaskTrainWorker extends Task{
     }
     @Override
     public void finish(){
-        if(finished){
-            return;
-        }
-        finished = true;
-        game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
+        Core.game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
     }
     @Override
     public boolean canPerform(){
-        return game.hasResources(new ItemStack(Item.ironIngot, 30))&&building.task==null&&building.damages.isEmpty();
+        return Core.game.hasResources(new ItemStack(Item.ironIngot, 30))&&building.task==null&&building.damages.isEmpty();
     }
     @Override
     public void start(){
-        game.removeResources(new ItemStack(Item.ironIngot, 30));
+        Core.game.removeResources(new ItemStack(Item.ironIngot, 30));
     }
     @Override
     public void cancel(){
@@ -66,7 +62,7 @@ public class TaskTrainWorker extends Task{
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            game.addItem(new MenuComponentDroppedItem(itemX, itemY, Item.ironIngot, game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
         }
     }
     @Override

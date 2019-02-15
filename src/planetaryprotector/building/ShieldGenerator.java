@@ -1,35 +1,33 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.Core;
 import planetaryprotector.enemy.MenuComponentEnemy;
-import planetaryprotector.menu.MenuGame;
-import planetaryprotector.menu.MenuLoad;
 import org.lwjgl.opengl.Display;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
+public class ShieldGenerator extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
     public double shieldSize = 0;
     public double maxShieldSize = 500;
     public double shieldStrength = 1;
     public double oldPower;
     public double blastRecharge = 0;
-    public boolean canBlast = false;
-    public final MenuComponentShield shield;
+    public boolean canBlast = false;//replace with special upgrade
+    public final Shield shield;
     public boolean shieldOutline = false;
     public boolean powerOutline = false;
-    public MenuComponentShieldGenerator(double x, double y){
+    private double power = 0;
+    public ShieldGenerator(double x, double y){
         super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
-        shield = add(new MenuComponentShield(this));
-        maxPower = Integer.MAX_VALUE;
+        shield = new Shield(this);
     }
-    public MenuComponentShieldGenerator(double x, double y, int level){
-        super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
-        this.level = level;
+    public ShieldGenerator(double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR, level, upgrades);
         canBlast = level>=10;
         shieldStrength = getStats(level);
         maxShieldSize += (level)*250;
-        shield = add(new MenuComponentShield(this));
+        shield = new Shield(this);
     }
     public void blast(){
         if(!canBlast||blastRecharge!=0) return;
@@ -38,25 +36,22 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
     @Override
     public void update(){
         super.update();
-        if(parent instanceof MenuLoad) return;
-        MenuGame game = Core.game;
         if(blastRecharge>0) blastRecharge--;
         if(blastRecharge<0){//<editor-fold defaultstate="collapsed" desc="Shield blast">
             blastRecharge++;
             double size = (Display.getWidth()*1.8)-(((-blastRecharge)%10)*(Display.getWidth()/5));
             shieldSize = size;
-            game.pushParticles(x+width/2, y+height/2, size, size/50);
+            Core.game.pushParticles(x+width/2, y+height/2, size, size/50);
             if(size==0){
-                for(MenuComponentEnemy enemy : game.enemies){
+                for(MenuComponentEnemy enemy : Core.game.enemies){
                     enemy.dead = true;
                 }
-                game.meteorShower = false;
-                game.shower.opacitizing = -1;
+                Core.game.meteorShower = false;
                 for(AsteroidMaterial mat : AsteroidMaterial.values()){
                     mat.timer+=100;
                 }
-                if(game.mothership!=null){
-                    game.mothership.shieldBlast();
+                if(Core.game.mothership!=null){
+                    Core.game.mothership.shieldBlast();
                 }
             }
             if(blastRecharge==0){
@@ -82,7 +77,7 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
         shieldSize = Math.max(0, Math.min(maxShieldSize, shieldSize));
     }
     @Override
-    public void render(){
+    public void draw(){
         removeRenderBound();
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
         renderDamages();
@@ -90,23 +85,11 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
             drawRect(x+width/2-250, y+height/2-250, x+width/2+250, y+height/2+250, ImageStash.instance.getTexture("/textures/buildings/power outline.png"));
         }
         drawCenteredText(x, y, x+width, y+20, (int)power+":"+(int)shieldSize);
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+(level+1));
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
     }
     @Override
-    public boolean onDamage(double x, double y){
-        damages.add(add(new MenuComponentBuildingDamage(x-25, y-25, 50, 50)));
-        return true;
-    }
-    @Override
-    public boolean canUpgrade(){
-        return level<19;
-    }
-    @Override
-    public MenuComponentBuilding getUpgraded(){
-        MenuComponentShieldGenerator s = new MenuComponentShieldGenerator(x, y, level+1);
-        s.shieldOutline = shieldOutline;
-        s.powerOutline = powerOutline;
-        return s;
+    public int getMaxLevel(){
+        return 20;
     }
     /**
      * @return the shieldSize
@@ -135,18 +118,7 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
     }
     @Override
     public Config save(Config cfg) {
-        cfg.set("type", type.name());
-        cfg.set("count", damages.size());
-        for(int i = 0; i<damages.size(); i++){
-            MenuComponentBuildingDamage damage = damages.get(i);
-            cfg.set(i+" x", damage.x);
-            cfg.set(i+" y", damage.y);
-        }
-        cfg.set("power", power);
         cfg.set("blastRecharge", blastRecharge);
-        cfg.set("x", x);
-        cfg.set("y", y);
-        cfg.set("level", level);
         cfg.set("size", shieldSize);
         cfg.set("maxSize", maxShieldSize);
         cfg.set("strength", shieldStrength);
@@ -154,11 +126,8 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
         cfg.set("shieldOutline", shieldOutline);
         return cfg;
     }
-    public static MenuComponentShieldGenerator loadSpecific(Config cfg){
-        MenuComponentShieldGenerator generator = new MenuComponentShieldGenerator(cfg.get("x", 0d), cfg.get("y",0d), cfg.get("level", 1));
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            generator.damages.add(new MenuComponentBuildingDamage(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), 50, 50));
-        }
+    public static ShieldGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        ShieldGenerator generator = new ShieldGenerator(x, y, level, upgrades);
         if(cfg.hasProperty("power")&&cfg.get("power") instanceof Integer){
             generator.power = cfg.get("power", 0);
         }else{
@@ -182,10 +151,32 @@ public class MenuComponentShieldGenerator extends BuildingPowerConsumer{
     }
     @Override
     public String getName(){
-        return "Level "+(level+1)+" Shield Generator";
+        return "Level "+getLevel()+" Shield Generator";
     }
     private double getStats(int level){
-        level++;
         return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
+    }
+    @Override
+    public void upgrade(){
+        super.upgrade();
+        canBlast = getLevel()>=10;
+        shieldStrength = getStats(getLevel());
+        maxShieldSize += (getLevel())*250;
+    }
+    @Override
+    public double getMaxPower(){
+        return Integer.MAX_VALUE;
+    }
+    @Override
+    public double getDemand(){
+        return 100;
+    }
+    @Override
+    public double getPower(){
+        return power;
+    }
+    @Override
+    public void addPower(double power){
+        this.power+=power;
     }
 }

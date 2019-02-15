@@ -24,6 +24,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.building.Building.Upgrade;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
@@ -45,7 +46,7 @@ public class Core extends Renderer2D{
     public static final boolean is3D = false;
     public static boolean enableCullFace = true;
     public static final boolean fullscreen = true;
-    public static final boolean supportTyping = false;
+    public static final boolean supportTyping = true;
     public static MenuGame game;
     public static String save = "unnamed";
     private static int maxLevel = 1;
@@ -140,16 +141,8 @@ public class Core extends Renderer2D{
         }
     }
     public static void tickInit() throws LWJGLException{
-        if(Main.intellitype){
-            com.melloware.jintellitype.JIntellitype.getInstance().addIntellitypeListener((int command) -> {
-                if(command==com.melloware.jintellitype.JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK){
-                    Sounds.stopSound("music");
-                }else{
-                    System.err.println("Unhandeled Intellitype command: "+command);
-                }
-            });
-        }
         loadOptions();
+        for(Upgrade upgrade : Upgrade.values());//initialize upgrades to add them to building upgrade lists
     }
     public static void finalInit() throws LWJGLException{
         if(Main.jLayer){
@@ -166,15 +159,15 @@ public class Core extends Renderer2D{
                 gui.tick();
             }
         }else{
-            if(Main.intellitype){
-                com.melloware.jintellitype.JIntellitype.getInstance().cleanUp();
-            }
             saveOptions();
         }
     }
-    public static void render(int milisSinceLastTick){
+    public static void render(int millisSinceLastTick){
         if(is3D&&enableCullFace) GL11.glDisable(GL11.GL_CULL_FACE);
-        gui.render(milisSinceLastTick);
+        if(game!=null){
+            game.renderWorld(millisSinceLastTick);
+        }
+        gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
         if(Keyboard.isKeyDown(Keyboard.KEY_EQUALS)){
             Sounds.vol+=0.01f;
@@ -301,8 +294,20 @@ public class Core extends Renderer2D{
     public static double distance(MenuComponent o1, MenuComponent o2){
         return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
     }
+    public static double distance(MenuComponent o1, GameObject o2){
+        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
+    }
+    public static double distance(GameObject o1, MenuComponent o2){
+        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
+    }
+    public static double distance(GameObject o1, GameObject o2){
+        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
+    }
     public static double distance(MenuComponent component, double x, double y) {
         return distance(component, new MenuComponentButton(x, y, 0, 0, "", false));
+    }
+    public static double distance(GameObject object, double x, double y) {
+        return distance(object, new MenuComponentButton(x, y, 0, 0, "", false));
     }
     public static double distance(double x1, double y1, double x2, double y2) {
         return distance(new MenuComponentButton(x1, y1, 0, 0, "", false), new MenuComponentButton(x2, y2, 0, 0, "", false));
@@ -321,6 +326,9 @@ public class Core extends Renderer2D{
     }
     public static boolean isPointWithinComponent(double x, double y, MenuComponent component){
         return isClickWithinBounds(x, y, component.x, component.y, component.x+component.width, component.y+component.height);
+    }
+    public static boolean isPointWithinComponent(double x, double y, GameObject object){
+        return isClickWithinBounds(x, y, object.x, object.y, object.x+object.width, object.y+object.height);
     }
     public static double getValueBetweenTwoValues(double pos1, double val1, double pos2, double val2, double pos){
         if(pos1>pos2){

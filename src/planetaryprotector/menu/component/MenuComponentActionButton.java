@@ -16,6 +16,7 @@ public abstract class MenuComponentActionButton extends MenuComponentButton impl
     @Override
     public void render(){
         super.render();
+        removeRenderBound();
         GL11.glColor4d(1, 1, 1, 1);
         if(isMouseOver){
             double Y = y;

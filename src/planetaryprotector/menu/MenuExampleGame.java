@@ -1,27 +1,27 @@
 package planetaryprotector.menu;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.friendly.MenuComponentWorker;
+import planetaryprotector.friendly.Worker;
 import planetaryprotector.building.task.TaskDemolish;
 import planetaryprotector.building.task.TaskWreckClean;
 import planetaryprotector.building.task.TaskUpgrade;
 import planetaryprotector.building.task.TaskConstruct;
-import planetaryprotector.building.MenuComponentMine;
-import planetaryprotector.building.MenuComponentShieldGenerator;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentGenerator;
-import planetaryprotector.building.MenuComponentBunker;
-import planetaryprotector.building.MenuComponentWreck;
-import planetaryprotector.building.MenuComponentPlot;
-import planetaryprotector.building.MenuComponentSkyscraper;
-import planetaryprotector.building.MenuComponentSilo;
-import planetaryprotector.building.MenuComponentBase;
+import planetaryprotector.building.Mine;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.CoalGenerator;
+import planetaryprotector.building.Bunker;
+import planetaryprotector.building.Wreck;
+import planetaryprotector.building.Plot;
+import planetaryprotector.building.Skyscraper;
+import planetaryprotector.building.Silo;
+import planetaryprotector.building.Base;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import simplelibrary.opengl.gui.GUI;
 public class MenuExampleGame extends MenuGame{
     int timer = 0;
     public MenuExampleGame(GUI gui){
-        super(gui, null, new MenuComponentBase(Display.getWidth()/2-50, Display.getHeight()/2-50), new ArrayList<>(), 3);
+        super(gui, null, new Base(Display.getWidth()/2-50, Display.getHeight()/2-50), new ArrayList<>(), 3);
         doNotDisturb = true;
     }
     @Override
@@ -35,41 +35,41 @@ public class MenuExampleGame extends MenuGame{
         }
         if(timer<=0){
             timer+=5;
-            MenuComponentBuilding b = MenuComponentBuilding.generateRandomBuilding(base, buildings);
-            if(b!=null) buildings.add(add(b));
+            Building b = Building.generateRandomBuilding(base, buildings);
+            if(b!=null) buildings.add(b);
         }
-        for(MenuComponentWorker w : workers){
+        for(Worker w : workers){
             w.speed = 25;
             if(w.task!=null){
                 w.task.progress = w.task.time;
             }
         }
-        for(MenuComponentBuilding building : buildings){
+        for(Building building : buildings){
             if(building.task!=null) continue;
-            THAT:for(MenuComponentWorker worker : workers){
+            THAT:for(Worker worker : workers){
                 if(!worker.isWorking()){
-                    for(MenuComponentWorker w : workers){
+                    for(Worker w : workers){
                         if(w.targetTask!=null&&w.targetTask.building==building){
                             continue THAT;
                         }
                     }
-                    if(building instanceof MenuComponentWreck&&droppedItems.size()<1000){
-                        building.task = new TaskWreckClean((MenuComponentWreck) building);
+                    if(building instanceof Wreck&&droppedItems.size()<1000){
+                        building.task = new TaskWreckClean((Wreck) building);
                         worker.targetTask = building.task;
                     }
-                    if(building instanceof MenuComponentPlot){
-                        ArrayList<MenuComponentBuilding> targets = new ArrayList<>();
-                        targets.add(new MenuComponentBunker(building.x, building.y));
-                        targets.add(new MenuComponentGenerator(building.x, building.y));
-                        targets.add(new MenuComponentMine(building.x, building.y));
-                        targets.add(new MenuComponentShieldGenerator(building.x, building.y));
-                        if(phase>=3) targets.add(new MenuComponentSilo(building.x, building.y));
-                        targets.add(new MenuComponentSkyscraper(building.x, building.y));
-                        MenuComponentBuilding target = targets.get(MenuGame.rand.nextInt(targets.size()));
+                    if(building instanceof Plot){
+                        ArrayList<Building> targets = new ArrayList<>();
+                        targets.add(new Bunker(building.x, building.y));
+                        targets.add(new CoalGenerator(building.x, building.y));
+                        targets.add(new Mine(building.x, building.y));
+                        targets.add(new ShieldGenerator(building.x, building.y));
+                        if(phase>=3) targets.add(new Silo(building.x, building.y));
+                        targets.add(new Skyscraper(building.x, building.y));
+                        Building target = targets.get(MenuGame.rand.nextInt(targets.size()));
                         building.task = new TaskConstruct(building, target);
                         worker.targetTask = building.task;
                     }
-                    if(!(building instanceof MenuComponentPlot||building instanceof MenuComponentWreck)&&rand.nextDouble()<0.00001){
+                    if(!(building instanceof Plot||building instanceof Wreck)&&rand.nextDouble()<0.00001){
                         building.task = new TaskDemolish(building);
                         worker.targetTask = building.task;
                     }

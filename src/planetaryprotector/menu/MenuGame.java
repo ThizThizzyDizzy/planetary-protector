@@ -10,15 +10,14 @@ import planetaryprotector.VersionManager;
 import planetaryprotector.menu.component.MenuComponentActionButton;
 import planetaryprotector.menu.component.MenuComponentClickable;
 import planetaryprotector.friendly.MenuComponentDrone;
-import planetaryprotector.item.MenuComponentDroppedItem;
+import planetaryprotector.item.DroppedItem;
 import planetaryprotector.menu.component.MenuComponentFalling;
 import planetaryprotector.menu.component.MenuComponentFurnace;
 import planetaryprotector.menu.component.MenuComponentRising;
-import planetaryprotector.friendly.MenuComponentWorker;
+import planetaryprotector.friendly.Worker;
 import planetaryprotector.enemy.AsteroidMaterial;
-import planetaryprotector.enemy.MenuComponentMeteorShower;
-import planetaryprotector.enemy.MenuComponentAsteroid;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.enemy.Asteroid;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.MenuComponentEnemy;
@@ -32,17 +31,18 @@ import planetaryprotector.building.task.TaskType;
 import planetaryprotector.building.task.Task;
 import planetaryprotector.building.task.TaskUpgrade;
 import planetaryprotector.building.task.TaskConstruct;
-import planetaryprotector.building.MenuComponentMine;
-import planetaryprotector.building.MenuComponentShieldGenerator;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentGenerator;
-import planetaryprotector.building.MenuComponentBunker;
+import planetaryprotector.building.Mine;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.building.CoalGenerator;
+import planetaryprotector.building.Bunker;
 import planetaryprotector.building.IllegalBuildingException;
-import planetaryprotector.building.MenuComponentWreck;
+import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
-import planetaryprotector.building.MenuComponentSilo;
-import planetaryprotector.building.MenuComponentBase;
+import planetaryprotector.building.Skyscraper;
+import planetaryprotector.building.Silo;
+import planetaryprotector.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.ParticleFog;
 import java.awt.Color;
@@ -61,8 +61,16 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.building.MenuComponentObservatory;
-import planetaryprotector.building.MenuComponentWorkshop;
+import planetaryprotector.GameObject;
+import planetaryprotector.building.BuildingDamagable;
+import planetaryprotector.building.BuildingDemolishable;
+import planetaryprotector.building.Observatory;
+import planetaryprotector.building.PowerStorage;
+import planetaryprotector.building.SolarGenerator;
+import planetaryprotector.building.Workshop;
+import planetaryprotector.building.PowerNetwork;
+import planetaryprotector.building.StarlightNetwork;
+import planetaryprotector.building.task.TaskSpecialUpgrade;
 import planetaryprotector.building.task.TaskTrainWorker;
 import planetaryprotector.particle.ParticleEffectType;
 import simplelibrary.config2.Config;
@@ -75,29 +83,28 @@ import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuGame extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public static final int actionButtonWidth = 350;
-    public ArrayList<MenuComponentDroppedItem> droppedItems = new ArrayList<>();
-    public MenuComponentBase base;
+    public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
+    public Base base;
     public static Random rand = new Random();
-    public ArrayList<MenuComponentDroppedItem> itemsToDrop = new ArrayList<>();
+    public ArrayList<DroppedItem> itemsToDrop = new ArrayList<>();
     public ArrayList<MenuComponent> componentsToRemove = new ArrayList<>();
-    public boolean baseGUI = false;
+    public boolean baseGUI = true;
     private MenuComponentFurnace furnace;
     public ArrayList<MenuComponent> componentsToAdd = new ArrayList<>();
     public boolean lost = false;
-    public MenuComponentMeteorShower shower;
     public boolean meteorShower;
     public MenuComponentClickable ironChunks;
     public MenuComponentClickable coal;
     public int meteorShowerTimer = 100;
     public int actionButtonOffset = 0;
-    public ArrayList<MenuComponentWorker> workers = new ArrayList<>();
+    public ArrayList<Worker> workers = new ArrayList<>();
     public ArrayList<EnemyAlien> aliens = new ArrayList<>();
-    public ArrayList<MenuComponentBuilding> buildings = new ArrayList<>();
+    public ArrayList<Building> buildings = new ArrayList<>();
     public ArrayList<MenuComponentActionButton> actionButtons = new ArrayList<>();
-    public MenuComponentWorker selectedWorker;
-    public MenuComponentBuilding selectedBuilding;
-    HashMap<MenuComponentBuilding, MenuComponentBuilding> buildingsToReplace = new HashMap<>();
-    private MenuComponentBuilding oldSelectedBuilding;
+    public Worker selectedWorker;
+    public Building selectedBuilding;
+    HashMap<Building, Building> buildingsToReplace = new HashMap<>();
+    private Building oldSelectedBuilding;
     private Task oldSelectedTask;
     private Task selectedTask;
     public boolean paused;
@@ -126,7 +133,7 @@ public class MenuGame extends Menu{
     private int winTimer = -1;
     boolean fading;
     double blackScreenOpacity = 0;
-    public static boolean cheats = false;
+    public boolean cheats = false;
     public static int tick;
     public boolean won;
     private int cloudTimer = rand.nextInt(750)+500;
@@ -148,62 +155,63 @@ public class MenuGame extends Menu{
     private static final int maxSecretTime = 20*60*60*12;
     private static final int minSecretTime = 20*60*60;
     public int secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
-    private boolean observatory;
+    public boolean observatory;
     public int time = 0;
     private static final int dayNightCycle = 12000;
+    private ArrayList<PowerNetwork> powerNetworks = new ArrayList<>();
+    private ArrayList<StarlightNetwork> starlightNetworks = new ArrayList<>();
+    public ArrayList<Notification> notifications = new ArrayList<>();
+    public ArrayList<MenuComponentTaskAnimation> taskAnimations = new ArrayList<>();
+    public ArrayList<Asteroid> asteroids = new ArrayList<>();
+    public ArrayList<Particle> particles = new ArrayList<>();
+    public boolean hideSkyscrapers = false;
 //</editor-fold>
     public MenuGame(GUI gui){
         super(gui, null);
+        AsteroidMaterial.resetTimers();
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
-        shower = add(new MenuComponentMeteorShower());
         phase = 1;
-        cheats = false;
     }
     public MenuGame(GUI gui, Menu parent){
-        this(gui,parent,new MenuComponentBase(rand.nextInt(Display.getWidth()-100), rand.nextInt(Display.getHeight()-100)));
+        this(gui,parent,new Base(rand.nextInt(Display.getWidth()-100), rand.nextInt(Display.getHeight()-100)));
     }
-    public MenuGame(GUI gui, Menu parent, MenuComponentBase base){
+    public MenuGame(GUI gui, Menu parent, Base base){
         super(gui,parent);
+        AsteroidMaterial.resetTimers();
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         this.base = base;
-        buildings.add(add(base));
+        buildings.add(base);
         for(int i = 0; i<buildingCount; i++){
-            MenuComponentBuilding building = MenuComponentBuilding.generateRandomBuilding(base, buildings);
+            Building building = Building.generateRandomBuilding(base, buildings);
             if(building==null){
                 continue;
             }
-            buildings.add(add(building));
+            buildings.add(building);
         }
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
-        shower = add(new MenuComponentMeteorShower());
         addWorker();
         phase = 1;
-        cheats = false;
     }
     public MenuGame(GUI gui, MenuGame game, int phase){
         this(gui, game, game.base, game.buildings, phase);
     }
-    public MenuGame(GUI gui, Menu parent, MenuComponentBase base, ArrayList<MenuComponentBuilding> buildings) {
+    public MenuGame(GUI gui, Menu parent, Base base, ArrayList<Building> buildings) {
         this(gui, parent, base, buildings, 1);
     }
-    public MenuGame(GUI gui, Menu parent, MenuComponentBase base, ArrayList<MenuComponentBuilding> buildings, int phase) {
+    public MenuGame(GUI gui, Menu parent, Base base, ArrayList<Building> buildings, int phase) {
         super(gui,parent);
-        this.base = add(new MenuComponentBase(base.x, base.y));
-        buildings.add(base);
-        for(MenuComponentBuilding building : buildings){
-            this.buildings.add(add(building));
-        }
+        AsteroidMaterial.resetTimers();
+        this.base = base;
+        this.buildings = new ArrayList<>(buildings);
         coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
         ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
         furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
-        shower = add(new MenuComponentMeteorShower());
         addWorker();
         this.phase = phase;
-        cheats = false;
     }
     @Override
     public void onGUIOpened(){
@@ -242,9 +250,9 @@ public class MenuGame extends Menu{
         //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
         if(popPerFloor==-1){
             int floorCount = 0;
-            for(MenuComponentBuilding building : buildings){
-                if(building instanceof MenuComponentSkyscraper){
-                    MenuComponentSkyscraper sky = (MenuComponentSkyscraper)building;
+            for(Building building : buildings){
+                if(building instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)building;
                     floorCount+=sky.floorCount;
                 }
             }
@@ -257,7 +265,6 @@ public class MenuGame extends Menu{
     }
     @Override
     public void renderBackground(){
-        super.renderBackground();
         //<editor-fold defaultstate="collapsed" desc="BAD - Sorting all components">
         synchronized(components){
             Collections.sort(components, new Comparator<MenuComponent>(){
@@ -276,7 +283,7 @@ public class MenuGame extends Menu{
                         if(o1 instanceof MenuComponentActionButton){
                             y1 += Display.getHeight()*10;
                         }
-                        for(MenuComponentWorker worker : workers){
+                        for(Worker worker : workers){
                             if(o1==worker.button){
                                 y1 += Display.getHeight()*10;
                             }
@@ -287,43 +294,14 @@ public class MenuGame extends Menu{
                         if(o1==mothership){
                             y1 += Display.getHeight()*7;
                         }
-                        if(o1 instanceof MenuComponentDroppedItem){
-                            y1 -= Display.getHeight();
-                        }
-                        if(o1 instanceof MenuComponentParticle&&((MenuComponentParticle)o1).air){
-                            y1 += Display.getHeight()*8;
-                        }
-                        if(o1 instanceof MenuComponentAsteroid){
-                            y1 += Display.getHeight()*5;
-                        }
                         if(o1 instanceof MenuComponentEnemy){
                             y1 += Display.getHeight()*4;
                         }
                         if(o1 instanceof MenuComponentDrone){
                             y1 += Display.getHeight()*3;
                         }
-                        if(o1==shower){
-                            y1 += Display.getHeight()*2;
-                        }
                         if(o1==furnace){
                             y1 += Display.getHeight()*2;
-                        }
-                        if(o1 instanceof MenuComponentTaskAnimation){
-                            MenuComponentTaskAnimation t = (MenuComponentTaskAnimation)o1;
-                            switch(t.task.building.type){
-                                case MINE:
-                                case EMPTY:
-                                case WRECK:
-                                    y1 -= Display.getHeight()*2;
-                                    break;
-                                case SKYSCRAPER:
-                                    MenuComponentSkyscraper sky = (MenuComponentSkyscraper)t.task.building;
-                                    y1 -= sky.fallen;
-                            }
-                        }
-                        if(o1 instanceof MenuComponentSkyscraper){
-                            MenuComponentSkyscraper sky = (MenuComponentSkyscraper)o1;
-                            y1 -= sky.fallen;
                         }
 //                    }
 //                    if(o2 instanceof ZComponent){
@@ -332,7 +310,7 @@ public class MenuGame extends Menu{
                         if(o2==overlay){
                             y2 += Display.getHeight()*50;
                         }
-                        for(MenuComponentWorker worker : workers){
+                        for(Worker worker : workers){
                             if(o2==worker.button){
                                 y2 += Display.getHeight()*10;
                             }
@@ -346,43 +324,14 @@ public class MenuGame extends Menu{
                         if(o2==mothership){
                             y2 += Display.getHeight()*7;
                         }
-                        if(o2 instanceof MenuComponentDroppedItem){
-                            y2 -= Display.getHeight();
-                        }
-                        if(o2 instanceof MenuComponentParticle&&((MenuComponentParticle)o2).air){
-                            y2 += Display.getHeight()*8;
-                        }
-                        if(o2 instanceof MenuComponentAsteroid){
-                            y2 += Display.getHeight()*5;
-                        }
                         if(o2 instanceof MenuComponentEnemy){
                             y2 += Display.getHeight()*4;
                         }
                         if(o2 instanceof MenuComponentDrone){
                             y2 += Display.getHeight()*3;
                         }
-                        if(o2==shower){
-                            y2 += Display.getHeight()*2;
-                        }
                         if(o2==furnace){
                             y2 += Display.getHeight()*2;
-                        }
-                        if(o2 instanceof MenuComponentTaskAnimation){
-                            MenuComponentTaskAnimation t = (MenuComponentTaskAnimation)o2;
-                            switch(t.task.building.type){
-                                case MINE:
-                                case EMPTY:
-                                case WRECK:
-                                    y2 -= Display.getHeight()*2;
-                                    break;
-                                case SKYSCRAPER:
-                                    MenuComponentSkyscraper sky = (MenuComponentSkyscraper)t.task.building;
-                                    y2 -= sky.fallen;
-                            }
-                        }
-                        if(o2 instanceof MenuComponentSkyscraper){
-                            MenuComponentSkyscraper sky = (MenuComponentSkyscraper)o2;
-                            y2 -= sky.fallen;
                         }
 //                    }
                     y1 += height1/2;
@@ -393,19 +342,19 @@ public class MenuGame extends Menu{
         }
 //</editor-fold>
         synchronized(buildings){
-            Collections.sort(buildings, new Comparator<MenuComponentBuilding>(){
+            Collections.sort(buildings, new Comparator<Building>(){
                 @Override
-                public int compare(MenuComponentBuilding o1, MenuComponentBuilding o2){
+                public int compare(Building o1, Building o2){
                     double y1 = o1.y;
                     double y2 = o2.y;
                     double height1 = o1.height;
                     double height2 = o2.height;
-                    if(o1 instanceof MenuComponentSkyscraper){
-                        MenuComponentSkyscraper sky = (MenuComponentSkyscraper)o1;
+                    if(o1 instanceof Skyscraper){
+                        Skyscraper sky = (Skyscraper)o1;
                         y1 -= sky.fallen;
                     }
-                    if(o2 instanceof MenuComponentSkyscraper){
-                        MenuComponentSkyscraper sky = (MenuComponentSkyscraper)o2;
+                    if(o2 instanceof Skyscraper){
+                        Skyscraper sky = (Skyscraper)o2;
                         y2 -= sky.fallen;
                     }
                     y1 += height1/2;
@@ -419,7 +368,7 @@ public class MenuGame extends Menu{
             coal.x=Display.getWidth()-100;
             ironChunks.x=Display.getWidth()-100;
             furnace.x=Display.getWidth()-100;
-            for(MenuComponentWorker worker : workers){
+            for(Worker worker : workers){
                 worker.button.x = 0;
                 worker.button.color = (!(worker.dead||worker.isWorking()))?Color.WHITE:Color.RED;
                 worker.button.enabled = !(worker.dead||worker.isWorking());
@@ -431,7 +380,7 @@ public class MenuGame extends Menu{
             coal.x=-100;
             ironChunks.x=-100;
             furnace.x=-100;
-            for(MenuComponentWorker worker : workers){
+            for(Worker worker : workers){
                 worker.button.x = -50;
             }
             for(MenuComponentActionButton button : actionButtons){
@@ -439,44 +388,19 @@ public class MenuGame extends Menu{
             }
         }
 //</editor-fold>
-        for(MenuComponentBuilding building : buildings){
-            building.renderBackground();
-        }
-        for(MenuComponent component : components){
-            if(component instanceof MenuComponentTaskAnimation){
-                component.render();
-            }
-        }
-        for(MenuComponentDroppedItem item : droppedItems){
-            item.renderBackground();
-        }
-        for(MenuComponentWorker worker : workers){
-            worker.renderBackground();
-        }
     }
     @Override
     public void render(int millisSinceLastTick){
-        super.render(millisSinceLastTick);
-        drawDayNightCycle();
         if(baseGUI){
             drawRect(Display.getWidth()-100, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/sidebar.png"));
         }
-        //<editor-fold defaultstate="collapsed" desc="BAD - MenuComponentFalling and MenuComponentRising re-rendering">
-        for(MenuComponent c : components){
-            if(c instanceof MenuComponentFalling||c instanceof MenuComponentRising){
-                c.render();
-            }
-        }
-//</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="BAD - Furnace re-rendering">
-        furnace.render();
-//</editor-fold>
+        super.render(millisSinceLastTick);
         if(Mouse.isButtonDown(1)&&selectedWorker!=null){
             selectedWorker.selectedTarget = new double[]{Mouse.getX(),Display.getHeight()-Mouse.getY()};
         }
         //<editor-fold defaultstate="collapsed" desc="Damage Report">
         if(damageReportTimer>=0){
-            for(MenuComponentBuilding b : buildings){
+            for(Building b : buildings){
                 if(b.damages.size()>10) continue;
                 GL11.glColor4d(1, 0, 0, (damageReportTimer/damageReportTime)*(b.damages.size()/10D));
                 if(b.type==BuildingType.WRECK){
@@ -487,22 +411,14 @@ public class MenuGame extends Menu{
             }
         }
 //</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="Shields">
-for(MenuComponentBuilding building : buildings){
-    if(building instanceof MenuComponentShieldGenerator){
-        MenuComponentShieldGenerator gen = (MenuComponentShieldGenerator) building;
-        gen.shield.renderOnWorld();
-    }
-}
-//</editor-fold>
         if(!won&&!lost){
             //<editor-fold defaultstate="collapsed" desc="Phase 1 advancing">
             if(phase==1){
                 int shieldArea = 0;
                 double maxSize = 0;
-                for(MenuComponentBuilding building : buildings){
-                    if(building instanceof MenuComponentShieldGenerator){
-                        MenuComponentShieldGenerator shield = (MenuComponentShieldGenerator) building;
+                for(Building building : buildings){
+                    if(building instanceof ShieldGenerator){
+                        ShieldGenerator shield = (ShieldGenerator) building;
                         shieldArea += Math.PI*Math.pow(shield.shieldSize*.5,2);
                         maxSize = Math.max(maxSize, shield.shieldSize);
                     }
@@ -513,24 +429,27 @@ for(MenuComponentBuilding building : buildings){
             }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 2 Rendering and advancing">
-if(phase==2){
-    int pop = calculatePopulationCapacity();
-    centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population Capacity: "+pop+"/"+targetPopulation+" ("+Math.round(pop/(double)targetPopulation*10000D)/100D+"%)");
-    if(pop>=targetPopulation){
-        phase(3);
-    }
-}
+            if(phase==2){
+                int pop = calculatePopulationCapacity();
+                notify("Population Capacity: ", pop+"/"+targetPopulation+" ("+Math.round(pop/(double)targetPopulation*10000D)/100D+"%)");
+//                centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population Capacity: "+pop+"/"+targetPopulation+" ("+Math.round(pop/(double)targetPopulation*10000D)/100D+"%)");
+                if(pop>=targetPopulation){
+                    phase(3);
+                }
+            }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 3 rendering and advancing">
             if(phase==3){
                 int pop = calculatePopulation();
                 int maxPop = calculatePopulationCapacity();
-                if(maxPop<targetPopulation){
-                    centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population Capacity: "+maxPop+"/"+targetPopulation+" ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)");
-                    centeredTextWithBackground(0, 50, Display.getWidth(), 100, "Population: "+pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
-                }else{
-                    centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population: "+pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
-                }
+                notify("Population Capacity: ", maxPop+"/"+targetPopulation+" ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)");
+                notify("Population: ", pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
+//                if(maxPop<targetPopulation){
+//                    centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population Capacity: "+maxPop+"/"+targetPopulation+" ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)");
+//                    centeredTextWithBackground(0, 50, Display.getWidth(), 100, "Population: "+pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
+//                }else{
+//                    centeredTextWithBackground(0, 0, Display.getWidth(), 50, "Population: "+pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
+//                }
                 if(pop>=targetPopulation&&maxPop>=targetPopulation){
                     phase(4);
                     paused = false;
@@ -538,13 +457,10 @@ if(phase==2){
             }
             //</editor-fold>
             if(selectedBuilding!=null){
-                textWithBackground(baseGUI?50:0, 0, (baseGUI?50:0)+actionButtonWidth, 20, selectedBuilding.getName());
+                String upgrades = "";
+                for(Upgrade u : selectedBuilding.getBoughtUpgrades())upgrades+="*";
+                textWithBackground(baseGUI?50:0, 0, (baseGUI?50:0)+actionButtonWidth, 20, upgrades+" "+selectedBuilding.getName());
             }
-            //<editor-fold defaultstate="collapsed" desc="BAD - Action Button Re-rendering">
-            for(MenuComponentActionButton actionButton : actionButtons){
-                actionButton.render();
-            }
-//</editor-fold>
             drawText(furnace.x+10, Display.getHeight()-60, Display.getWidth()-10, Display.getHeight()-40, furnace.ironOre+" Iron");
             drawText(furnace.x+10, Display.getHeight()-40, Display.getWidth()-10, Display.getHeight()-20, furnace.coal+" Coal");
             drawText(furnace.x+10, Display.getHeight()-20, Display.getWidth()-10, Display.getHeight(), furnace.level>=MenuComponentFurnace.maxLevel?"Maxed":"Level "+(furnace.level+1));
@@ -556,6 +472,7 @@ if(phase==2){
             }
         }else if(won){
             if(phase>0){
+                notifications.clear();
                 centeredTextWithBackground(0, 0, Display.getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
                 if(winTimer<20&&Sounds.nowPlaying().equals("VictoryMusic1")){
                     centeredTextWithBackground(0, 35, Display.getWidth(), 85, "Only one problem remains...");
@@ -577,137 +494,128 @@ if(phase==2){
             actionButtons.clear();
             actionButtonOffset = 20;
             if(selectedBuilding!=null&&selectedWorker!=null){
+                if(selectedBuilding instanceof BuildingDamagable){
+                    taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
+                    taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
+                }
+                if(selectedBuilding.getMaxLevel()>-1){
+                    if(selectedBuilding.canUpgrade()){
+                        taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
+                    }else{
+                        action("Maxed", false, null);
+                    }
+                }
+                ArrayList<Upgrade> upgrades = selectedBuilding.getAvailableUpgrades();
+                if(!upgrades.isEmpty()){
+                    actionButtonOffset+=5;
+                    for(Upgrade upgrade : upgrades){
+                        taskButton("Install "+upgrade.toString(), selectedWorker, new TaskSpecialUpgrade(selectedBuilding, upgrade));
+                    }
+                    actionButtonOffset+=5;
+                }
                 switch(selectedBuilding.type){
                     case SKYSCRAPER:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        taskButton("Add Floor", selectedWorker, new TaskSkyscraperAddFloor((MenuComponentSkyscraper)selectedBuilding));
-                        taskButton("Add 10 Floors", selectedWorker, new TaskSkyscraperAddFloor((MenuComponentSkyscraper)selectedBuilding,10));
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
+                        taskButton("Add Floor", selectedWorker, new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding));
+                        taskButton("Add 10 Floors", selectedWorker, new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding,10));
                         break;
                     case WORKSHOP:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        taskButton("Train Worker", selectedWorker, new TaskTrainWorker((MenuComponentWorkshop)selectedBuilding));
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
+                        taskButton("Train Worker", selectedWorker, new TaskTrainWorker((Workshop)selectedBuilding));
                         break;
                     case OBSERVATORY:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        action("Add Star", hasResources(new ItemStack(Item.star)), new ActionListener() {
+                        action("Add Star", hasResources(new ItemStack(Item.star))&&((Observatory)selectedBuilding).canAddStar(), new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if(hasResources(new ItemStack(Item.star))){
-                            ((MenuComponentObservatory)selectedBuilding).addStar();
-                            removeResources(new ItemStack(Item.star));
+                            if(((Observatory)selectedBuilding).addStar()){
+                                removeResources(new ItemStack(Item.star));
+                            }
                         }
                     }
                 });
                         action("Toggle Scan", true, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        ((MenuComponentObservatory)selectedBuilding).toggleScan();
+                        ((Observatory)selectedBuilding).toggleScan();
                     }
                 });
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
                     case BUNKER:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
                     case SILO:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
                         action("Toggle Power Outline", true, new ActionListener(){
                             @Override
                             public void actionPerformed(ActionEvent e){
-                                ((MenuComponentSilo)selectedBuilding).outline = !((MenuComponentSilo)selectedBuilding).outline;
+                                ((Silo)selectedBuilding).outline = !((Silo)selectedBuilding).outline;
                             }
                         });
-                        if(selectedBuilding.canUpgrade()){
-                            taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
-                        }else{
-                            action("Maxed", false, null);
-                        }
-                        action("Build Missile", ((MenuComponentSilo)selectedBuilding).canBuildMissile(), new ActionListener(){
+                        action("Build Missile", ((Silo)selectedBuilding).canBuildMissile(), new ActionListener(){
                             @Override
                             public void actionPerformed(ActionEvent ae){
-                                ((MenuComponentSilo)selectedBuilding).buildMissile();
+                                ((Silo)selectedBuilding).buildMissile();
                             }
-                        }, ((MenuComponentSilo)selectedBuilding).missileCost());
-                        if(selectedBuilding.level>1){
-                            action("Build Drone", ((MenuComponentSilo)selectedBuilding).canBuildDrone(), new ActionListener(){
+                        }, ((Silo)selectedBuilding).missileCost());
+                        if(selectedBuilding.getLevel()>1){
+                            action("Build Drone", ((Silo)selectedBuilding).canBuildDrone(), new ActionListener(){
                                 @Override
                                 public void actionPerformed(ActionEvent ae){
-                                    ((MenuComponentSilo)selectedBuilding).buildDrone();
+                                    ((Silo)selectedBuilding).buildDrone();
                                 }
-                            }, ((MenuComponentSilo)selectedBuilding).droneCost());
+                            }, ((Silo)selectedBuilding).droneCost());
                         }
-                        action("Fire Missiles", ((MenuComponentSilo)selectedBuilding).canLaunchMissile(), new ActionListener(){
+                        action("Fire Missiles", ((Silo)selectedBuilding).canLaunchMissile(), new ActionListener(){
                             @Override
                             public void actionPerformed(ActionEvent ae){
-                                ((MenuComponentSilo)selectedBuilding).launchMissile();
+                                ((Silo)selectedBuilding).launchMissile();
                             }
                         });
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
-                    case GENERATOR:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        if(selectedBuilding.canUpgrade()){
-                            taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
-                        }else{
-                            action("Maxed", false, null);
-                        }
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
+                    case SOLAR_GENERATOR:
+                        break;
+                    case COAL_GENERATOR:
+                        action("Add Coal", hasResources(new ItemStack(Item.coal)), new ActionListener(){
+                            @Override
+                            public void actionPerformed(ActionEvent e){
+                                removeResources(new ItemStack(Item.coal));
+                                ((CoalGenerator)selectedBuilding).coal++;
+                            }
+                        });
+                        action((((CoalGenerator)selectedBuilding).autoFuel?"Disable":"Enable")+" Auto-fueling", true, new ActionListener(){
+                            @Override
+                            public void actionPerformed(ActionEvent e){
+                                ((CoalGenerator)selectedBuilding).autoFuel = !((CoalGenerator)selectedBuilding).autoFuel;
+                            }
+                        });
+                        break;
+                    case POWER_STORAGE:
                         break;
                     case MINE:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        if(selectedBuilding.canUpgrade()){
-                            taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
-                        }else{
-                            action("Maxed", false, null);
-                        }
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
                     case SHIELD_GENERATOR:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
                         action("Toggle Shield Outline", true, new ActionListener(){
                             @Override
                             public void actionPerformed(ActionEvent e){
-                                ((MenuComponentShieldGenerator)selectedBuilding).shieldOutline = !((MenuComponentShieldGenerator)selectedBuilding).shieldOutline;
+                                ((ShieldGenerator)selectedBuilding).shieldOutline = !((ShieldGenerator)selectedBuilding).shieldOutline;
                             }
                         });
                         action("Toggle Power Outline", true, new ActionListener(){
                             @Override
                             public void actionPerformed(ActionEvent e){
-                                ((MenuComponentShieldGenerator)selectedBuilding).powerOutline = !((MenuComponentShieldGenerator)selectedBuilding).powerOutline;
+                                ((ShieldGenerator)selectedBuilding).powerOutline = !((ShieldGenerator)selectedBuilding).powerOutline;
                             }
                         });
-                        if(selectedBuilding.canUpgrade()){
-                            taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
-                        }else{
-                            action("Maxed", false, null);
-                        }
-                        if(phase>=3&&((MenuComponentShieldGenerator)selectedBuilding).canBlast){
-                            action("Blast", ((MenuComponentShieldGenerator)selectedBuilding).blastRecharge==0, new ActionListener() {
+                        if(phase>=3&&((ShieldGenerator)selectedBuilding).canBlast){
+                            action("Blast", ((ShieldGenerator)selectedBuilding).blastRecharge==0, new ActionListener() {
                                 @Override
                                 public void actionPerformed(ActionEvent e) {
-                                    ((MenuComponentShieldGenerator)selectedBuilding).blast();
+                                    ((ShieldGenerator)selectedBuilding).blast();
                                 }
                             });
                         }
-                        taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                         break;
                     case WRECK:
-                        taskButton("Clean up", selectedWorker, new TaskWreckClean((MenuComponentWreck) selectedBuilding));
+                        taskButton("Clean up", selectedWorker, new TaskWreckClean((Wreck) selectedBuilding));
                         break;
                     case BASE:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
                         action("Dispense All Workers", true, (ActionEvent e) -> {
                             dispenseWorkers();
                         });
@@ -726,24 +634,34 @@ if(phase==2){
                             });
                         }
                         break;
+//                    case LABORATORY://TODO research
+//                            action("Research", true, (ActionEvent ae) -> {
+//                                if(overlay!=null)return;
+//                                overlay = add(new MenuResearch(this));
+//                            });
+//                        break;
                     case EMPTY:
-                        taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                        taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
-                        taskButton("Build Bunker", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentBunker(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Bunker", selectedWorker, new TaskConstruct(selectedBuilding, new Bunker(selectedBuilding.x, selectedBuilding.y)));
                         if(phase>=3){
-                            taskButton("Build Silo", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentSilo(selectedBuilding.x, selectedBuilding.y)));
+                            taskButton("Build Silo", selectedWorker, new TaskConstruct(selectedBuilding, new Silo(selectedBuilding.x, selectedBuilding.y)));
                         }
-                        taskButton("Build Skyscraper", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentSkyscraper(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Mine", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentMine(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Generator", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentGenerator(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Shield Generator", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentShieldGenerator(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Workshop", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentWorkshop(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Skyscraper", selectedWorker, new TaskConstruct(selectedBuilding, new Skyscraper(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Mine", selectedWorker, new TaskConstruct(selectedBuilding, new Mine(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Solar Generator", selectedWorker, new TaskConstruct(selectedBuilding, new SolarGenerator(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Coal Generator", selectedWorker, new TaskConstruct(selectedBuilding, new CoalGenerator(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Power Storage", selectedWorker, new TaskConstruct(selectedBuilding, new PowerStorage(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Shield Generator", selectedWorker, new TaskConstruct(selectedBuilding, new ShieldGenerator(selectedBuilding.x, selectedBuilding.y)));
+                        taskButton("Build Workshop", selectedWorker, new TaskConstruct(selectedBuilding, new Workshop(selectedBuilding.x, selectedBuilding.y)));
+//                        taskButton("Build Laboratory", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentLaboratory(selectedBuilding.x, selectedBuilding.y)));
                         if(observatory){
-                            taskButton("Build Observatory", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentObservatory(selectedBuilding.x, selectedBuilding.y)));
+                            taskButton("Build Observatory", selectedWorker, new TaskConstruct(selectedBuilding, new Observatory(selectedBuilding.x, selectedBuilding.y)));
                         }
                         break;
                     default:
                         throw new IllegalBuildingException(selectedBuilding.type);
+                }
+                if(selectedBuilding instanceof BuildingDemolishable){
+                    taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                 }
                 if(selectedBuilding.task!=null&&selectedWorker.task==null){
                     action("Continue Task", true, new ActionListener() {
@@ -758,7 +676,7 @@ if(phase==2){
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             if(selectedBuilding==null)return;
-                            MenuComponentWorker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
+                            Worker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
                             if(worker==null)return;
                             worker.targetTask = selectedBuilding.task;
                         }
@@ -772,13 +690,6 @@ if(phase==2){
                 }
             }
         }
-//</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="BAD - Worker button re-rendering">
-for(MenuComponentWorker w : workers){
-    if(w==null)continue;
-    if(w.button==null)continue;
-    w.button.render();
-}
 //</editor-fold>
         oldSelectedBuilding = selectedBuilding;
         oldSelectedTask = selectedTask;
@@ -794,6 +705,23 @@ for(MenuComponentWorker w : workers){
                 debugText(textHeight, str);
             }
         }
+        int offset = 0;
+        for(Iterator<Notification> it = notifications.iterator(); it.hasNext();){
+            Notification n = it.next();
+            double wide = FontManager.getLengthForStringWithHeight(n.toString(), 20);
+            double left = Display.getWidth()/2-(wide/2*n.width);
+            double right = Display.getWidth()/2+(wide/2*n.width);
+            int y = 20-n.height;
+            GL11.glColor4d(0,0,0,.5);
+            drawRectWithBounds(Display.getWidth()/2-wide/2, offset-y/2, Display.getWidth()/2+wide/2, offset+20-y/2, left, offset, right, offset+n.height, 0);
+            GL11.glColor4d(1,1,1,1);
+            drawCenteredTextWithBounds(Display.getWidth()/2-wide/2, offset-y/2, Display.getWidth()/2+wide/2, offset+20-y/2, left, offset, right, offset+n.height, n.toString());
+            offset+=n.height;
+            if(n.isDead())it.remove();
+        }
+        if(paused){
+            drawCenteredText(0, Display.getHeight()/2-50, Display.getWidth(), Display.getHeight()/2+50, "Paused");
+        }
         //<editor-fold defaultstate="collapsed" desc="BAD - Phase marker Re-rendering">
         if(phaseMarker!=null){
             phaseMarker.render();
@@ -806,11 +734,72 @@ for(MenuComponentWorker w : workers){
         //</editor-fold>
         renderForeground();
     }
+    public void renderWorld(int millisSinceLastTick){
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+        synchronized(buildings){
+            for(Building building : buildings){
+                building.renderBackground();
+            }
+        }
+        for(MenuComponentTaskAnimation anim : taskAnimations){
+            anim.render();
+        }
+        ArrayList<Particle> groundParticles = new ArrayList<>();
+        synchronized(particles){
+            for(Particle particle : particles){
+                if(!particle.air)groundParticles.add(particle);
+            }
+        }
+        ArrayList<GameObject> mainLayer = new ArrayList<>();
+        mainLayer.addAll(groundParticles);
+        mainLayer.addAll(buildings);
+        mainLayer.addAll(droppedItems);
+        mainLayer.addAll(workers);
+        Collections.sort(mainLayer, new Comparator<GameObject>(){
+            @Override
+            public int compare(GameObject o1, GameObject o2){
+                int y1 = (int)o1.y;
+                int height1 = (int)o1.height;
+                int y2 = (int)o2.y;
+                int height2 = (int)o2.height;
+                if(o1 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o1;
+                    y1 -= sky.fallen;
+                }
+                if(o2 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o2;
+                    y2 -= sky.fallen;
+                }
+                y1 += height1/2;
+                y2 += height2/2;
+                return y1-y2;
+            }
+        });
+        for(GameObject o : mainLayer){
+            o.render();
+        }
+        synchronized(particles){
+            for(Particle particle : particles){
+                if(particle.air)particle.render();
+            }
+        }
+        //<editor-fold defaultstate="collapsed" desc="Shields">
+        for(Building building : buildings){
+            if(building instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) building;
+                gen.shield.renderOnWorld();
+            }
+        }
+        //</editor-fold>
+        synchronized(asteroids){
+            for(Asteroid asteroid : asteroids){
+                asteroid.render();
+            }
+        }
+        drawDayNightCycle();
+    }
     @Override
     public void renderForeground(){
-        if(fading){
-            blackScreenOpacity+=0.01;
-        }
         GL11.glColor4d(0, 0, 0, blackScreenOpacity);
         drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
@@ -820,13 +809,13 @@ for(MenuComponentWorker w : workers){
         if(key==Controls.deselect&&pressed&&!repeat&&selectedWorker!=null){
             selectedWorker = null;
         }
-        if(key==Controls.hide&&pressed&&!repeat){
-            shower.hide = !shower.hide;
-        }
         if(key==Controls.cancel&&pressed&&!repeat){
             if(selectedWorker!=null&&selectedWorker.task!=null){
                 selectedWorker.cancelTask();
             }
+        }
+        if(key==Controls.hideSkyscrapers&&pressed&&!repeat){
+            hideSkyscrapers = !hideSkyscrapers;
         }
         if(key==Controls.menu&&pressed&&!repeat){
             if(overlay!=null)return;
@@ -838,6 +827,11 @@ for(MenuComponentWorker w : workers){
         }
         if(key==Controls.mute&&pressed&&!repeat){
             Sounds.vol = 1-Sounds.vol;
+            if(Sounds.vol<.01){
+                notify("Sound ", "Off", 50);
+            }else{
+                notify("Sound ", "On", 50);
+            }
         }
         if(key==Controls.cheat&&pressed&&!repeat){
             if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
@@ -846,168 +840,202 @@ for(MenuComponentWorker w : workers){
         }
         if(key==Controls.CHEAT_LOSE&&pressed&&!repeat){
             if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
-                gui.open(new MenuLost(gui, this));
+                notify("Cheat: Losing Epilogue");
+                if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
             }
         }
-        if(cheats&&pressed&&!repeat){
+        if(cheats&&pressed){
             if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)&&Keyboard.isKeyDown(Controls.CHEAT_SECRET)){
                 if(key==Keyboard.KEY_1){
+                    notify("Cheat: Secret #1");
                     secretWaiting = 0;
                 }
                 if(key==Keyboard.KEY_2){
+                    notify("Cheat: Secret #2");
                     secretWaiting = 1;
                 }
                 if(key==Keyboard.KEY_3){
+                    notify("Cheat: Secret #3");
                     secretWaiting = 2;
                 }
                 if(key==Keyboard.KEY_4){
+                    notify("Cheat: Secret #4");
                     secretWaiting = 3;
                 }
                 if(key==Keyboard.KEY_5){
+                    notify("Cheat: Secret #5");
                     secretWaiting = 4;
                 }
                 if(key==Keyboard.KEY_6){
+                    notify("Cheat: Secret #6");
                     secretWaiting = 5;
                 }
                 if(key==Keyboard.KEY_7){
+                    notify("Cheat: Secret #7");
                     secretWaiting = 6;
                 }
                 if(key==Keyboard.KEY_8){
+                    notify("Cheat: Secret #8");
                     secretWaiting = 7;
                 }
                 if(key==Keyboard.KEY_9){
+                    notify("Cheat: Secret #9");
                     secretWaiting = 8;
                 }
                 if(key==Keyboard.KEY_0){
+                    notify("Cheat: Secret #10");
                     secretWaiting = 9;
                 }
             }
             if(key==Controls.CHEAT_PHASE&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+                int oldPhase = phase;
                 phase(phase+1);
+                if(phase!=oldPhase){
+                    notify("Cheat: Advance to phase "+phase);
+                }
                 paused = false;
             }
             if(key==Controls.CHEAT_RESOURCES){
+                notify("Cheat: Resources");
                 for(ItemStack resource : base.resources){
                     resource.count+=100;
                 }
             }
             if(key==Controls.CHEAT_CLOUD){
+                notify("Cheat: Cloud");
                 addCloud(Mouse.getX(), Display.getHeight()-Mouse.getY());
             }
             if(key==Controls.CHEAT_FOG){
+                notify("Cheat: Fog");
                 startFog();
             }
             if(!actionButtons.isEmpty()&&selectedBuilding!=null&&selectedBuilding.task==null){
                 if(key==Keyboard.KEY_1){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(0).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_2&&actionButtons.size()>1){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(1).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_3&&actionButtons.size()>2){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(2).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_4&&actionButtons.size()>3){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(3).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_5&&actionButtons.size()>4){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(4).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_6&&actionButtons.size()>5){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(5).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_7&&actionButtons.size()>6){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(6).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_8&&actionButtons.size()>7){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(7).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_9&&actionButtons.size()>8){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(8).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_0&&actionButtons.size()>9){
-                    MenuComponentBuilding selectedBuilding = this.selectedBuilding;
+                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(9).actionPerformed(null);
                     if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
             }
             if(key==Controls.CHEAT_WORKER){
+                notify("Cheat: Add Worker");
                 addWorker();
             }
             if(key==Controls.CHEAT_ENEMY){
                 if(Keyboard.isKeyDown(Controls.CHEAT_SECRET)&&Keyboard.isKeyDown(Keyboard.KEY_1)){
+                    notify("Cheat: Shooting Star");
                     int X = Mouse.getX()-25;
                     int Y = Display.getHeight()-Mouse.getY()-25;
-                    add(new MenuComponentAsteroid(X, Y, AsteroidMaterial.SHOOTING_STAR, 2));
+                    addAsteroid(new Asteroid(X, Y, AsteroidMaterial.SHOOTING_STAR, 2));
                 }else if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)){
                     MenuComponentEnemy.strength++;
+                    notify("Cheat: Enemy Strength: ", MenuComponentEnemy.strength+"");
                 }else{
                     if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+                        notify("Cheat: Add Enemy");
                         addEnemy();
                     }else{
+                        notify("Cheat: Spawn Asteroid");
                         int X = Mouse.getX()-25;
                         int Y = Display.getHeight()-Mouse.getY()-25;
                         switch(rand.nextInt(3)){
                             case 0:
-                                add(new MenuComponentAsteroid(X, Y, AsteroidMaterial.COAL, true));
+                                addAsteroid(new Asteroid(X, Y, AsteroidMaterial.COAL, 1));
                                 break;
                             case 1:
-                                add(new MenuComponentAsteroid(X, Y, AsteroidMaterial.STONE, true));
+                                addAsteroid(new Asteroid(X, Y, AsteroidMaterial.STONE, 1));
                                 break;
                             case 2:
-                                add(new MenuComponentAsteroid(X, Y, AsteroidMaterial.IRON, true));
+                                addAsteroid(new Asteroid(X, Y, AsteroidMaterial.IRON, 1));
                                 break;
                         }
                     }
                 }
             }
             if(key==Controls.CHEAT_PEACE){
+                notify("Cheat: Disable Meteor shower");
                 if(mothership!=null){
+                    notify("Cheat: Damage Mothership");
                     mothership.health-=mothership.maxHealth/4;
                 }
                 meteorShower = false;
                 meteorShowerTimer += 20*60*60;
-                shower.opacitizing = -1;
             }
-        }else if(pressed&&!repeat){
+        }else if(pressed){
             if(!actionButtons.isEmpty()&&selectedBuilding!=null&&selectedBuilding.task==null){
                 if(key==Keyboard.KEY_1&&actionButtons.get(0).enabled&&!actionButtons.get(0).label.contains("Demolish")){
                     actionButtons.get(0).actionPerformed(null);
@@ -1074,7 +1102,17 @@ for(MenuComponentWorker w : workers){
         }
     }
     @Override
+    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
+        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
+        if(pressed&&button==0&&isClickWithinBounds(x, y, base.x, base.y, base.x+base.width, base.y+base.height)){
+            baseGUI = !baseGUI;
+        }
+    }
+    @Override
     public void tick(){
+        if(fading){
+            blackScreenOpacity+=0.01;
+        }
         //<editor-fold defaultstate="collapsed" desc="Ticking Overlays when paused">
         if(overlay!=null){
             overlay.tick();
@@ -1095,7 +1133,7 @@ for(MenuComponentWorker w : workers){
         debugData.add("Enemy Timer: "+enemyTimer);
         debugData.add("Dropped items: "+droppedItems.size());
         HashMap<Item, Integer> items = new HashMap<>();
-        for(MenuComponentDroppedItem item : droppedItems){
+        for(DroppedItem item : droppedItems){
             if(items.containsKey(item.item)){
                 items.put(item.item, items.get(item.item)+1);
             }else{
@@ -1106,12 +1144,16 @@ for(MenuComponentWorker w : workers){
             int amount = items.get(item);
             debugData.add(" - "+amount+" "+item.name+" ("+Math.round(amount/(double)droppedItems.size()*100)+"%)");
         }
+        debugData.add("Asteroid materials: "+AsteroidMaterial.values().length);
+        for(AsteroidMaterial mat : AsteroidMaterial.values()){
+            debugData.add(" 0 "+mat.toString()+": "+mat.timer);
+        }
         debugData.add("Meteor Shower: "+meteorShower);
         debugData.add("Meteor Shower Timer: "+meteorShowerTimer);
         debugData.add("Workers: "+workers.size());
         debugData.add("Buildings: "+buildings.size());
         HashMap<BuildingType, Integer> theBuildings = new HashMap<>();
-        for(MenuComponentBuilding building : buildings){
+        for(Building building : buildings){
             if(theBuildings.containsKey(building.type)){
                 theBuildings.put(building.type, theBuildings.get(building.type)+1);
             }else{
@@ -1152,13 +1194,11 @@ for(MenuComponentWorker w : workers){
             if(lostTimer>loseSongLength/10){
                 if(Sounds.songTimer()<loseSongLength/20){
                     allowArmogeddon = false;
-                    for(MenuComponent comp : components){
-                        if(comp instanceof MenuComponentParticle){
-                            ((MenuComponentParticle)comp).strength-=.1;
-                        }
+                    for(Particle particle : particles){
+                        particle.strength-=.1;
                     }
                     if(lostTimer>loseSongLength/20+20*5){
-                        gui.open(new MenuLost(gui, this));
+                        if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
                     }
                 }
             }
@@ -1166,6 +1206,13 @@ for(MenuComponentWorker w : workers){
 //</editor-fold>
         tick++;
         time++;
+        if(hideSkyscrapers){
+            notifyOnce("Skyscrapers Hidden", 1);
+        }
+        if(cheats){
+            notifyOnce("Cheats Enabled", 1);
+        }
+        for(Notification n : notifications)n.tick();
         if(time>=dayNightCycle){
             time -= dayNightCycle;
         }
@@ -1191,12 +1238,47 @@ for(MenuComponentWorker w : workers){
             damageReportTimer--;
         }
         while(!buildingsToReplace.isEmpty()){
-            ArrayList<MenuComponentBuilding> list = new ArrayList<>(buildingsToReplace.keySet());
-            MenuComponentBuilding start = list.get(0);
-            MenuComponentBuilding end = buildingsToReplace.remove(start);
-            components.remove(start);
+            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
+            Building start = list.get(0);
+            Building end = buildingsToReplace.remove(start);
             buildings.remove(start);
-            buildings.add(add(end));
+            buildings.add(end);
+            powerNetworks.clear();
+            starlightNetworks.clear();
+        }
+        for(Building building : buildings){
+            building.tick();
+        }
+        synchronized(workers){
+            for(Iterator<Worker> it = workers.iterator(); it.hasNext();){
+                Worker worker = it.next();
+                worker.tick();
+                if(worker.dead){
+                    notify("Death: Worker", 35);
+                    it.remove();
+                }
+            }
+        }
+        synchronized(droppedItems){
+            for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){ 
+                DroppedItem item = it.next();
+                item.tick();
+                if(item.dead)it.remove();
+            }
+        }
+        synchronized(asteroids){
+            for(Iterator<Asteroid> it = asteroids.iterator(); it.hasNext();){ 
+                Asteroid asteroid = it.next();
+                asteroid.tick();
+                if(asteroid.dead)it.remove();
+            }
+        }
+        synchronized(particles){
+            for(Iterator<Particle> it = particles.iterator(); it.hasNext();){ 
+                Particle particle = it.next();
+                particle.tick();
+                if(particle.dead)it.remove();
+            }
         }
         if(blackScreenOpacity>=1){
             MenuEpilogue g = new MenuEpilogue(gui);
@@ -1213,9 +1295,9 @@ for(MenuComponentWorker w : workers){
             }
         }
         if(phase<3){
-            for(MenuComponentBuilding building : buildings){
-                if(building instanceof MenuComponentSkyscraper){
-                    ((MenuComponentSkyscraper) building).pop = 0;
+            for(Building building : buildings){
+                if(building instanceof Skyscraper){
+                    ((Skyscraper) building).pop = 0;
                 }
             }
         }
@@ -1234,27 +1316,22 @@ for(MenuComponentWorker w : workers){
         }
         workerCooldown--;
         if(workerCooldown<0&&safe()&&!lost){
+            notify("Worker spawned", 50);
             addWorker();
             workerCooldown += Math.max(1200,6000-workers.size()*20);
         }
-        Collections.sort(droppedItems, new Comparator<MenuComponentDroppedItem>() {
-            @Override
-            public int compare(MenuComponentDroppedItem item1, MenuComponentDroppedItem item2){
-                return (int)Math.round(distanceTo(item1, base.x+base.width/2,base.y+base.height-12.5)-distanceTo(item2, base.x+base.width/2,base.y+base.height-12.5));
-            }
-        });
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
         if(lost&&allowArmogeddon){
             for(int i = 0; i<2; i++){
                 switch(rand.nextInt(3)){
                     case 0:
-                        add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.COAL, true));
+                        addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.COAL, 1));
                         break;
                     case 1:
-                        add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.STONE, true));
+                        addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.STONE, 1));
                         break;
                     case 2:
-                        add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.IRON, true));
+                        addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.IRON, 1));
                         break;
                 }
             }
@@ -1264,11 +1341,12 @@ for(MenuComponentWorker w : workers){
         }
 //</editor-fold>
         if(meteorShower){
+            notifyOnce("Meteor Shower");
             meteorShowerTimer++;
         }else{
             meteorShowerTimer--;
         }
-        if(meteorShowerTimer==20*4.5){
+        if(meteorShowerTimer==20*3.5){
             Sounds.fadeSound("music", "Music1");
         }
         if(meteorShower&&meteorShowerTimer>0){
@@ -1284,12 +1362,10 @@ for(MenuComponentWorker w : workers){
                     if(m.timer>=Integer.MAX_VALUE)continue;
                     m.timer = 0;
                 }
-                shower.opacitizing = 1;
             }else{
                 if(Sounds.nowPlaying()!=null&&Sounds.nowPlaying().equals("Music1")){
                     Sounds.fadeSound("music");
                 }
-                shower.opacitizing = -1;
             }
             meteorShowerTimer = (int)Math.round((meteorShower?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
         }
@@ -1324,25 +1400,24 @@ for(MenuComponentWorker w : workers){
             if(m.timer>=Integer.MAX_VALUE)continue;
             m.timer--;
             if(m.timer<=0){
-                add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), m, true));
+                addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), m, 1));
                 m.timer = (int)Math.round(((rand.nextInt(m.max-m.min)+m.min)/(meteorShower?50:1))/meteorShowerIntensityMultiplier);
             }
         }
-        while(!itemsToDrop.isEmpty()){
-            droppedItems.add(add(itemsToDrop.remove(0)));
+        if(!itemsToDrop.isEmpty()){
+            droppedItems.addAll(itemsToDrop);
+            itemsToDrop.clear();
         }
         while(!componentsToRemove.isEmpty()){
-            if(componentsToRemove.get(0) instanceof MenuComponentBuilding){
-                buildings.remove(componentsToRemove.get(0));
+            if(componentsToRemove.get(0) instanceof MenuComponentTaskAnimation){
+                taskAnimations.remove(componentsToRemove.remove(0));
+                continue;
             }
             if(componentsToRemove.get(0) instanceof EnemyAlien){
                 aliens.remove(componentsToRemove.get(0));
             }
             if(componentsToRemove.get(0) instanceof MenuComponentEnemy){
                 enemies.remove(componentsToRemove.get(0));
-            }
-            if(componentsToRemove.get(0) instanceof MenuComponentDroppedItem){
-                droppedItems.remove(componentsToRemove.get(0));
             }
             if(componentsToRemove.get(0) instanceof MenuComponentDrone){
                 drones.remove(componentsToRemove.get(0));
@@ -1351,7 +1426,7 @@ for(MenuComponentWorker w : workers){
         }
         //<editor-fold defaultstate="collapsed" desc="Expeditions">
         if(pendingExpedition!=null&&workers.size()>1){
-            for(MenuComponentWorker worker : workers){
+            for(Worker worker : workers){
                 if(worker.isAvailable()){
                     pendingExpedition.workers++;
                     worker.dead = true;
@@ -1372,28 +1447,8 @@ for(MenuComponentWorker w : workers){
             }
         }
 //</editor-fold>
-        MenuComponentWorker workerForRemoval = null;
-        for (MenuComponentWorker worker : workers) {
-            if(worker.dead){
-                workerForRemoval = worker;
-                break;
-            }
-        }
-        if(workerForRemoval!=null){
-            removeWorker(workerForRemoval);
-        }
         addAll(componentsToAdd);
         componentsToAdd.clear();
-        ONE:for(MenuComponent c : components){
-            if(c instanceof MenuComponentDroppedItem){
-                MenuComponentDroppedItem item = (MenuComponentDroppedItem)c;
-                if(droppedItems.contains(item)) continue;
-                for(MenuComponentWorker w : workers){
-                    if(w.grabbedItem==item||w.targetItem==item)continue ONE;
-                }
-                droppedItems.add(item);
-            }
-        }
         if(autoTask&&selectedWorker!=null&&selectedWorker.task!=null){
             dispenseWorkers();
         }
@@ -1411,9 +1466,9 @@ for(MenuComponentWorker w : workers){
                 a.y=0;
             }
         }
-        for(MenuComponentBuilding b : buildings){
-            if(b instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) b;
+        for(Building b : buildings){
+            if(b instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) b;
                 sky.isSelectedWorkerBehind = selectedWorker!=null&&selectedWorker.x>=sky.x&&selectedWorker.x<=sky.x+sky.width&&selectedWorker.y<=sky.y+sky.height/2&&selectedWorker.y>=sky.y-(sky.floorCount*sky.floorHeight);
             }
         }
@@ -1445,25 +1500,37 @@ for(MenuComponentWorker w : workers){
         }
 //</editor-fold>
         DO:do{
-            for(MenuComponentBuilding building : buildings){
-                MenuComponentSkyscraper sky = null;
+            for(Building building : buildings){
+                Skyscraper sky = null;
                 if(building.type==BuildingType.SKYSCRAPER){
-                    sky = (MenuComponentSkyscraper) building;
+                    sky = (Skyscraper) building;
                 }
-                if(selectedWorker!=null&&((!selectedWorker.isWorking()&&!(Keyboard.isKeyDown(Controls.up)||selectedWorker.selectedTarget!=null||Keyboard.isKeyDown(Controls.left)||Keyboard.isKeyDown(Controls.down)||Keyboard.isKeyDown(Controls.right)))||selectedWorker.isWorking())&&Core.isClickWithinBounds(selectedWorker.x+selectedWorker.width/2, selectedWorker.y+selectedWorker.height/2, building.x, building.y-(sky==null?0:sky.fallen), building.x+building.width, building.y+building.height-(sky==null?0:sky.fallen))){
-                    selectedBuilding = building;
-                    break DO;
+                if(selectedWorker!=null){
+                    if(Keyboard.isKeyDown(Controls.up))continue;
+                    if(Keyboard.isKeyDown(Controls.down))continue;
+                    if(Keyboard.isKeyDown(Controls.right))continue;
+                    if(Keyboard.isKeyDown(Controls.left))continue;
+                    if(selectedWorker.selectedTarget!=null)continue;
+                    if(Core.isClickWithinBounds(selectedWorker.x+selectedWorker.width/2, selectedWorker.y+selectedWorker.height/2, building.x, building.y-(sky==null?0:sky.fallen), building.x+building.width, building.y+building.height-(sky==null?0:sky.fallen))){
+                        selectedBuilding = building;
+                        break DO;
+                    }
                 }
             }
             selectedBuilding = null;
         }while(false);
+        //Power transfer
+        for(PowerNetwork network : getPowerNetworks()){
+            network.tick();
+        }
+        for(StarlightNetwork network : getStarlightNetworks()){
+            network.tick();
+        }
         super.tick();
     }
     @Override
     public void buttonClicked(MenuComponentButton button){
-        if(button==base){
-            baseGUI = !baseGUI;
-        }else if(button==coal){
+        if(button==coal){
             addFuel();
         }else if(button==ironChunks){
             addIron();
@@ -1471,7 +1538,7 @@ for(MenuComponentWorker w : workers){
         if(button==furnace){
             furnace.upgrade();
         }
-        for(MenuComponentWorker worker : workers){
+        for(Worker worker : workers){
             if(button==worker.button){
                 selectedWorker = worker;
             }
@@ -1508,7 +1575,6 @@ for(MenuComponentWorker w : workers){
         if(lost)return;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        shower.opacitizing = -1;
         baseGUI = false;
         if(mothership!=null){
             componentsToRemove.add(mothership);
@@ -1524,7 +1590,6 @@ for(MenuComponentWorker w : workers){
         if(won)return;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        shower.opacitizing = -1;
         baseGUI = false;
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             m.timer = Integer.MAX_VALUE;
@@ -1544,7 +1609,7 @@ for(MenuComponentWorker w : workers){
         }
         lost = true;
     }
-    public void addItem(MenuComponentDroppedItem item) {
+    public void addItem(DroppedItem item) {
         itemsToDrop.add(item);
     }
     public void addResources(Item item) {
@@ -1581,14 +1646,16 @@ for(MenuComponentWorker w : workers){
             }
         }
     }
-    public MenuComponentParticle addParticleEffect(MenuComponentParticle particle){
-        componentsToAdd.add(particle);
-        return particle;
+    public Particle addParticleEffect(Particle particle){
+        synchronized(particles){
+            particles.add(particle);
+            return particle;
+        }
     }
     public void addWorker(){
         addWorker(base.x+base.width/2, base.y+base.height-12);
     }
-    public void replaceBuilding(MenuComponentBuilding start, MenuComponentBuilding end){
+    public void replaceBuilding(Building start, Building end){
         if(buildings.contains(start)){
             buildingsToReplace.put(start,end);
         }
@@ -1628,7 +1695,7 @@ for(MenuComponentWorker w : workers){
             actionButtonOffset+=15;
         }
     }
-    private void taskButton(String label, MenuComponentWorker worker, Task task){
+    private void taskButton(String label, Worker worker, Task task){
         action(label, task.canPerform(), new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae){
@@ -1636,18 +1703,17 @@ for(MenuComponentWorker w : workers){
             }
         }, task.getTooltip());
     }
-    private void removeWorker(MenuComponentWorker work){
-        components.remove(work.button);
-        components.remove(work);
-        workers.remove(work);
+    private void removeWorker(Worker w){
+        components.remove(w.button);
+        workers.remove(w);
         for(int i = 0; i<workers.size(); i++){
-            MenuComponentWorker worker = workers.get(i);
+            Worker worker = workers.get(i);
             worker.button.y = i*50;
             worker.button.label = (i+1)+"";
         }
     }
     public void startAnim(Task task){
-        add(new MenuComponentTaskAnimation(task.building.x, task.building.y, task.building.width, task.building.height, task.type.images, this, task){
+        taskAnimations.add(new MenuComponentTaskAnimation(task.building.x, task.building.y, task.building.width, task.building.height, task.type.images, this, task){
             @Override
             public double getProgress(){
                 return task.progress();
@@ -1662,30 +1728,21 @@ for(MenuComponentWorker w : workers){
             }
         }
     }
-    public boolean safe(MenuComponentWorker worker) {
+    public boolean safe(Worker worker) {
         if(lost){
             return false;
         }
-        boolean safe = !meteorShower;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentShieldGenerator){
-                MenuComponentShieldGenerator gen = (MenuComponentShieldGenerator) building;
-                if(gen.shieldSize/2-50>=distance(gen, worker)){
-                    safe = true;
-                }
-            }
-        }
-        return safe;
+        return !meteorShower;
     }
-    public boolean superSafe(MenuComponentWorker worker) {
+    public boolean superSafe(Worker worker) {
         if(lost){
             return false;
         }
         boolean safe = false;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentShieldGenerator){
-                MenuComponentShieldGenerator gen = (MenuComponentShieldGenerator) building;
-                if(gen.shieldSize/2-50>=distance(gen, worker)){
+        for(Building building : buildings){
+            if(building instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) building;
+                if(gen.shieldSize/2-50>=Core.distance(gen, worker)){
                     safe = true;
                 }
             }
@@ -1697,9 +1754,9 @@ for(MenuComponentWorker w : workers){
             return false;
         }
         boolean safe = !meteorShower;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+        for(Building building : buildings){
+            if(building instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) building;
                 if(sky.falling){
                     safe = false;
                 }
@@ -1707,26 +1764,14 @@ for(MenuComponentWorker w : workers){
         }
         return safe;
     }
-    public double distance(MenuComponent o1, MenuComponent o2){
-        if(o1==null||o2==null){
-            return -1;
-        }
-        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
-    }
-    public double distanceTo(MenuComponent component, double x, double y) {
-        return distance(component, new MenuComponentButton(x, y, 0, 0, "", false));
-    }
     public void expedition(int workers){
         pendingExpedition = new Expedition(workers);
     }
     private int calculatePopulationCapacity() {
         int pop = 0;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
-                if(sky.game==null){
-                    sky.game = this;
-                }
+        for(Building building : buildings){
+            if(building instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) building;
                 pop += sky.getMaxPop();
             }
         }
@@ -1734,9 +1779,9 @@ for(MenuComponentWorker w : workers){
     }
     private int calculatePopulation(){
         int pop = 0;
-        for(MenuComponentBuilding building : buildings){
-            if(building instanceof MenuComponentSkyscraper){
-                pop += ((MenuComponentSkyscraper)building).pop;
+        for(Building building : buildings){
+            if(building instanceof Skyscraper){
+                pop += ((Skyscraper)building).pop;
             }
         }
         return pop;
@@ -1762,7 +1807,7 @@ for(MenuComponentWorker w : workers){
         Config cfg = Config.newConfig();
         cfg.set("count", droppedItems.size());
         for(int i = 0; i<droppedItems.size(); i++){
-            MenuComponentDroppedItem item = droppedItems.get(i);
+            DroppedItem item = droppedItems.get(i);
             cfg.set(i+" item", item.item.name);
             cfg.set(i+" life", item.life);
             cfg.set(i+" x", item.x);
@@ -1775,7 +1820,7 @@ for(MenuComponentWorker w : workers){
         cfg = Config.newConfig();
         cfg.set("count", buildings.size());
         for(int i = 0; i<buildings.size(); i++){
-            MenuComponentBuilding building = buildings.get(i);
+            Building building = buildings.get(i);
             cfg.set(i+"", building.saveBuilding(Config.newConfig()));
         }
         config.set("Buildings", cfg);
@@ -1838,19 +1883,19 @@ for(MenuComponentWorker w : workers){
         game.enemyTimer = config.get("enemy timer", 20*30);
         Config cfg = config.get("Dropped Items", Config.newConfig());
         for(int i = 0; i<cfg.get("count", 0); i++){
-            MenuComponentDroppedItem item = new MenuComponentDroppedItem(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), Item.getItemByName(cfg.get(i+" item","iron ingot")), game);
+            DroppedItem item = new DroppedItem(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), Item.getItemByName(cfg.get(i+" item","iron ingot")), game);
             item.life = cfg.get(i+" life", item.life);
-            game.droppedItems.add(game.add(item));
+            game.droppedItems.add(item);
         }
         game.meteorShower = config.get("Meteor Shower", game.meteorShower);
         game.meteorShowerTimer = config.get("Meteor Shower Timer", game.meteorShowerTimer);
         cfg = config.get("Buildings", Config.newConfig());
         for(int i = 0; i<cfg.get("count", 0); i++){
-            MenuComponentBuilding b = MenuComponentBuilding.load(cfg.get(i+"", Config.newConfig()));
-            if(b instanceof MenuComponentBase){
-                game.base = (MenuComponentBase) b;
+            Building b = Building.load(cfg.get(i+"", Config.newConfig()));
+            if(b instanceof Base){
+                game.base = (Base) b;
             }
-            game.buildings.add(game.add(b));
+            game.buildings.add(b);
         }
         if(game.base==null){
             return null;
@@ -1887,9 +1932,9 @@ for(MenuComponentWorker w : workers){
         return game;
     }
     public void addCivilians(int civilians){
-        for(MenuComponentBuilding b : buildings){
-            if(b instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper s = (MenuComponentSkyscraper) b;
+        for(Building b : buildings){
+            if(b instanceof Skyscraper){
+                Skyscraper s = (Skyscraper) b;
                 civilians = s.addPop(civilians);
                 if(civilians<=0) break;
             }
@@ -1927,12 +1972,12 @@ for(MenuComponentWorker w : workers){
     }
     public MenuComponentDrone addDrone(MenuComponentDrone drone){
         drones.add(drone);
-        componentsToAdd.add(drone);
+        componentsToAdd.add(drone);//TODO not this
         return drone;
     }
     private void dispenseWorkers(){
         ArrayList<Task> tasks = new ArrayList<>();
-        for(MenuComponentWorker worker : workers){
+        for(Worker worker : workers){
             if(worker.task!=null){
                 if(worker.task instanceof TaskDemolish||worker.task.type==TaskType.REPAIR) continue;
                 tasks.add(worker.task);
@@ -1941,8 +1986,8 @@ for(MenuComponentWorker w : workers){
         if(tasks.isEmpty()){
             return;
         }
-        ArrayList<MenuComponentWorker> available = new ArrayList<>();
-        for(MenuComponentWorker worker : workers){
+        ArrayList<Worker> available = new ArrayList<>();
+        for(Worker worker : workers){
             if(!worker.isWorking()&&selectedWorker!=worker){
                 available.add(worker);
             }
@@ -1968,6 +2013,7 @@ for(MenuComponentWorker w : workers){
         }
     }
     private void phase(int i){
+        i = Math.min(4,i);
         phase = i;
         switch(i){
             case 2:
@@ -1989,6 +2035,7 @@ for(MenuComponentWorker w : workers){
                     Sounds.fadeSound("music");
                 }
                 break;
+            default:
         }
         gui.open(this);
     }
@@ -2036,7 +2083,7 @@ for(MenuComponentWorker w : workers){
                 }
         }
         if(lost){
-            strength = rand.nextInt(42-MenuComponentParticle.rainThreshold)+MenuComponentParticle.rainThreshold;
+            strength = rand.nextInt(42-Particle.rainThreshold)+Particle.rainThreshold;
             rateOfChange = Math.max(0, rateOfChange);
             speed*=.75;
         }
@@ -2061,14 +2108,14 @@ for(MenuComponentWorker w : workers){
             if(Math.round(X)==Math.round(X*10)/10d){
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    addParticleEffect(new MenuComponentParticle(xx+x, y, strength, rateOfChange, speed));
+                    addParticleEffect(new Particle(xx+x, y, strength, rateOfChange, speed));
                     y-=40;
                 }
                 y = Y;
             }else{
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    addParticleEffect(new MenuComponentParticle(xx+x, y-20, strength, rateOfChange, speed));
+                    addParticleEffect(new Particle(xx+x, y-20, strength, rateOfChange, speed));
                     y-=40;
                 }
                 y = Y;
@@ -2117,10 +2164,10 @@ for(MenuComponentWorker w : workers){
     }
     public void damage(double x, double y, int damage, AsteroidMaterial material){
         DAMAGE:for(int i = 0; i<damage; i++){
-            for(MenuComponentBuilding building : buildings){
-                if(building instanceof MenuComponentShieldGenerator){
-                    MenuComponentShieldGenerator shield = (MenuComponentShieldGenerator) building;
-                    if(distanceTo(building, x, y)<=shield.getShieldSize()/2){
+            for(Building building : buildings){
+                if(building instanceof ShieldGenerator){
+                    ShieldGenerator shield = (ShieldGenerator) building;
+                    if(Core.distance(building, x, y)<=shield.getShieldSize()/2){
                         shield.setShieldSize(shield.getShieldSize() - 100);
                         if(shield.getShieldSize()>=0){
                             continue DAMAGE;
@@ -2131,14 +2178,14 @@ for(MenuComponentWorker w : workers){
                     }
                 }
             }
-            MenuComponentBuilding hit = null;
-            for(MenuComponentBuilding building : buildings){
-                if(building instanceof MenuComponentSkyscraper){
-                    MenuComponentSkyscraper sky = (MenuComponentSkyscraper)building;
+            Building hit = null;
+            for(Building building : buildings){
+                if(building instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)building;
                     if(isClickWithinBounds(x, y, building.x, building.y-(sky.floorCount*sky.floorHeight), building.x+building.width, building.y+building.height)){
                         hit = building;
                     }
-                }else if(building instanceof MenuComponentBase){
+                }else if(building instanceof Base){
                     if(isClickWithinBounds(x, y, building.x, building.y-25, building.x+building.width, building.y+building.height)){
                         hit = building;
                     }
@@ -2148,34 +2195,38 @@ for(MenuComponentWorker w : workers){
                     }
                 }
             }
-            if(hit==null||!hit.damage(x,y)||material.forceDrop){
+            if(hit==null||!hit.damage(x,y)||material!=null&&material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
                 double dmgRad = 25;
-                for(MenuComponentWorker worker : workers){
-                    if(isClickWithinBounds(x, y, worker.x-dmgRad, worker.y-dmgRad, worker.x+worker.width+dmgRad, worker.y+worker.height+dmgRad)){
-                        worker.damage(x,y);
+                synchronized(workers){
+                    for(Worker worker : workers){
+                        if(isClickWithinBounds(x, y, worker.x-dmgRad, worker.y-dmgRad, worker.x+worker.width+dmgRad, worker.y+worker.height+dmgRad)){
+                            worker.damage(x,y);
+                        }
                     }
                 }
-                for(MenuComponentDroppedItem item : droppedItems){
-                    if(isClickWithinBounds(x, y, item.x-dmgRad, item.y-dmgRad, item.x+item.width+dmgRad,item.y+item.height+dmgRad)){
-                        item.damage(x,y);
+                synchronized(droppedItems){
+                    for(DroppedItem item : droppedItems){
+                        if(isClickWithinBounds(x, y, item.x-dmgRad, item.y-dmgRad, item.x+item.width+dmgRad,item.y+item.height+dmgRad)){
+                            item.damage(x,y);
+                        }
                     }
                 }
                 if(material!=null){
                     if(material.forceDrop){
-                        itemsToDrop.add(new MenuComponentDroppedItem(x, y, getItem(material), this));
+                        itemsToDrop.add(new DroppedItem(x, y, getItem(material), this));
                     }else{
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new MenuComponentDroppedItem(x+15-25, y+8-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+15-25, y+8-25, getItem(material), this));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new MenuComponentDroppedItem(x+8-25, y+28-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+8-25, y+28-25, getItem(material), this));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new MenuComponentDroppedItem(x+38-25, y+24-25, getItem(material),  this));
+                            itemsToDrop.add(new DroppedItem(x+38-25, y+24-25, getItem(material),  this));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new MenuComponentDroppedItem(x+23-25, y+34-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+23-25, y+34-25, getItem(material), this));
                         }
                     }
                 }
@@ -2198,30 +2249,32 @@ for(MenuComponentWorker w : workers){
     }
     /**
      * Push particles away from a location.
+     * @param x the X value
+     * @param y the Y value
      * @param radius The radius of the push field
      * @param distance How far to push the particles
      */
     public void pushParticles(double x, double y, double radius, double distance){
-        for(MenuComponent component : components){
-            if(component instanceof MenuComponentParticle){
-                if(((MenuComponentParticle)component).type==ParticleEffectType.EXPLOSION)continue;
-                if(Core.distance(component.x, component.y, x, y)<=radius){
-                    double mult = 1-(Core.distance(component.x, component.y, x, y)/radius);
-                    double distX = component.x-x;
-                    double distY = component.y-y;
+        synchronized(particles){
+            for(Particle particle : particles){
+                if(particle.type==ParticleEffectType.EXPLOSION)continue;
+                if(Core.distance(particle.x, particle.y, x, y)<=radius){
+                    double mult = 1-(Core.distance(particle.x, particle.y, x, y)/radius);
+                    double distX = particle.x-x;
+                    double distY = particle.y-y;
                     double totalDist = Math.sqrt(distX*distX+distY*distY);
                     distX/=totalDist;
                     distY/=totalDist;
                     if(Double.isNaN(distX)){
                         continue;
                     }
-                    component.x+=distX*distance*mult;
-                    component.y+=distY*distance*mult;
-                    if(component instanceof ParticleFog){
-                        ((ParticleFog)component).opacity-=.05;
+                    particle.x+=distX*distance*mult;
+                    particle.y+=distY*distance*mult;
+                    if(particle instanceof ParticleFog){
+                        ((ParticleFog)particle).opacity-=.05;
                     }
-                    if(((MenuComponentParticle)component).type==ParticleEffectType.CLOUD){
-                        ((MenuComponentParticle)component).strength-=.5;
+                    if(particle.type==ParticleEffectType.CLOUD){
+                        particle.strength-=.5;
                     }
                 }
             }
@@ -2229,16 +2282,16 @@ for(MenuComponentWorker w : workers){
     }
     public double debugYOffset = 0;
     public String debugText(double textHeight, String text){
-        GL11.glColor4d(0, 0, 0, .25);
-        drawRect(0, debugYOffset, FontManager.getLengthForStringWithHeight(text, textHeight)+1, debugYOffset+textHeight, 0);
+        GL11.glColor4d(0, 0, 0, .5);
+        drawRect(0, debugYOffset, FontManager.getLengthForStringWithHeight(text, textHeight-1)+1, debugYOffset+textHeight, 0);
         GL11.glColor4d(1, 1, 1, 1);
         text = drawTextWithWrap(1, debugYOffset+1, Display.getWidth()-1, debugYOffset+textHeight-1, text);
         debugYOffset+=textHeight;
         return text;
     }
     public void addWorker(double x, double y){
-        MenuComponentWorker worker = new MenuComponentWorker(x, y, this);
-        workers.add(add(worker));
+        Worker worker = new Worker(x, y, this);
+        workers.add(worker);
         add(worker.button);
     }
     public void playSecret(){
@@ -2254,9 +2307,15 @@ for(MenuComponentWorker w : workers){
         }
     }
     private void addShootingStar(){
-        add(new MenuComponentAsteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.SHOOTING_STAR, 2));
+        addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.SHOOTING_STAR, 2));
     }
-    private void drawDayNightCycle(){
+    public Asteroid addAsteroid(Asteroid asteroid){
+        synchronized(asteroids){
+            asteroids.add(asteroid);
+        }
+        return asteroid;
+    }
+    protected void drawDayNightCycle(){
         Color noon = new Color(255, 216, 0, 32);
         Color night = new Color(22, 36, 114, 72);
         if(time>=dayNightCycle/8&&time<dayNightCycle/2-dayNightCycle/8){
@@ -2288,14 +2347,14 @@ for(MenuComponentWorker w : workers){
         drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
     }
-    private MenuComponentWorker getAvailableWorker(double x, double y){
-        MenuComponentWorker closest = null;
+    private Worker getAvailableWorker(double x, double y){
+        Worker closest = null;
         double distance = Double.MAX_VALUE;
-        for(MenuComponentWorker worker : workers){
+        for(Worker worker : workers){
             if(!worker.isWorking()&&selectedWorker!=worker){
-                if(distanceTo(worker, x, y)<distance){
+                if(Core.distance(worker, x, y)<distance){
                     closest = worker;
-                    distance = distanceTo(worker, x, y);
+                    distance = Core.distance(worker, x, y);
                 }
             }
         }
@@ -2324,5 +2383,127 @@ for(MenuComponentWorker w : workers){
             return percent;
         }
         return -1;
+    }
+    private ArrayList<PowerNetwork> getPowerNetworks(){
+        if(powerNetworks.isEmpty()){
+            ArrayList<Building> possibilities = new ArrayList<>();
+            possibilities.addAll(buildings);
+            boolean added = true;
+            while(added){
+                PowerNetwork network = null;
+                added = false;
+                for(Building b : possibilities){
+                    network = PowerNetwork.detect(buildings, b);
+                    if(network!=null){
+                        powerNetworks.add(network);
+                        added = true;
+                        break;
+                    }
+                }
+                if(network!=null){
+                    possibilities.removeAll(network.supply);
+                    possibilities.removeAll(network.demand);
+                }
+            }
+        }
+        return powerNetworks;
+    }
+    private ArrayList<StarlightNetwork> getStarlightNetworks(){
+        if(starlightNetworks.isEmpty()){
+            ArrayList<Building> possibilities = new ArrayList<>();
+            possibilities.addAll(buildings);
+            boolean added = true;
+            while(added){
+                StarlightNetwork network = null;
+                added = false;
+                for(Building b : possibilities){
+                    network = StarlightNetwork.detect(buildings, b);
+                    if(network!=null){
+                        starlightNetworks.add(network);
+                        added = true;
+                        break;
+                    }
+                }
+                if(network!=null){
+                    possibilities.removeAll(network.supply);
+                    possibilities.removeAll(network.demand);
+                }
+            }
+        }
+        return starlightNetworks;
+    }
+    public void notify(String notification, int time){
+        for(Notification not : notifications){
+            if(not.name.equals(notification)&&!not.isDying()){
+                not.add();
+                not.time = Math.max(not.time, time);
+                return;
+            }
+        }
+        notifications.add(new Notification(notification, time));
+    }
+    public void notify(String notification, String value, int time){
+        for(Notification not : notifications){
+            if(not.name.startsWith(notification)&&!not.isDying()){
+                not.name = notification+value;
+                not.time = Math.max(not.time, time);
+                return;
+            }
+        }
+        notifications.add(new Notification(notification, time));
+    }
+    public void notify(String notification, String value){
+        notify(notification, value, 15);
+    }
+    public void notify(String notification){
+        notify(notification, 15);
+    }
+    public void notifyOnce(String notification, int time){
+        for(Notification not : notifications){
+            if(not.name.equals(notification)&&!not.isDying()){
+                not.time = Math.max(not.time, time);
+                return;
+            }
+        }
+        notifications.add(new Notification(notification, time));
+    }
+    public void notifyOnce(String notification){
+        notifyOnce(notification, 15);
+    }
+    private static class Notification{
+        private String name;
+        private int time;
+        private final int maxTime;
+        private int num = 1;
+        private int height = 20;//time counts down, decrease to zero
+        private double width = 0;//increase to 1
+        public Notification(String name, int time){
+            this.name = name;
+            this.time = time;
+            maxTime = time;
+        }
+        public boolean isDying(){
+            return time<0;
+        }
+        public boolean isDead(){
+            return isDying()&&height<=0;
+        }
+        public void add(){
+            num++;
+            time = maxTime;
+        }
+        public void tick(){
+            if(isDying()){
+                height--;
+            }else if(width<1){
+                width+=.1;
+            }else{
+                time--;
+            }
+        }
+        @Override
+        public String toString(){
+            return "-- "+name+(num==1?"":" x"+num)+" --";
+        }
     }
 }

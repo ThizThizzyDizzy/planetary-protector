@@ -6,26 +6,21 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.item.MenuComponentDroppedItem;
 import simplelibrary.game.Framebuffer;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuLost extends Menu{
     private int tick;
     private double[] laserFiring;
     private Framebuffer space;
     private boolean gottenFar = false;
-    public MenuLost(GUI gui, MenuGame parent){
-        super(gui, parent);
-        for(MenuComponentDroppedItem item : parent.droppedItems){
-            components.add(item);
-        }
-        for(MenuComponentBuilding building : parent.buildings){
-            components.add(building);
-        }
+    private static final double SPEED = 1.5;//planet break speed modifier
+    private final MenuGame game;
+    private double laserSize = 0;
+    public MenuLost(GUI gui, MenuGame game){
+        super(gui, game);
+        this.game = game;
         Random rand = new Random();
         for(int i = 0; i<1000; i++){
             stars.add(new double[]{rand.nextInt(Display.getWidth()), rand.nextInt(Display.getHeight()), rand.nextInt(95*20), rand.nextDouble()/4+.2, 0});
@@ -37,12 +32,7 @@ public class MenuLost extends Menu{
     }
     @Override
     public void renderBackground(){
-        super.renderBackground();
-        for(MenuComponent component : components){
-            if(component instanceof MenuComponentBuilding){
-                component.renderBackground();
-            }
-        }
+        game.renderWorld(0);
     }
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
@@ -52,6 +42,7 @@ public class MenuLost extends Menu{
     }
     @Override
     public void tick(){
+        parent.tick();
         super.tick();
         tick = Sounds.songTimer();
         if(tick>=20*(60+22)){
@@ -61,6 +52,9 @@ public class MenuLost extends Menu{
                     star[3] = 1-star[4];
                 }
             }
+        }
+        if(laserFiring!=null){
+            game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth(), laserSize/50d);
         }
     }
     public ArrayList<double[]> stars = new ArrayList<>();
@@ -87,11 +81,12 @@ public class MenuLost extends Menu{
                 GL11.glPopMatrix();
                 GL11.glColor4d(1, 1, 1, 1);
             }else{
+                GL11.glColor4d(1, 1, 1, 1);
                 laserFiring = new double[]{Display.getWidth()/2,Display.getHeight()/2};
                 if(laserFiring!=null){
                     int x = Display.getWidth()/2;
                     int y = 100;
-                    double laserSize = tick>20*33?50+(tick-20*33)*10:20+Math.sin(tick/40d)*5;
+                    laserSize = tick>20*33?50+(tick-20*33)*10:20+Math.sin(tick/40d)*5;
                     double xDiff = laserFiring[0]-x;
                     double yDiff = laserFiring[1]-y;
                     double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
@@ -132,6 +127,7 @@ public class MenuLost extends Menu{
             drawSpace(0);
         }else if(tick<20*60){//planet explodes
             drawSpace(0);
+            gottenFar = true;
         }else if(tick<20*65){
             drawSpace(1);
             double x = (tick-20*60)/(20d*5);
@@ -144,13 +140,13 @@ public class MenuLost extends Menu{
             double x = (tick-20*(60+18))/(20d*5);
             GL11.glColor4d(0, 0, 0, x);
             drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
-            gottenFar = true;
         }else{//fade to space
             drawStars();
             double x = (tick-20*(60+22))/(20d*5);
             GL11.glColor4d(0, 0, 0, 1-x);
             drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
         }
+        GL11.glColor4d(1, 1, 1, 1);
     }
     private void drawStars(){
         GL11.glBegin(GL11.GL_POINTS);
@@ -169,31 +165,35 @@ public class MenuLost extends Menu{
                 space = new Framebuffer(Core.helper, "Space"+tick, Display.getWidth(), Display.getHeight());
                 space.bindRenderTarget2D();
             }
+            double planetSize = Display.getHeight()*.65;
             GL11.glColor4d(0, 0, 0, 1);
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+            double left = Display.getWidth()/2-planetSize/2;
+            double top = Display.getHeight()/2-planetSize/2;
+            double right = Display.getWidth()/2+planetSize/2;
+            double bottom = Display.getHeight()/2+planetSize/2;
             drawStars();
             GL11.glColor4d(1, 1, 1, 1);
             if(boom==1){
                 int j = 0;
                 for(double[] is : planetParts){
                     j++;
-                    drawRect(is[0], is[1], Display.getWidth()+is[0], Display.getHeight()+is[1], ImageStash.instance.getTexture("/textures/planet"+j+".png"));
+                    drawRect(left+is[0], top+is[1], right+is[0], bottom+is[1], ImageStash.instance.getTexture("/textures/planet"+j+".png"));
                     switch(j){
                         case 1:
-                            is[0]-=0.05;
-                            is[1]-=0.075;
+                            is[0]-=0.05*SPEED;
+                            is[1]-=0.075*SPEED;
                             break;
                         case 2:
-                            is[0]+=0.1;
+                            is[0]+=0.1*SPEED;
                             break;
                         case 3:
-                            is[0]-=0.055;
-                            is[1]+=0.07;
+                            is[0]-=0.055*SPEED;
+                            is[1]+=0.07*SPEED;
                             break;
                     }
                 }
             }else{
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/planet.png"));
+                drawRect(left, top, right, bottom, ImageStash.instance.getTexture("/textures/planet.png"));
             }
             if(d){
                 space.releaseRenderTarget();

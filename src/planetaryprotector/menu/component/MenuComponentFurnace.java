@@ -50,7 +50,7 @@ public class MenuComponentFurnace extends MenuComponentButton{
     @Override
     public void tick(){
         if(auto){
-            if(MenuGame.rand.nextBoolean()){
+            if(coal>=ironOre){
                 game.addIron(1);
             }else{
                 game.addFuel(1);

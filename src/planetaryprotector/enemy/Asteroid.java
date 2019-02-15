@@ -1,17 +1,23 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
-import planetaryprotector.menu.component.MenuComponentAnimation;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.menu.component.GameObjectAnimated;
 import planetaryprotector.menu.component.ZComponent;
-public class MenuComponentAsteroid extends MenuComponentAnimation implements ZComponent{
+public class Asteroid extends GameObjectAnimated implements ZComponent{
     public AsteroidMaterial material;
     private boolean hit;
     public boolean drop = true;
-    private final int canParticulate;
+    private final int particulate;
+    public static final int PARTICULATE_NEVER = 0;
+    /**
+     * enables particulate meteors only if the settings allow
+     */
+    public static final int PARTICULATE_SETTINGS = 1;
+    public static final int PARTICULATE_ALWAYS = 2;
     private final int particleResolution = MenuOptionsGraphics.particles*6;
     /**
      * when the asteroid hits the ground, previously a constant 12, thus the name
@@ -21,18 +27,14 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
      * @param x
      * @param y
      * @param material the material of the asteroid
-     * @param canParticulate 0=no, 1=only if settings allow, 2=yes
+     * @param particulate 0=never, 1=only if settings allow, 2=always
      */
-    public MenuComponentAsteroid(double x, double y, AsteroidMaterial material, int canParticulate){
+    public Asteroid(double x, double y, AsteroidMaterial material, int particulate){
         super(x,y, 50, 50, material.images);
         delay /= material.speedMult;
         twelve /= material.speedMult;
         this.material = material;
-        this.canParticulate = canParticulate;
-    }
-    @Deprecated
-    public MenuComponentAsteroid(double x, double y, AsteroidMaterial material, boolean canParticulate){
-        this(x, y, material, canParticulate?1:0);
+        this.particulate = particulate;
     }
     @Override
     public void render(){
@@ -47,7 +49,7 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
         }
         if(frame>=images.length-1&&x>-100){
             x = -5000;
-            Core.game.componentsToRemove.add(this);
+            dead = true;
         }
         if(isParticulate()&&frame<=twelve){
             removeRenderBound();
@@ -82,7 +84,7 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
             for(int i = 0; i<particleResolution; i++){
                 X-=dX;
                 Y-=dY;
-                MenuComponentParticle particle = new MenuComponentParticle(X, Y, ParticleEffectType.SMOKE, 1, true);
+                Particle particle = new Particle(X, Y, ParticleEffectType.SMOKE, 1, true);
                 particle.width = particle.height = 25;
                 Core.game.addParticleEffect(particle);
             }
@@ -93,7 +95,7 @@ public class MenuComponentAsteroid extends MenuComponentAnimation implements ZCo
         return Math.max(5, 1-.05*frame+5.56);
     }
     private boolean isParticulate(){
-        switch(canParticulate){
+        switch(particulate){
             case 0:
                 return false;
             case 1:

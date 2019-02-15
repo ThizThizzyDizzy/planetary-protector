@@ -1,13 +1,14 @@
 package planetaryprotector.building;
 import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MenuComponentShield extends MenuComponent{
-    private final MenuComponentShieldGenerator generator;
-    public MenuComponentShield(MenuComponentShieldGenerator generator){
-        super(generator.width/2, generator.height/2, 0, 0);
+import simplelibrary.opengl.Renderer2D;
+public class Shield extends Renderer2D{
+    private final ShieldGenerator generator;
+    private double x,y;
+    public Shield(ShieldGenerator generator){
+        x = generator.width/2;
+        y = generator.height/2;
         this.generator = generator;
     }
-    @Override
     public void render(){
         drawRect(x-generator.getShieldSize()/2, y-generator.getShieldSize()/2, x+generator.getShieldSize()/2, y+generator.getShieldSize()/2, ImageStash.instance.getTexture("/textures/buildings/shield.png"));
         if(generator.shieldOutline){

@@ -1,9 +1,8 @@
 package planetaryprotector.particle;
 import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-public class ParticleFog extends MenuComponentParticle{
+public class ParticleFog extends Particle{
     public static final double SIZE = 200;
     public ParticleFog(double x, double y, boolean air, double opacity){
         super(x, y, ParticleEffectType.FOG);
@@ -16,10 +15,7 @@ public class ParticleFog extends MenuComponentParticle{
     }
     @Override
     public void render(){
-        removeRenderBound();
         if(dead){
-            MenuGame game = (MenuGame) parent;
-            game.componentsToRemove.add(this);
             return;
         }
         switch(Core.game.phase){

@@ -1,11 +1,11 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.MenuComponentShieldGenerator;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentWreck;
+import planetaryprotector.building.ShieldGenerator;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.MenuComponentSkyscraper;
+import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -51,26 +51,26 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
             if(meteorDelay<=0&&meteors>0){
                 meteorDelay+=Math.max(5, 20-MenuComponentEnemy.strength);
                 meteors--;
-                game.componentsToAdd.add(new MenuComponentAsteroid(x-width/2, y-height/2, AsteroidMaterial.STONE, true));
+                game.addAsteroid(new Asteroid(x-width/2, y-height/2, AsteroidMaterial.STONE, 1));
             }
         }
     }
     public static double[] getMeteorStrike(){
-        ArrayList<MenuComponentShieldGenerator> shieldGen = new ArrayList<>();
-        for(MenuComponentBuilding building : Core.game.buildings){
+        ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
+        for(Building building : Core.game.buildings){
             if(building.type==BuildingType.SHIELD_GENERATOR){
-                shieldGen.add((MenuComponentShieldGenerator) building);
+                shieldGen.add((ShieldGenerator) building);
             }
         }
-        for(MenuComponentBuilding building : Core.game.buildings){
+        for(Building building : Core.game.buildings){
             if(building.type==BuildingType.WRECK){
-                if(((MenuComponentWreck)building).ingots<=1){
+                if(((Wreck)building).ingots<=1){
                     continue;
                 }
             }
             double[] hitBox = new double[]{building.x, building.y, building.x+building.width, building.y+building.height};
-            if(building instanceof MenuComponentSkyscraper){
-                MenuComponentSkyscraper sky = (MenuComponentSkyscraper) building;
+            if(building instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) building;
                 hitBox = new double[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
             }
             double[][] corners = new double[][]{new double[]{hitBox[0]+1,hitBox[1]+1}, new double[]{hitBox[2]-1,hitBox[1]+1}, new double[]{hitBox[0]+1,hitBox[3]-1}, new double[]{hitBox[2]-1,hitBox[3]-1}};
@@ -84,9 +84,9 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
                 if(shieldGen.isEmpty()){
                     return new double[]{X,Y};
                 }
-                for(MenuComponentShieldGenerator gen : shieldGen){
+                for(ShieldGenerator gen : shieldGen){
                     double shieldRadius = gen.shieldSize/2;
-                    double dist = Core.game.distanceTo(gen,X,Y);
+                    double dist = Core.distance(gen,X,Y);
                     if(dist>shieldRadius){
                         return new double[]{X,Y};
                     }

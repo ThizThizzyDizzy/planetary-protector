@@ -38,7 +38,7 @@ public class MenuMain extends Menu{
     private final MenuComponentButton credits;
     private final MenuComponentButton options;
     private final MenuComponentList saveList;
-    private final MenuExampleGame example;
+//    private MenuExampleGame example;
     boolean sampleGame = false;
     private HashMap<MenuComponentButton, String> badVersions = new HashMap<>();
     private static Queue<String> news = new Queue<>();
@@ -61,7 +61,11 @@ public class MenuMain extends Menu{
             }
         }
     }
+    private double blackOpacity = 1;
     public MenuMain(GUI gui){
+        this(gui, true);
+    }
+    public MenuMain(GUI gui, boolean blackScreen){
         super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-80, 200, 40, "Exit", true));
         newSave = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 400, 40, "New Game", true));
@@ -88,8 +92,9 @@ public class MenuMain extends Menu{
                 saveList.add(new MenuComponentButton(0, 0, 400, 40, filepaths[i].replace(".dat", ""), true));
             }
         }
-        example = new MenuExampleGame(gui);
-        Core.game = example;
+//        example = new MenuExampleGame(gui);
+//        Core.game = example;
+        blackOpacity = blackScreen?1:0;
     }
     private static File downloadFile(String link, File destinationFile){
         if(link==null){
@@ -172,6 +177,9 @@ public class MenuMain extends Menu{
         for(String str : news){
             text(str);
         }
+        GL11.glColor4d(0, 0, 0, blackOpacity);
+        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public void buttonClicked(MenuComponentButton button){
@@ -182,7 +190,7 @@ public class MenuMain extends Menu{
             gui.open(new MenuCredits(gui));
         }
         if(button==options){
-            gui.open(new MenuOptions(gui, this));
+            gui.open(new MenuOptions(gui));
         }
         if(button==newSave){
             newGame();
@@ -213,8 +221,8 @@ public class MenuMain extends Menu{
             }
         }
         if(sampleGame){
-            example.renderBackground();
-            example.render(0);
+//            example.renderBackground();
+//            example.render(0);
         }
         if(saveList.getSelectedIndex()>-1){
             play.enabled=true;
@@ -255,15 +263,16 @@ public class MenuMain extends Menu{
     @Override
     public void tick(){
         super.tick();
+        blackOpacity-=.05;
         if(sampleGame){
-            example.tick();
+//            example.tick();
         }
     }
     private void exit(){
         Core.helper.running = false;
     }
     private void newGame(){
-        gui.open(new MenuNewGame(gui, this));
+        gui.open(new MenuNewGame(gui));
     }
     private void delete(MenuComponentButton save){
         String name = save.label+".dat";
@@ -272,7 +281,7 @@ public class MenuMain extends Menu{
         gui.open(new MenuMain(gui));
     }
     private void rename(MenuComponentButton save){
-        gui.open(new MenuRename(gui, this, save));
+        gui.open(new MenuRename(gui, save));
     }
     private void play(MenuComponentButton save){
         loadGame(save.label);

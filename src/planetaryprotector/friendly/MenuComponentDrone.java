@@ -1,11 +1,13 @@
 package planetaryprotector.friendly;
+import java.util.Random;
+import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.MenuComponentEnemy;
-import planetaryprotector.building.MenuComponentSilo;
+import planetaryprotector.building.Silo;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponent;
@@ -13,14 +15,14 @@ public class MenuComponentDrone extends MenuComponent{
     int power = 0;
     int maxPower = 20*60*5;
     double[] target = new double[]{0,0};
-    MenuComponentSilo silo;
+    Silo silo;
     double speed = 2.5;
     public double laserPower = 1/4D;
     public double laserSize = 20;
     public double laserSizing = 1/3D;
     boolean charge = false;
     boolean deaded = false;
-    public MenuComponentDrone(MenuComponentSilo silo, int power){
+    public MenuComponentDrone(Silo silo, int power){
         super(silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
         this.silo = silo;
         this.power = power;
@@ -30,7 +32,7 @@ public class MenuComponentDrone extends MenuComponent{
         if(deaded) return;
         if(power<=0){
             Core.game.componentsToRemove.add(this);
-            Core.game.addParticleEffect(new MenuComponentParticle(x, y, ParticleEffectType.EXPLOSION, 1, true));
+            Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(silo!=null)silo.drones--;
             if(silo!=null)silo.droneList.remove(this);
             deaded = true;
@@ -40,18 +42,18 @@ public class MenuComponentDrone extends MenuComponent{
         if(silo!=null&&(silo.damages.size()>=10||!Core.game.buildings.contains(silo))){
             silo = null;
         }
-        if(silo!=null&&Core.game.distance(this, silo)<100&&silo.power>=100&&power<=maxPower-10){
-            silo.power-=100;
+        if(silo!=null&&Core.distance(this, silo)<100&&silo.getPower()>=100&&power<=maxPower-10){
+            silo.addPower(-100);
             power+=10;
         }
         power = Math.max(0,Math.min(maxPower, power));
         if(en!=null){
             target = new double[]{en.x,en.y};
-            if(Core.game.distance(this, en)<=en.width/2+width*5){
+            if(Core.distance(this, en)<=en.width/2+width*5){
                 fireLaser();
             }
             if(en!=null){
-                if(Core.game.distance(this, en)<=en.width/2+width){
+                if(Core.distance(this, en)<=en.width/2+width){
                     target = new double[]{x,y};
                 }
             }
@@ -75,18 +77,28 @@ public class MenuComponentDrone extends MenuComponent{
             power-=laserPower;
             en.health-=laserPower;
         }
-        if(x<target[0]){
-            x+=speed;
+        for(MenuComponentDrone drone : silo.droneList){
+            if(drone==this)continue;
+            if(drone.x==this.x&&drone.y==this.y){
+                target = new double[]{new Random().nextInt(Display.getWidth()),new Random().nextInt(Display.getHeight())};
+            }else{
+                double dist = Core.distance(drone, this);
+                if(dist<width){
+                    double xDiff = drone.x-x;
+                    double yDiff = drone.y-y;
+                    target = new double[]{x-xDiff, y-yDiff};
+                }
+            }
         }
-        if(x>target[0]){
-            x-=speed;
-        }
-        if(y<target[1]){
-            y+=speed;
-        }
-        if(y>target[1]){
-            y-=speed;
-        }
+        double xDiff = target[0]-x;
+        double yDiff = target[1]-y;
+        double dist = Core.distance(0, 0, xDiff, yDiff);
+        xDiff/=dist;
+        yDiff/=dist;
+        xDiff*=speed;
+        yDiff*=speed;
+        x+=xDiff;
+        y+=yDiff;
     }
     double[] laserFiring = null;
     MenuComponentEnemy en = null;
@@ -96,7 +108,7 @@ public class MenuComponentDrone extends MenuComponent{
         en = null;
         for(MenuComponentEnemy enemy : game.enemies){
             if(!(enemy instanceof EnemyMeteorStrike)){
-                dist = Math.min(dist,game.distance(this, enemy));
+                dist = Math.min(dist,Core.distance(this, enemy));
                 en = enemy;
             }
         }
@@ -111,7 +123,7 @@ public class MenuComponentDrone extends MenuComponent{
         en = null;
         for(MenuComponentEnemy enemy : game.enemies){
             if(!(enemy instanceof EnemyMeteorStrike)){
-                dist = Math.min(dist,game.distance(this, enemy));
+                dist = Math.min(dist,Core.distance(this, enemy));
                 en = enemy;
             }
         }

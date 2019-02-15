@@ -44,11 +44,11 @@ public class MothershipAsteroidLaser extends MenuComponent{
             double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
             double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
             for(int j = 0; j<damageMult; j++){
-                MenuComponentAsteroid a = new MenuComponentAsteroid(X-25, Y-25, AsteroidMaterial.STONE, false);
-                MenuComponentAsteroid A = new MenuComponentAsteroid(x-25, y-25, AsteroidMaterial.STONE, false);
+                Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
+                Asteroid A = new Asteroid(x-25, y-25, AsteroidMaterial.STONE, 0);
                 a.drop = A.drop = false;
-                Core.game.add(a);
-                Core.game.add(A);
+                Core.game.addAsteroid(a);
+                Core.game.addAsteroid(A);
             }
         }
     }

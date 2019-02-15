@@ -112,7 +112,7 @@ public class MenuCredits extends Menu{
     @Override
     public void buttonClicked(MenuComponentButton button){
         if(button==back){
-            gui.open(new MenuMain(gui));
+            gui.open(new MenuMain(gui, false));
         }
     }
     @Override

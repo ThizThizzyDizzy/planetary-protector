@@ -1,11 +1,11 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.particle.MenuComponentParticle;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.MenuComponentBuilding;
-import planetaryprotector.building.MenuComponentGenerator;
+import planetaryprotector.building.Building;
+import planetaryprotector.building.CoalGenerator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.BuildingPowerConsumer;
@@ -124,11 +124,11 @@ public class EnemyMothership extends MenuComponentEnemy{
                 if(explosionTimer<=10){
                     explosionTimer+=10;
                     explosions--;
-                    game.addParticleEffect(new MenuComponentParticle(MenuGame.rand.nextInt((int) width)+x-width/2, MenuGame.rand.nextInt((int) height)+y-height/2, ParticleEffectType.EXPLOSION, MenuGame.rand.nextInt(3)+2, true));
+                    game.addParticleEffect(new Particle(MenuGame.rand.nextInt((int) width)+x-width/2, MenuGame.rand.nextInt((int) height)+y-height/2, ParticleEffectType.EXPLOSION, MenuGame.rand.nextInt(3)+2, true));
                 }
             }else if(explosions==0){
                 explosions--;
-                game.addParticleEffect(new MenuComponentParticle(x, y, ParticleEffectType.EXPLOSION, 9, true));
+                game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 9, true));
                 game.win();
             }
             return;
@@ -238,7 +238,7 @@ public class EnemyMothership extends MenuComponentEnemy{
     double randomLaserTimer = 100;
     double randomLaserTime = 40;
     double randomLaserDelay = 50;
-    MenuComponentBuilding powerLaserFiring = null;
+    Building powerLaserFiring = null;
     double powerLaserTimer = 100;
     double powerLaserTime = 400;
     double powerLaserDelay = 500;
@@ -270,13 +270,13 @@ public class EnemyMothership extends MenuComponentEnemy{
     private void firePowerLaserRandomly(){
         boolean redo = false;
         if(powerLaserFiring!=null){
-            if(powerLaserFiring instanceof MenuComponentGenerator){
-                if(((MenuComponentGenerator) powerLaserFiring).power<powerLaserPower){
+            if(powerLaserFiring instanceof CoalGenerator){
+                if(((CoalGenerator) powerLaserFiring).power<powerLaserPower){
                     redo = true;
                 }
             }
             if(powerLaserFiring instanceof BuildingPowerConsumer){
-                if(((BuildingPowerConsumer) powerLaserFiring).power<powerLaserPower){
+                if(((BuildingPowerConsumer) powerLaserFiring).getPower()<powerLaserPower){
                     redo = true;
                 }
             }
@@ -285,15 +285,15 @@ public class EnemyMothership extends MenuComponentEnemy{
             powerLaserFiring = null;
             powerLaserTimer--;
             if(powerLaserTimer==0||redo){
-                for(MenuComponentBuilding b : game.buildings){
-                    if(b instanceof MenuComponentGenerator){
-                        if(((MenuComponentGenerator) b).power>=powerLaserPower){
+                for(Building b : game.buildings){
+                    if(b instanceof CoalGenerator){
+                        if(((CoalGenerator) b).power>=powerLaserPower){
                             powerLaserFiring = b;
                             break;
                         }
                     }
                     if(b instanceof BuildingPowerConsumer){
-                        if(((BuildingPowerConsumer) b).power>=powerLaserPower){
+                        if(((BuildingPowerConsumer) b).getPower()>=powerLaserPower){
                             powerLaserFiring = b;
                             break;
                         }
@@ -308,10 +308,10 @@ public class EnemyMothership extends MenuComponentEnemy{
         }else{
             powerLaserTimer++;
             if(powerLaserFiring instanceof BuildingPowerConsumer){
-                ((BuildingPowerConsumer)powerLaserFiring).power-=powerLaserPower;
+                ((BuildingPowerConsumer)powerLaserFiring).addPower(-powerLaserPower);
             }
-            if(powerLaserFiring instanceof MenuComponentGenerator){
-                ((MenuComponentGenerator)powerLaserFiring).power-=powerLaserPower;
+            if(powerLaserFiring instanceof CoalGenerator){
+                ((CoalGenerator)powerLaserFiring).power-=powerLaserPower;
             }
             firePowerLaser();
             if(powerLaserTimer==0){

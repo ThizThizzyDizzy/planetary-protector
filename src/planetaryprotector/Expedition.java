@@ -96,7 +96,7 @@ public class Expedition{
     int lastCivilians = 0;
     int lastWorkers = 0;
     public void tick(){
-        for(int i = 0; i<(MenuGame.cheats?80*60:4*60); i++){
+        for(int i = 0; i<(Core.game.cheats?80*60:4*60); i++){
             if(done){
                 return;
             }

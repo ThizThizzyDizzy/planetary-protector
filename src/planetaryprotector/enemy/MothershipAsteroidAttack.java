@@ -37,9 +37,9 @@ public class MothershipAsteroidAttack extends MenuComponent{
                         }
                         double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
                         double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
-                        MenuComponentAsteroid a = new MenuComponentAsteroid(X-25, Y-25, AsteroidMaterial.STONE, false);
+                        Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
-                        Core.game.add(a);
+                        Core.game.addAsteroid(a);
                     }
                 }
             case 1:
@@ -63,9 +63,9 @@ public class MothershipAsteroidAttack extends MenuComponent{
                         }
                         double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
                         double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
-                        MenuComponentAsteroid a = new MenuComponentAsteroid(X-25, Y-25, AsteroidMaterial.STONE, false);
+                        Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
-                        Core.game.add(a);
+                        Core.game.addAsteroid(a);
                     }
                 }
         }
