@@ -196,4 +196,12 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
     public boolean isStarlightRenewable(){
         return true;
     }
+    @Override
+    public boolean isPowerActive(){
+        return true;
+    }
+    @Override
+    public boolean isStarlightActive(){
+        return true;
+    }
 }

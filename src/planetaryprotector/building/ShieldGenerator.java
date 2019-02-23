@@ -128,11 +128,7 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     }
     public static ShieldGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
         ShieldGenerator generator = new ShieldGenerator(x, y, level, upgrades);
-        if(cfg.hasProperty("power")&&cfg.get("power") instanceof Integer){
-            generator.power = cfg.get("power", 0);
-        }else{
-            generator.power = cfg.get("power", 0d);
-        }
+        generator.power = cfg.get("power", 0d);
         generator.blastRecharge = cfg.get("blastRecharge", 0d);
         generator.shieldSize = cfg.get("size", 0d);
         generator.maxShieldSize = cfg.get("maxSize", 500d);
@@ -178,5 +174,9 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     @Override
     public void addPower(double power){
         this.power+=power;
+    }
+    @Override
+    public boolean isPowerActive(){
+        return true;
     }
 }

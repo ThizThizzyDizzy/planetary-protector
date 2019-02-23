@@ -9,9 +9,9 @@ import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.MenuComponentEnemy;
 import planetaryprotector.building.Silo;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.GameObject;
 import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MenuComponentDrone extends MenuComponent{
+public class Drone extends GameObject{
     int power = 0;
     int maxPower = 20*60*5;
     double[] target = new double[]{0,0};
@@ -22,19 +22,22 @@ public class MenuComponentDrone extends MenuComponent{
     public double laserSizing = 1/3D;
     boolean charge = false;
     boolean deaded = false;
-    public MenuComponentDrone(Silo silo, int power){
+    public Drone(Silo silo, int power){
         super(silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
         this.silo = silo;
         this.power = power;
     }
-    @Override
     public void tick(){
         if(deaded) return;
         if(power<=0){
-            Core.game.componentsToRemove.add(this);
+            dead = true;
             Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
-            if(silo!=null)silo.drones--;
-            if(silo!=null)silo.droneList.remove(this);
+            if(silo!=null){
+                silo.drones--;
+                synchronized(silo.droneList){
+                    silo.droneList.remove(this);
+                }
+            }
             deaded = true;
             return;
         }
@@ -77,7 +80,7 @@ public class MenuComponentDrone extends MenuComponent{
             power-=laserPower;
             en.health-=laserPower;
         }
-        for(MenuComponentDrone drone : silo.droneList){
+        for(Drone drone : silo.droneList){
             if(drone==this)continue;
             if(drone.x==this.x&&drone.y==this.y){
                 target = new double[]{new Random().nextInt(Display.getWidth()),new Random().nextInt(Display.getHeight())};

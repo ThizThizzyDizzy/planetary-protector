@@ -4,6 +4,8 @@ import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawCenteredText;
 public class PowerStorage extends Building implements BuildingPowerStorage, BuildingDamagable, BuildingDemolishable{
     private double power;
+    public boolean charge = true;
+    public boolean discharge = true;
     public PowerStorage(double x, double y) {
         super(x, y, 100, 100, BuildingType.POWER_STORAGE);
     }
@@ -27,7 +29,7 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     }
     public static PowerStorage loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
         PowerStorage battery = new PowerStorage(x, y, level, upgrades);
-        battery.power = cfg.get("power", 0);
+        battery.power = cfg.get("power", 0d);
         return battery;
     }
     @Override
@@ -44,7 +46,8 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     }
     @Override
     public double getProduction(){
-        return Math.min(50+50*getLevel(),power);
+        if(!discharge)return 0;
+        return Math.min(32+32*getLevel(),power);
     }
     @Override
     public void producePower(double power){
@@ -60,7 +63,8 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     }
     @Override
     public double getDemand(){
-        return Math.min(5+5*getLevel(),getMaxPower()-getPower());
+        if(!charge)return 0;
+        return Math.min(4+4*getLevel(),getMaxPower()-getPower());
     }
     @Override
     public double getPower(){
@@ -69,5 +73,9 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     @Override
     public void addPower(double power){
         this.power += power;
+    }
+    @Override
+    public boolean isPowerActive(){
+        return true;
     }
 }

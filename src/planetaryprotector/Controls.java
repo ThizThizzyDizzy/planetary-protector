@@ -12,6 +12,7 @@ public class Controls{
     public static int cheat = Keyboard.KEY_I;
     public static int mute = Keyboard.KEY_M;
     public static int hideSkyscrapers = Keyboard.KEY_H;
+    public static int showPowerNetworks = Keyboard.KEY_N;
     public static int CHEAT_LOSE = Keyboard.KEY_L;
     public static int CHEAT_PHASE = Keyboard.KEY_6;
     public static int CHEAT_SECRET = Keyboard.KEY_S;

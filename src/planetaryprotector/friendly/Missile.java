@@ -8,13 +8,13 @@ import planetaryprotector.enemy.MenuComponentEnemy;
 import planetaryprotector.building.Silo;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
-public class MenuComponentMissile extends MenuComponentDrone{
+public class Missile extends Drone{
     MenuComponentEnemy target;
     double speed = 0;
     double accel = .0981;
     int power = 2500;
     int time = 0;
-    public MenuComponentMissile(Silo silo, MenuComponentEnemy target){
+    public Missile(Silo silo, MenuComponentEnemy target){
         super(silo, 0);
         this.silo = silo;
         this.target = target;
@@ -39,7 +39,7 @@ public class MenuComponentMissile extends MenuComponentDrone{
             caboom = true;
             y = target.y;
             target.health-=power+speed;
-            Core.game.componentsToRemove.add(this);
+            dead = true;
             Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, Math.min(9, power/1000), target instanceof EnemyAlien?false:(target instanceof EnemyLandingParty?((EnemyLandingParty)target).landed:false)));
         }
     }

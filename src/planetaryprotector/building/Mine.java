@@ -110,4 +110,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     public void addPower(double power){
         this.power += power;
     }
+    @Override
+    public boolean isPowerActive(){
+        return hasUpgrade(Upgrade.POWER_TOOLS);
+    }
 }

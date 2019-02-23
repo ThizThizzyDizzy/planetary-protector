@@ -231,7 +231,7 @@ public class Sounds{
         if(nowPlaying()!=null&&!canPlayMusic(nowPlaying())){
             stopSound("music");
         }
-        soundSystem.setMasterVolume(vol);
+        soundSystem.setMasterVolume(Math.max(0.0001f,vol));
     }
     /**
      * @return song time in TICKS

@@ -38,19 +38,7 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
     }
     @Override
     public void render(){
-        if(frame>=twelve&&!hit){
-            hit = true;
-            if(drop){
-                Core.game.damage(x+width/2,y+height/2, material);
-            }else{
-                Core.game.damage(x+width/2, y+height/2);
-            }
-            Core.game.pushParticles(x+width/2, y+height/2, width, width/2);
-        }
-        if(frame>=images.length-1&&x>-100){
-            x = -5000;
-            dead = true;
-        }
+        if(dead)return;
         if(isParticulate()&&frame<=twelve){
             removeRenderBound();
             double fallProgress = (frame-1)/(double)twelve;
@@ -68,7 +56,20 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
     }
     @Override
     public void tick(){
+        if(dead)return;
         super.tick();
+        if(frame>=twelve&&!hit){
+            hit = true;
+            if(drop){
+                Core.game.damage(x+width/2,y+height/2, material);
+            }else{
+                Core.game.damage(x+width/2, y+height/2);
+            }
+            Core.game.pushParticles(x+width/2, y+height/2, width*2, width/8);
+        }
+        if(frame>=images.length-1&&x>-100){
+            dead = true;
+        }
         if(isParticulate()&&frame<=twelve){
             double fallProgress = frame/(double)twelve;
             double landX = x+width/2;

@@ -1,2 +1,4 @@
 package planetaryprotector.building;
-interface StarlightNetworkSection{}
+interface StarlightNetworkSection{
+    public boolean isStarlightActive();
+}

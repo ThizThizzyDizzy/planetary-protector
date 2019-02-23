@@ -119,10 +119,11 @@ public class Core extends Renderer2D{
         gui.open(new MenuMain(gui));
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             if(m==AsteroidMaterial.SHOOTING_STAR){
-                for(int i = 0; i<40+36; i++){
-                    m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
-                }
                 continue;
+//                for(int i = 0; i<40+36; i++){
+//                    m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
+//                }
+//                continue;
             }
             for(int i = 0; i<10; i++){
                 m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");

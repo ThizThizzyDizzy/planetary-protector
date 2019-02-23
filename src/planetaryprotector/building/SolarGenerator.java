@@ -49,4 +49,8 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     public boolean isRenewable(){
         return true;
     }
+    @Override
+    public boolean isPowerActive(){
+        return true;
+    }
 }

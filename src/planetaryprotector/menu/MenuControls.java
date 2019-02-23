@@ -33,6 +33,8 @@ public class MenuControls extends MenuComponent{
         text("Cancel current task: "+getKeyName(Controls.cancel));
         text("Pause: "+getKeyName(Controls.pause));
         text("Mute music: "+getKeyName(Controls.mute));
+        text("Hide skyscrapers: "+getKeyName(Controls.hideSkyscrapers));
+        text("Show power networks: "+getKeyName(Controls.showPowerNetworks));
         if(game.cheats){
             text("Cheat | Lose: "+getKeyName(Controls.CHEAT_LOSE));
             text("Cheat | Phase: "+getKeyName(Controls.CHEAT_PHASE));

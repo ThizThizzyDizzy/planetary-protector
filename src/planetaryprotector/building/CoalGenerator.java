@@ -25,7 +25,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     public void update(){
         super.update();
         if(burning>0){
-            power+=4+1*getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*starlight>STARLIGHT_THRESHOLD?2:0;
+            power+=4+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*starlight>STARLIGHT_THRESHOLD?2:0;
             if(starlight>STARLIGHT_THRESHOLD)starlight-=STARLIGHT_THRESHOLD;
             burning-=Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE));
         }
@@ -63,7 +63,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     }
     public static CoalGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
         CoalGenerator generator = new CoalGenerator(x, y, level, upgrades);
-        generator.power = cfg.get("power", 0);
+        generator.power = cfg.get("power", 0d);
         generator.autoFuel = cfg.get("autofuel", false);
         return generator;
     }
@@ -113,5 +113,13 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     }
     private double getBurnTime(){
         return BURN_TIME*Math.pow(1.38, getUpgrades(Upgrade.ECOLOGICAL));
+    }
+    @Override
+    public boolean isPowerActive(){
+        return true;
+    }
+    @Override
+    public boolean isStarlightActive(){
+        return hasUpgrade(Upgrade.STARLIGHT_INFUSED_FUEL);
     }
 }

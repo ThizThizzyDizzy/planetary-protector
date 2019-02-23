@@ -4,9 +4,9 @@ import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.friendly.MenuComponentDrone;
+import planetaryprotector.friendly.Drone;
 import planetaryprotector.enemy.MenuComponentEnemy;
-import planetaryprotector.friendly.MenuComponentMissile;
+import planetaryprotector.friendly.Missile;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
@@ -17,7 +17,7 @@ import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Silo extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
     public int drones = 0;
     int missiles = 0;
-    public ArrayList<MenuComponentDrone> droneList = new ArrayList<>();
+    public final ArrayList<Drone> droneList = new ArrayList<>();
     public boolean outline;
     public static final ItemStack missileCost = new ItemStack(Item.ironIngot, 75);
     public static final ItemStack droneCost = new ItemStack(Item.ironIngot, 100);
@@ -58,13 +58,13 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     @Override
     public void update(){
         super.update();
-        for(MenuComponentDrone drone : droneList){
+        for(Drone drone : droneList){
             drone.tick();
         }
         if(droneList.size()<drones){
             if(power>=20*600*5){
                 power-=20*600*5;
-                droneList.add(Core.game.addDrone(new MenuComponentDrone(this, 20*60*5)));
+                droneList.add(Core.game.addDrone(new Drone(this, 20*60*5)));
             }
         }
 //        if(power<maxPower){
@@ -150,7 +150,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
         }
         if(target==null)return;
         missiles--;
-        droneList.add(Core.game.addDrone(new MenuComponentMissile(this, target)));
+        droneList.add(Core.game.addDrone(new Missile(this, target)));
     }
     @Override
     public boolean onDamage(double x, double y){
@@ -221,5 +221,9 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     @Override
     public double getPower(){
         return power;
+    }
+    @Override
+    public boolean isPowerActive(){
+        return true;
     }
 }

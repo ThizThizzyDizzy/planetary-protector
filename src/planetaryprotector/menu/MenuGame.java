@@ -9,7 +9,7 @@ import planetaryprotector.Sounds;
 import planetaryprotector.VersionManager;
 import planetaryprotector.menu.component.MenuComponentActionButton;
 import planetaryprotector.menu.component.MenuComponentClickable;
-import planetaryprotector.friendly.MenuComponentDrone;
+import planetaryprotector.friendly.Drone;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.menu.component.MenuComponentFalling;
 import planetaryprotector.menu.component.MenuComponentFurnace;
@@ -120,7 +120,7 @@ public class MenuGame extends Menu{
     ArrayList<Expedition> activeExpeditions = new ArrayList<>();
     public ArrayList<Expedition> finishedExpeditions = new ArrayList<>();
     public ArrayList<MenuComponentEnemy> enemies = new ArrayList<>();
-    ArrayList<MenuComponentDrone> drones = new ArrayList<>();
+    public ArrayList<Drone> drones = new ArrayList<>();
     private int enemyTimer = 20*30;
     private double damageReportTimer = 0;
     private double damageReportTime = 20*10;
@@ -165,6 +165,7 @@ public class MenuGame extends Menu{
     public ArrayList<Asteroid> asteroids = new ArrayList<>();
     public ArrayList<Particle> particles = new ArrayList<>();
     public boolean hideSkyscrapers = false;
+    public boolean showPowerNetworks = false;
 //</editor-fold>
     public MenuGame(GUI gui){
         super(gui, null);
@@ -297,9 +298,6 @@ public class MenuGame extends Menu{
                         if(o1 instanceof MenuComponentEnemy){
                             y1 += Display.getHeight()*4;
                         }
-                        if(o1 instanceof MenuComponentDrone){
-                            y1 += Display.getHeight()*3;
-                        }
                         if(o1==furnace){
                             y1 += Display.getHeight()*2;
                         }
@@ -326,9 +324,6 @@ public class MenuGame extends Menu{
                         }
                         if(o2 instanceof MenuComponentEnemy){
                             y2 += Display.getHeight()*4;
-                        }
-                        if(o2 instanceof MenuComponentDrone){
-                            y2 += Display.getHeight()*3;
                         }
                         if(o2==furnace){
                             y2 += Display.getHeight()*2;
@@ -365,9 +360,7 @@ public class MenuGame extends Menu{
         }
         //<editor-fold defaultstate="collapsed" desc="BaseGUI location">
         if(baseGUI){
-            coal.x=Display.getWidth()-100;
-            ironChunks.x=Display.getWidth()-100;
-            furnace.x=Display.getWidth()-100;
+            coal.x = ironChunks.x = furnace.x = Display.getWidth()-100;
             for(Worker worker : workers){
                 worker.button.x = 0;
                 worker.button.color = (!(worker.dead||worker.isWorking()))?Color.WHITE:Color.RED;
@@ -377,9 +370,7 @@ public class MenuGame extends Menu{
                 button.x = 50;
             }
         }else{
-            coal.x=-100;
-            ironChunks.x=-100;
-            furnace.x=-100;
+            coal.x = ironChunks.x = furnace.x = -100;
             for(Worker worker : workers){
                 worker.button.x = -50;
             }
@@ -392,7 +383,7 @@ public class MenuGame extends Menu{
     @Override
     public void render(int millisSinceLastTick){
         if(baseGUI){
-            drawRect(Display.getWidth()-100, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/sidebar.png"));
+            drawRect(Display.getWidth()-100, Display.getHeight()-200, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/gui/sidebar.png"));
         }
         super.render(millisSinceLastTick);
         if(Mouse.isButtonDown(1)&&selectedWorker!=null){
@@ -466,6 +457,10 @@ public class MenuGame extends Menu{
             drawText(furnace.x+10, Display.getHeight()-20, Display.getWidth()-10, Display.getHeight(), furnace.level>=MenuComponentFurnace.maxLevel?"Maxed":"Level "+(furnace.level+1));
             if(baseGUI){
                 for(int i = 0; i<base.resources.size(); i++){
+                    int I = 1;
+                    if(i==0)I = 0;
+                    if(i==base.resources.size()-1)I = 2;
+                    drawRect(Display.getWidth()-100, i*20, Display.getWidth(), (i+1)*20+(I==2?5:0), ImageStash.instance.getTexture("/textures/gui/sidebar "+I+".png"));
                     drawText(Display.getWidth()-80, i*20, Display.getWidth(), (i+1)*20, base.resources.get(i).count+"");
                     drawRect(Display.getWidth()-100, i*20, Display.getWidth()-80, (i+1)*20, ImageStash.instance.getTexture("/textures/items/"+base.resources.get(i).item.texture+".png"));
                 }
@@ -587,6 +582,19 @@ public class MenuGame extends Menu{
                         });
                         break;
                     case POWER_STORAGE:
+                        PowerStorage s = (PowerStorage)selectedBuilding;
+                        action((s.charge?"Disable":"Enable")+" Charging", true, new ActionListener(){
+                            @Override
+                            public void actionPerformed(ActionEvent e){
+                                s.charge = !s.charge;
+                            }
+                        });
+                        action((s.discharge?"Disable":"Enable")+" Discharging", true, new ActionListener(){
+                            @Override
+                            public void actionPerformed(ActionEvent e){
+                                s.discharge = !s.discharge;
+                            }
+                        });
                         break;
                     case MINE:
                         break;
@@ -758,6 +766,7 @@ public class MenuGame extends Menu{
         Collections.sort(mainLayer, new Comparator<GameObject>(){
             @Override
             public int compare(GameObject o1, GameObject o2){
+                if(o1==null||o2==null)return 0;
                 int y1 = (int)o1.y;
                 int height1 = (int)o1.height;
                 int y2 = (int)o2.y;
@@ -776,11 +785,28 @@ public class MenuGame extends Menu{
             }
         });
         for(GameObject o : mainLayer){
-            o.render();
+            if(o!=null)o.render();
+        }
+        if(showPowerNetworks){
+            synchronized(powerNetworks){
+                for(PowerNetwork n : powerNetworks){
+                    n.draw();
+                }
+            }
+            synchronized(starlightNetworks){
+                for(StarlightNetwork s : starlightNetworks){
+                    s.draw();
+                }
+            }
         }
         synchronized(particles){
             for(Particle particle : particles){
                 if(particle.air)particle.render();
+            }
+        }
+        synchronized(drones){
+            for(Drone drone : drones){
+                drone.render();
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
@@ -816,6 +842,9 @@ public class MenuGame extends Menu{
         }
         if(key==Controls.hideSkyscrapers&&pressed&&!repeat){
             hideSkyscrapers = !hideSkyscrapers;
+        }
+        if(key==Controls.showPowerNetworks&&pressed&&!repeat){
+            showPowerNetworks = !showPowerNetworks;
         }
         if(key==Controls.menu&&pressed&&!repeat){
             if(overlay!=null)return;
@@ -1101,13 +1130,13 @@ public class MenuGame extends Menu{
             }
         }
     }
-    @Override
-    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
-        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
-        if(pressed&&button==0&&isClickWithinBounds(x, y, base.x, base.y, base.x+base.width, base.y+base.height)){
-            baseGUI = !baseGUI;
-        }
-    }
+//    @Override
+//    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
+//        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
+//        if(pressed&&button==0&&isClickWithinBounds(x, y, base.x, base.y, base.x+base.width, base.y+base.height)){
+//            baseGUI = !baseGUI;
+//        }
+//    }
     @Override
     public void tick(){
         if(fading){
@@ -1207,7 +1236,10 @@ public class MenuGame extends Menu{
         tick++;
         time++;
         if(hideSkyscrapers){
-            notifyOnce("Skyscrapers Hidden", 1);
+            notifyOnce("Hiding skyscrapers", 1);
+        }
+        if(showPowerNetworks){
+            notifyOnce("Showing power networks", 1);
         }
         if(cheats){
             notifyOnce("Cheats Enabled", 1);
@@ -1243,11 +1275,19 @@ public class MenuGame extends Menu{
             Building end = buildingsToReplace.remove(start);
             buildings.remove(start);
             buildings.add(end);
-            powerNetworks.clear();
-            starlightNetworks.clear();
+            refreshNetworks();
         }
-        for(Building building : buildings){
-            building.tick();
+        synchronized(buildings){
+            for(Building building : buildings){
+                building.tick();
+            }
+        }
+        synchronized(drones){
+            for(Iterator<Drone> it = drones.iterator(); it.hasNext();){
+                Drone drone = it.next();
+                drone.tick();
+                if(drone.dead)it.remove();
+            }
         }
         synchronized(workers){
             for(Iterator<Worker> it = workers.iterator(); it.hasNext();){
@@ -1255,9 +1295,15 @@ public class MenuGame extends Menu{
                 worker.tick();
                 if(worker.dead){
                     notify("Death: Worker", 35);
+                    components.remove(worker.button);
                     it.remove();
                 }
             }
+        }
+        for(int i = 0; i<workers.size(); i++){//relocating worker buttons
+            Worker worker = workers.get(i);
+            worker.button.y = i*50;
+            worker.button.label = (i+1)+"";
         }
         synchronized(droppedItems){
             for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){ 
@@ -1419,9 +1465,6 @@ public class MenuGame extends Menu{
             if(componentsToRemove.get(0) instanceof MenuComponentEnemy){
                 enemies.remove(componentsToRemove.get(0));
             }
-            if(componentsToRemove.get(0) instanceof MenuComponentDrone){
-                drones.remove(componentsToRemove.get(0));
-            }
             components.remove(componentsToRemove.remove(0));
         }
         //<editor-fold defaultstate="collapsed" desc="Expeditions">
@@ -1520,11 +1563,17 @@ public class MenuGame extends Menu{
             selectedBuilding = null;
         }while(false);
         //Power transfer
-        for(PowerNetwork network : getPowerNetworks()){
-            network.tick();
+        getPowerNetworks();
+        synchronized(powerNetworks){
+            for(PowerNetwork network : powerNetworks){
+                network.tick();
+            }
         }
-        for(StarlightNetwork network : getStarlightNetworks()){
-            network.tick();
+        getStarlightNetworks();
+        synchronized(starlightNetworks){
+            for(StarlightNetwork network : starlightNetworks){
+                network.tick();
+            }
         }
         super.tick();
     }
@@ -1702,15 +1751,6 @@ public class MenuGame extends Menu{
                 worker.task(task);
             }
         }, task.getTooltip());
-    }
-    private void removeWorker(Worker w){
-        components.remove(w.button);
-        workers.remove(w);
-        for(int i = 0; i<workers.size(); i++){
-            Worker worker = workers.get(i);
-            worker.button.y = i*50;
-            worker.button.label = (i+1)+"";
-        }
     }
     public void startAnim(Task task){
         taskAnimations.add(new MenuComponentTaskAnimation(task.building.x, task.building.y, task.building.width, task.building.height, task.type.images, this, task){
@@ -1953,6 +1993,7 @@ public class MenuGame extends Menu{
         if(quality<3){
             throw new IllegalArgumentException("A polygon must have at least 3 sides!");
         }
+        ImageStash.instance.bindTexture(texture);
         GL11.glBegin(GL11.GL_TRIANGLES);
         double angle = 0;
         for(int i = 0; i<quality; i++){
@@ -1967,12 +2008,67 @@ public class MenuGame extends Menu{
         }
         GL11.glEnd();
     }
+    public static void drawTorus(double x, double y, double outerRadius, double innerRadius, int quality, int texture){
+        if(quality<3){
+            throw new IllegalArgumentException("A torus must have at least 3 sides!");
+        }
+        ImageStash.instance.bindTexture(texture);
+        GL11.glBegin(GL11.GL_QUADS);
+        double angle = 0;
+        for(int i = 0; i<quality; i++){
+            double innerX = x+Math.cos(Math.toRadians(angle-90))*innerRadius;
+            double innerY = y+Math.sin(Math.toRadians(angle-90))*innerRadius;
+            double outerX = x+Math.cos(Math.toRadians(angle-90))*outerRadius;
+            double outerY = y+Math.sin(Math.toRadians(angle-90))*outerRadius;
+            GL11.glVertex2d(innerX, innerY);
+            GL11.glVertex2d(outerX, outerY);
+            angle+=(360D/quality);
+            innerX = x+Math.cos(Math.toRadians(angle-90))*innerRadius;
+            innerY = y+Math.sin(Math.toRadians(angle-90))*innerRadius;
+            outerX = x+Math.cos(Math.toRadians(angle-90))*outerRadius;
+            outerY = y+Math.sin(Math.toRadians(angle-90))*outerRadius;
+            GL11.glVertex2d(outerX, outerY);
+            GL11.glVertex2d(innerX, innerY);
+        }
+        GL11.glEnd();
+    }
+    public static void drawLaser(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
+        double xDiff = x2-x1;
+        double yDiff = y2-y1;
+        double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+        GL11.glColor4d(outerR, outerG, outerB, 1);
+        for(int i = 0; i<dist; i++){
+            double percent = i/dist;
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), size/2D,10,0);
+        }
+        GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
+        for(int i = 0; i<dist; i++){
+            double percent = i/dist;
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(2/3D))/2D,10,0);
+        }
+        GL11.glColor4d(innerR, innerG, innerB, 1);
+        for(int i = 0; i<dist; i++){
+            double percent = i/dist;
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(1/3D))/2D,10,0);
+        }
+        GL11.glColor4d(1, 1, 1, 1);
+    }
+    public static void drawConnector(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
+        drawLaser(x1, y1, x2, y2, size, innerR, innerG, innerB, outerR, outerG, outerB);
+        GL11.glColor4d(outerR,outerG,outerB,1);
+        drawRegularPolygon(x1, y1, size*1.5, 10, 0);
+        drawRegularPolygon(x2, y2, size*1.5, 10, 0);
+        GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
+        drawRegularPolygon(x1, y1, size, 10, 0);
+        drawRegularPolygon(x2, y2, size, 10, 0);
+    }
     private void damageReport(){
         damageReportTimer = damageReportTime;
     }
-    public MenuComponentDrone addDrone(MenuComponentDrone drone){
-        drones.add(drone);
-        componentsToAdd.add(drone);//TODO not this
+    public Drone addDrone(Drone drone){
+        synchronized(drones){
+            drones.add(drone);
+        }
         return drone;
     }
     private void dispenseWorkers(){
@@ -2255,13 +2351,24 @@ public class MenuGame extends Menu{
      * @param distance How far to push the particles
      */
     public void pushParticles(double x, double y, double radius, double distance){
+        pushParticles(x, y, radius, distance, 1);
+    }
+    /**
+     * Push particles away from a location.
+     * @param x the X value
+     * @param y the Y value
+     * @param radius The radius of the push field
+     * @param distance How far to push the particles
+     * @param fadeFactor How much the particles should fade
+     */
+    public void pushParticles(double x, double y, double radius, double distance, double fadeFactor){
         synchronized(particles){
             for(Particle particle : particles){
                 if(particle.type==ParticleEffectType.EXPLOSION)continue;
-                if(Core.distance(particle.x, particle.y, x, y)<=radius){
-                    double mult = 1-(Core.distance(particle.x, particle.y, x, y)/radius);
-                    double distX = particle.x-x;
-                    double distY = particle.y-y;
+                if(Core.distance(particle.getX(), particle.getY(), x, y)<=radius){
+                    double mult = 1-(Core.distance(particle.getX(), particle.getY(), x, y)/radius);
+                    double distX = particle.getX()-x;
+                    double distY = particle.getY()-y;
                     double totalDist = Math.sqrt(distX*distX+distY*distY);
                     distX/=totalDist;
                     distY/=totalDist;
@@ -2271,10 +2378,10 @@ public class MenuGame extends Menu{
                     particle.x+=distX*distance*mult;
                     particle.y+=distY*distance*mult;
                     if(particle instanceof ParticleFog){
-                        ((ParticleFog)particle).opacity-=.05;
+                        ((ParticleFog)particle).opacity-=.1*fadeFactor*mult;
                     }
                     if(particle.type==ParticleEffectType.CLOUD){
-                        particle.strength-=.5;
+                        particle.strength-=fadeFactor*mult;
                     }
                 }
             }
@@ -2395,7 +2502,9 @@ public class MenuGame extends Menu{
                 for(Building b : possibilities){
                     network = PowerNetwork.detect(buildings, b);
                     if(network!=null){
-                        powerNetworks.add(network);
+                        synchronized(powerNetworks){
+                            powerNetworks.add(network);
+                        }
                         added = true;
                         break;
                     }
@@ -2419,7 +2528,9 @@ public class MenuGame extends Menu{
                 for(Building b : possibilities){
                     network = StarlightNetwork.detect(buildings, b);
                     if(network!=null){
-                        starlightNetworks.add(network);
+                        synchronized(starlightNetworks){
+                            starlightNetworks.add(network);
+                        }
                         added = true;
                         break;
                     }
@@ -2469,6 +2580,10 @@ public class MenuGame extends Menu{
     }
     public void notifyOnce(String notification){
         notifyOnce(notification, 15);
+    }
+    public void refreshNetworks(){
+        powerNetworks.clear();
+        starlightNetworks.clear();
     }
     private static class Notification{
         private String name;

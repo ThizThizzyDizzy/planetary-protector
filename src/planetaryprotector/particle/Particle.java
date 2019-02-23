@@ -15,7 +15,7 @@ public class Particle extends GameObjectAnimated{
     public final ParticleEffectType type;
     protected int rotation;
     public double opacity = 1;
-    private int radius;
+    protected int radius;
     private final int size;
     public boolean air = false;
     //clouds
@@ -201,12 +201,16 @@ public class Particle extends GameObjectAnimated{
             radius+=5+0.5*((11-size));
             Core.game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5));
             if(size>=10){
-                for(Building building : Core.game.buildings){
-                    if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
-                        continue;
-                    }
-                    if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
-                        building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
+                synchronized(Core.game.buildings){
+                    for(Building building : Core.game.buildings){
+                        if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
+                            continue;
+                        }
+                        if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
+                            synchronized(building.damages){
+                                building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
+                            }
+                        }
                     }
                 }
             }
@@ -343,5 +347,17 @@ public class Particle extends GameObjectAnimated{
                 nextLine.addBranch(line);
             }
         }
+    }
+    /**
+     * @return the CENTER of the particle
+     */
+    public double getX(){
+        return x+width/2;
+    }
+    /**
+     * @return the CENTER of the particle
+     */
+    public double getY(){
+        return y+height/2;
     }
 }

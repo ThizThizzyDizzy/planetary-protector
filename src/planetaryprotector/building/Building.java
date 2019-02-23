@@ -113,6 +113,7 @@ public abstract class Building extends GameObject{
     }
     public void upgrade(){
         level++;
+        Core.game.refreshNetworks();
     }
     public static Building generateRandomBuilding(Base base, ArrayList<Building> buildings){
         int buildingX;
@@ -378,6 +379,7 @@ public abstract class Building extends GameObject{
     public boolean buyUpgrade(Upgrade upgrade){
         if(!canBuyUpgrade(upgrade))return false;
         upgrades.add(upgrade);
+        Core.game.refreshNetworks();
         return true;
     }
     
@@ -398,7 +400,7 @@ public abstract class Building extends GameObject{
             POWER_TOOLS.costs = new ItemStack[]{new ItemStack(Item.ironIngot, 50)};
             PHOTOVOLTAIC_SENSITIVITY.costs = new ItemStack[]{new ItemStack(Item.ironIngot, 10)};
             STARLIGHT_GENERATION.costs = new ItemStack[]{new ItemStack(Item.ironIngot, 30)};
-//            SHIELD_PROJECTOR.costs = new ItemStack[]{new ItemStack(Item.coal)};
+//            SHIELD_PROJECTOR.costs = new ItemStack[]{new ItemStack(Item.ironIngot, 100)};
         }
         private final boolean starlight;
         public final int time;

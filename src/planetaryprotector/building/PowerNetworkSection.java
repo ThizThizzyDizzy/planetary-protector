@@ -1,2 +1,4 @@
 package planetaryprotector.building;
-interface PowerNetworkSection{}
+interface PowerNetworkSection{
+    public boolean isPowerActive();
+}
