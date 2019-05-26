@@ -89,8 +89,8 @@ public class Core extends Renderer2D{
                 helper.running = false;
             }
         });
-        FontManager.addFont("/simplelibrary/font");
-        FontManager.setFont("font");
+        FontManager.addFont("/planetaryprotector/high resolution");
+        FontManager.setFont("high resolution");
         GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -230,9 +230,9 @@ public class Core extends Renderer2D{
         config.set("fog", MenuOptionsGraphics.fog);
         config.set("clouds", MenuOptionsGraphics.clouds);
         config.set("particle meteors", MenuOptionsGraphics.particulateMeteors);
-        config.set("fire", MenuOptionsGraphics.fire);
-        config.set("particle fire", MenuOptionsGraphics.particulateFire);
         config.set("particles", MenuOptionsGraphics.particles);
+        config.set("cloudI", MenuOptionsGraphics.cloudIntensity);
+        config.set("fogI", MenuOptionsGraphics.fogIntensity);
         config.save();
     }
     public static void loadOptions(){
@@ -284,9 +284,9 @@ public class Core extends Renderer2D{
         MenuOptionsGraphics.fog = config.get("fog", false);
         MenuOptionsGraphics.clouds = config.get("clouds", false);
         MenuOptionsGraphics.particulateMeteors = config.get("particle meteors", false);
-        MenuOptionsGraphics.fire = config.get("fire", false);
-        MenuOptionsGraphics.particulateFire = config.get("particle fire", true);
         MenuOptionsGraphics.particles = config.get("particles", 1);
+        MenuOptionsGraphics.cloudIntensity = config.get("cloudI", .7f);
+        MenuOptionsGraphics.fogIntensity = config.get("fogI", .9f);
         config.save();
     }
     public static long getFPS(){

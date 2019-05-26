@@ -9,6 +9,7 @@ import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
 import static planetaryprotector.menu.MenuGame.rand;
 import java.util.Random;
+import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -76,11 +77,14 @@ public class Base extends Building implements BuildingDamagable{
             drawRect(x,y-25,x+width,y+height, ImageStash.instance.getTexture("/textures/base/door/0.png"));
             return;
         }
-        drawRect(x,y-25,x+width,y+height, ImageStash.instance.getTexture("/textures/base/door/"+door+".png"));
+        drawRect(x,y-25,x+width,y+height, ImageStash.instance.getTexture("/textures/base/door/"+door+".png"));        
+        renderDamages();
+        GL11.glColor4d(0, 1, 1, mouseover);
+        drawRect(x, y-25, x+width, y+height, 0);
+        GL11.glColor4d(1, 1, 1, 1);
         if(Core.game.finishedExpeditions.size()>0){
             drawText(x, y+height-height/8, x+width, y+height, Core.game.finishedExpeditions.size()+"");
         }
-        renderDamages();
     }
     @Override
     public void render(){

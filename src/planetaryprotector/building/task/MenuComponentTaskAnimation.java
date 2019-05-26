@@ -31,7 +31,8 @@ import simplelibrary.opengl.gui.components.MenuComponent;
                 frame = 0;
             }
         }
-        drawRect(x, y, x+width, y+height, images[frame]);
+        if(progress==0)drawRect(x,y,x+width,y+height,task.building.type.getTexture());
+        else drawRect(x, y, x+width, y+height, images[frame]);
     }
     public abstract double getProgress();
 }

@@ -24,6 +24,15 @@ public abstract class Task{
         }
         return workers;
     }
+    public int getPendingWorkers(){
+        int workers = 0;
+        for(Worker worker : Core.game.workers){
+            if(worker.targetTask==this||worker.task==this){
+                workers++;
+            }
+        }
+        return workers;
+    }
     public double progress(){
         if(finished){
             return Double.POSITIVE_INFINITY;
@@ -43,4 +52,7 @@ public abstract class Task{
     protected abstract void finish();
     public abstract void cancel();
     public abstract ItemStack[] getTooltip();
+    public void create(){
+        building.task = this;
+    }
 }

@@ -44,6 +44,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     public void draw(){
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+" "+((int)((x%2)+1))+".png"));
         renderDamages();
+        drawMouseover();
         drawCenteredText(x, y, x+width, y+18, "Power: "+(int)power);
         GL11.glColor4d(1,0,0,1);
         drawRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);

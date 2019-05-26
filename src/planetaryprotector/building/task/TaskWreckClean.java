@@ -72,7 +72,10 @@ public class TaskWreckClean extends Task{
         return building.task==null;
     }
     @Override
-    public void start(){
+    public void start(){}
+    @Override
+    public void create(){
+        super.create();
         Core.game.startAnim(this);
     }
     @Override

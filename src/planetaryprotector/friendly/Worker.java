@@ -105,6 +105,11 @@ public class Worker extends GameObject{
                 dropItem();
             }
             if(task.progress==0){
+                if(!task.canPerform()){
+                    task.building.task = null;
+                    task = null;
+                    return;
+                }
                 task.start();
             }
             task.work();
@@ -301,15 +306,8 @@ public class Worker extends GameObject{
         }
     }
     public void task(Task task){
-        if(task instanceof TaskRepair){
-            TaskRepair t = (TaskRepair) task;
-            if(t.damage==null){
-                return;
-            }
-        }
-        this.task = task;
-        task.building.worker = this;
-        task.building.task=task;
+        task.create();
+        targetTask = task;
     }
     public boolean isWorking(){
         return task!=null||targetTask!=null;
@@ -323,7 +321,6 @@ public class Worker extends GameObject{
             return;
         }
         task.cancel();
-        task.building.worker = null;
         task.building.task = null;
         task = null;
     }
@@ -333,7 +330,6 @@ public class Worker extends GameObject{
             y = Core.game.base.y+Core.game.base.height/2;
         }
         task.finishTask();
-        task.building.worker = null;
         task.building.task = null;
         task = null;
     }

@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import simplelibrary.opengl.ImageStash;
 public enum BuildingType{
     SKYSCRAPER("Skyscraper"),
     MINE("Mine"),
@@ -444,5 +445,8 @@ public enum BuildingType{
     }
     public ItemStack[] getCosts(int level){
         return costs[Math.min(costs.length-1, level)];
+    }
+    public int getTexture(){
+        return ImageStash.instance.getTexture("/textures/buildings/"+texture+".png");
     }
 }

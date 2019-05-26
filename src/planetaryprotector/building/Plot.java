@@ -20,6 +20,7 @@ public class Plot extends Building implements BuildingDamagable{
             GL11.glColor4d(1, 1, 1, 1);
         }
         renderDamages();
+        drawMouseover();
     }
     @Override
     public void draw(){
