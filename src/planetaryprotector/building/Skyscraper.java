@@ -99,11 +99,6 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
         }
         for(int i = 0; i<floorCount; i++){
             drawRectWithBounds(x, y-(floorHeight*i), x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
-            if(!MenuOptionsGraphics.particulateFire){
-                GL11.glColor4d(1, 1, 1, fire*(seeThrough?.05:1));
-                drawRectWithBounds(x, y-(floorHeight*i), x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, getTexture("fire"));
-                GL11.glColor4d(1, 1, 1, seeThrough?.05:1);
-            }
             if(i==floorCount-1){
                 GL11.glColor4d(1, 1, 1, fallenPercent*(seeThrough?.05:1));
                 drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*(floorCount-1)), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.WRECK.texture+".png"));
@@ -121,8 +116,10 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
-        GL11.glColor4d(1, 1, 1, 1);
         renderDamages();
+        GL11.glColor4d(0, 1, 1, mouseover);
+        drawRect(x, y-floorHeight*(floorCount-1), x+width, y+height-fallen, 0);
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public boolean onDamage(double x, double y){

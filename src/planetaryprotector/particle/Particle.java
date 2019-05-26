@@ -107,32 +107,24 @@ public class Particle extends GameObjectAnimated{
                     double lastY = 0;
                     double Y = 0;
                     double X = 0;
-//                    GL11.glColor4d(1, 1, .25, 1);
-//                    ImageStash.instance.bindTexture(0);
-//                    GL11.glBegin(GL11.GL_LINES);
                     while(Y<400){
-//                        GL11.glVertex2d(x+width/2+lastX, y+height/2+lastY);
                         Y = lastY+Core.game.rand.nextInt(40)+10;
                         X = lastX+(Core.game.rand.nextDouble()-.5)*30;
-//                        GL11.glVertex2d(x+width/2+X, y+height/2+Y);
                         lightning.addLine(x+width/2+lastX, y+height/2+lastY, x+width/2+X, y+height/2+Y);
                         if(Core.game.rand.nextBoolean()){
-//                            GL11.glVertex2d(x+width/2+lastX, y+height/2+lastY);
                             double YY = lastY+Core.game.rand.nextInt(40)+10;
                             double XX = lastX+(Core.game.rand.nextDouble()-.5)*30;
-//                            GL11.glVertex2d(this.x+width/2+XX, this.y+height/2+YY);
                             lightning.addBranch(x+width/2+lastX, y+height/2+lastY, x+width/2+XX, y+height/2+YY);
                         }
                         lastX = X;
                         lastY = Y;
                     }
-//                    GL11.glEnd();
                     drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+1, 0);
                 }
             }
             if(strength>rainThreshold){
                 //draw rain
-                GL11.glColor4d(0, 0, 1, .75);
+                GL11.glColor4d(0, 0, 1, .75*MenuOptionsGraphics.cloudIntensity);
                 for(int i = 0; i<strength; i++){
                     double X = Core.game.rand.nextInt((int)width)-width/2;
                     double Y = Core.game.rand.nextInt((int)(height+500))-height/2;
@@ -148,7 +140,7 @@ public class Particle extends GameObjectAnimated{
             }
             opacity = Math.log10(strength/(rainThreshold/4))*.75;
             double lightness = 1-((strength-(rainThreshold*(3/4d)))/50);
-            GL11.glColor4d(lightness, lightness, lightness, opacity);
+            GL11.glColor4d(lightness, lightness, lightness, opacity*MenuOptionsGraphics.cloudIntensity);
             GL11.glPushMatrix();
             GL11.glTranslated(x+width/2, y+height/2, 0);
             GL11.glRotated(rotation, 0, 0, 1);
@@ -231,7 +223,19 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.FIRE){
             smokeTimer++;
             if(fading&&smoke.isEmpty())dead = true;
-            if(smokeTimer>=5&&!fading){
+            int delay = 5;
+            switch(MenuOptionsGraphics.particles){
+                case 0:
+                    delay = 10;
+                    break;
+                case 1:
+                    delay = 5;
+                    break;
+                case 2:
+                    delay = 2;
+                    break;
+            }
+            if(smokeTimer>=delay&&!fading){
                 smokeTimer = 0;
                 synchronized(smoke){
                     smoke.add(new double[]{0,0,0,0,0,0});
@@ -309,7 +313,7 @@ public class Particle extends GameObjectAnimated{
             if(branch!=null){
                 branch.opacity = opacity;
             }
-            GL11.glColor4d(1, 1, .25, opacity);
+            GL11.glColor4d(1, 1, .25, opacity*MenuOptionsGraphics.cloudIntensity);
             ImageStash.instance.bindTexture(0);
             GL11.glBegin(GL11.GL_LINES);
             GL11.glVertex2d(x1, y1);

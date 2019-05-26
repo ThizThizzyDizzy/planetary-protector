@@ -1,14 +1,12 @@
 package planetaryprotector.building;
 import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
-import planetaryprotector.friendly.Worker;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.task.Task;
 import java.util.ArrayList;
 import java.util.Collections;
 import static planetaryprotector.menu.MenuGame.rand;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Random;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -19,9 +17,9 @@ import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 public abstract class Building extends GameObject{
     public final BuildingType type;
-    public Worker worker;
     public ArrayList<BuildingDamage> damages = new ArrayList<>();
     public Task task;
+    public double mouseover = 0;
     //FIRE
     public double fire = 0;
     public int fireDamage = 0;
@@ -46,12 +44,10 @@ public abstract class Building extends GameObject{
             synchronized(damages){
                 damages.add(new BuildingDamage(this,0,0));
             }
-            if(MenuOptionsGraphics.particulateFire){
-                synchronized(fires){
-                    fires.add(new Particle(getRandX(Core.game.rand), getRandY(Core.game.rand), ParticleEffectType.FIRE));
-                }
-                ignite();
+            synchronized(fires){
+                fires.add(new Particle(getRandX(Core.game.rand), getRandY(Core.game.rand), ParticleEffectType.FIRE));
             }
+            ignite();
             fireDamage++;
         }
         synchronized(fires){
@@ -77,6 +73,11 @@ public abstract class Building extends GameObject{
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.EMPTY.texture+".png"));
         renderDamages();
     }
+    public void drawMouseover(){
+        GL11.glColor4d(0, 1, 1, mouseover);
+        drawRect(x, y, x+width, y+height, 0);
+        GL11.glColor4d(1, 1, 1, 1);
+    }
     public void draw(){
         drawRect(x, y, x+width, y+height, getTexture());
         renderDamages();
@@ -94,11 +95,6 @@ public abstract class Building extends GameObject{
     @Override
     public void render(){
         draw();
-        if(!MenuOptionsGraphics.particulateFire){
-            GL11.glColor4d(1, 1, 1, fire);
-            drawFire();
-            GL11.glColor4d(1, 1, 1, 1);
-        }
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, 0);
         synchronized(fires){
@@ -213,7 +209,7 @@ public abstract class Building extends GameObject{
         return b;
     }
     public boolean damage(double x, double y){
-        if(MenuOptionsGraphics.fire&&Core.game.rand.nextDouble()<getIgnitionChance()){
+        if(Core.game.rand.nextDouble()<getIgnitionChance()){
             fireIncreaseRate += 0.0002;
             ignite(x, y);
         }
@@ -268,7 +264,6 @@ public abstract class Building extends GameObject{
     protected abstract Config save(Config cfg);
     public abstract int getMaxLevel();
     protected void ignite(double x, double y){
-        if(!MenuOptionsGraphics.particulateFire)return;
         x-=this.x;
         y-=this.y;
         if(this instanceof Base){
@@ -382,7 +377,6 @@ public abstract class Building extends GameObject{
         Core.game.refreshNetworks();
         return true;
     }
-    
     public static enum Upgrade{
         SUPERCHARGE("Supercharge", BuildingType.COAL_GENERATOR, false, 1200, 5, 4,8,12,16,20),
         ECOLOGICAL("Ecological", BuildingType.COAL_GENERATOR, false, 1200, 5, 4,8,12,16,20),

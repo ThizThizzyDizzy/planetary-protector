@@ -57,38 +57,40 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
     }
     public static double[] getMeteorStrike(){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
-        for(Building building : Core.game.buildings){
-            if(building.type==BuildingType.SHIELD_GENERATOR){
-                shieldGen.add((ShieldGenerator) building);
-            }
-        }
-        for(Building building : Core.game.buildings){
-            if(building.type==BuildingType.WRECK){
-                if(((Wreck)building).ingots<=1){
-                    continue;
+        synchronized(Core.game.buildings){
+            for(Building building : Core.game.buildings){
+                if(building.type==BuildingType.SHIELD_GENERATOR){
+                    shieldGen.add((ShieldGenerator) building);
                 }
             }
-            double[] hitBox = new double[]{building.x, building.y, building.x+building.width, building.y+building.height};
-            if(building instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) building;
-                hitBox = new double[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
-            }
-            double[][] corners = new double[][]{new double[]{hitBox[0]+1,hitBox[1]+1}, new double[]{hitBox[2]-1,hitBox[1]+1}, new double[]{hitBox[0]+1,hitBox[3]-1}, new double[]{hitBox[2]-1,hitBox[3]-1}};
-            FOR:for(double[] d : corners){
-                double X = d[0];
-                double Y = d[1];
-                if(Y<0)continue;
-                for(MenuComponentEnemy enemy: Core.game.enemies){
-                    if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50) continue FOR;
+            for(Building building : Core.game.buildings){
+                if(building.type==BuildingType.WRECK){
+                    if(((Wreck)building).ingots<=1){
+                        continue;
+                    }
                 }
-                if(shieldGen.isEmpty()){
-                    return new double[]{X,Y};
+                double[] hitBox = new double[]{building.x, building.y, building.x+building.width, building.y+building.height};
+                if(building instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper) building;
+                    hitBox = new double[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
                 }
-                for(ShieldGenerator gen : shieldGen){
-                    double shieldRadius = gen.shieldSize/2;
-                    double dist = Core.distance(gen,X,Y);
-                    if(dist>shieldRadius){
+                double[][] corners = new double[][]{new double[]{hitBox[0]+1,hitBox[1]+1}, new double[]{hitBox[2]-1,hitBox[1]+1}, new double[]{hitBox[0]+1,hitBox[3]-1}, new double[]{hitBox[2]-1,hitBox[3]-1}};
+                FOR:for(double[] d : corners){
+                    double X = d[0];
+                    double Y = d[1];
+                    if(Y<0)continue;
+                    for(MenuComponentEnemy enemy: Core.game.enemies){
+                        if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50) continue FOR;
+                    }
+                    if(shieldGen.isEmpty()){
                         return new double[]{X,Y};
+                    }
+                    for(ShieldGenerator gen : shieldGen){
+                        double shieldRadius = gen.shieldSize/2;
+                        double dist = Core.distance(gen,X,Y);
+                        if(dist>shieldRadius){
+                            return new double[]{X,Y};
+                        }
                     }
                 }
             }

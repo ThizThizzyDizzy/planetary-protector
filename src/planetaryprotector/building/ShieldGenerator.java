@@ -78,9 +78,9 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     }
     @Override
     public void draw(){
-        removeRenderBound();
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
         renderDamages();
+        drawMouseover();
         if(powerOutline){
             drawRect(x+width/2-250, y+height/2-250, x+width/2+250, y+height/2+250, ImageStash.instance.getTexture("/textures/buildings/power outline.png"));
         }

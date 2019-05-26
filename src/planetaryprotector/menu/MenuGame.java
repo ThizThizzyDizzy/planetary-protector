@@ -103,6 +103,7 @@ public class MenuGame extends Menu{
     public ArrayList<MenuComponentActionButton> actionButtons = new ArrayList<>();
     public Worker selectedWorker;
     public Building selectedBuilding;
+    private boolean actionUpdateRequired = false;
     HashMap<Building, Building> buildingsToReplace = new HashMap<>();
     private Building oldSelectedBuilding;
     private Task oldSelectedTask;
@@ -128,7 +129,7 @@ public class MenuGame extends Menu{
     public int civilianCooldown = MenuGame.rand.nextInt(20*60*5);
     public double civilianIncreasePerSec = 0;
     public int civilianTimer = 0;
-    private boolean autoTask;
+    private boolean autoTask = true;
     public boolean doNotDisturb = false;
     private int winTimer = -1;
     boolean fading;
@@ -337,6 +338,9 @@ public class MenuGame extends Menu{
         }
 //</editor-fold>
         synchronized(buildings){
+            for(Building building : buildings){
+                building.mouseover = 0;
+            }
             Collections.sort(buildings, new Comparator<Building>(){
                 @Override
                 public int compare(Building o1, Building o2){
@@ -379,6 +383,13 @@ public class MenuGame extends Menu{
             }
         }
 //</editor-fold>
+        Building building = getBuilding(Mouse.getX(), Display.getHeight()-Mouse.getY());
+        if(building!=null){
+            building.mouseover = .1;
+        }
+        if(selectedBuilding!=null){
+            selectedBuilding.mouseover+=.2;
+        }
     }
     @Override
     public void render(int millisSinceLastTick){
@@ -484,11 +495,12 @@ public class MenuGame extends Menu{
             selectedTask = selectedBuilding.task;
         }
         //<editor-fold defaultstate="collapsed" desc="Replacing Action Buttons">
-        if(oldSelectedBuilding!=selectedBuilding||oldSelectedTask!=selectedTask){
+        if(oldSelectedBuilding!=selectedBuilding||oldSelectedTask!=selectedTask||actionUpdateRequired){
+            actionUpdateRequired = false;
             componentsToRemove.addAll(actionButtons);
             actionButtons.clear();
             actionButtonOffset = 20;
-            if(selectedBuilding!=null&&selectedWorker!=null){
+            if(selectedBuilding!=null){
                 if(selectedBuilding instanceof BuildingDamagable){
                     taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
                     taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
@@ -624,8 +636,8 @@ public class MenuGame extends Menu{
                         taskButton("Clean up", selectedWorker, new TaskWreckClean((Wreck) selectedBuilding));
                         break;
                     case BASE:
-                        action("Dispense All Workers", true, (ActionEvent e) -> {
-                            dispenseWorkers();
+                        action("Assign All Workers", true, (ActionEvent e) -> {
+                            assignAllWorkers();
                         });
                         action((autoTask?"Disable":"Enable")+" Autotasking", true, (ActionEvent e) -> {
                             autoTask = !autoTask;
@@ -671,7 +683,7 @@ public class MenuGame extends Menu{
                 if(selectedBuilding instanceof BuildingDemolishable){
                     taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                 }
-                if(selectedBuilding.task!=null&&selectedWorker.task==null){
+                if(selectedBuilding.task!=null&&selectedWorker!=null&&selectedWorker.task==null){
                     action("Continue Task", true, new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
@@ -834,6 +846,7 @@ public class MenuGame extends Menu{
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
         if(key==Controls.deselect&&pressed&&!repeat&&selectedWorker!=null){
             selectedWorker = null;
+            selectedBuilding = null;
         }
         if(key==Controls.cancel&&pressed&&!repeat){
             if(selectedWorker!=null&&selectedWorker.task!=null){
@@ -867,13 +880,13 @@ public class MenuGame extends Menu{
                 cheats = !cheats;
             }
         }
-        if(key==Controls.CHEAT_LOSE&&pressed&&!repeat){
-            if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
-                notify("Cheat: Losing Epilogue");
-                if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
-            }
-        }
         if(cheats&&pressed){
+            if(key==Controls.CHEAT_LOSE&&!repeat){
+                if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+                    notify("Cheat: Losing Epilogue");
+                    if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
+                }
+            }
             if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)&&Keyboard.isKeyDown(Controls.CHEAT_SECRET)){
                 if(key==Keyboard.KEY_1){
                     notify("Cheat: Secret #1");
@@ -1130,13 +1143,27 @@ public class MenuGame extends Menu{
             }
         }
     }
-//    @Override
-//    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
-//        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
-//        if(pressed&&button==0&&isClickWithinBounds(x, y, base.x, base.y, base.x+base.width, base.y+base.height)){
-//            baseGUI = !baseGUI;
-//        }
-//    }
+    @Override
+    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
+        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
+        for(MenuComponent c : components){
+            if(c instanceof MenuComponentButton){
+                if(Core.isPointWithinComponent(x, y, c))return;
+            }
+        }
+        if(pressed&&button==0){
+            Building building = getBuilding(x, y);
+            if(building!=null){
+                selectedBuilding = building;
+                selectedWorker = null;
+            }
+        }
+        if(pressed&&button==1){
+            if(selectedWorker==null){
+                selectedBuilding = null;
+            }
+        }
+    }
     @Override
     public void tick(){
         if(fading){
@@ -1260,6 +1287,7 @@ public class MenuGame extends Menu{
         }
         if(selectedWorker!=null&&selectedWorker.dead){
             selectedWorker = null;
+            selectedBuilding = null;
         }
         if(workers.isEmpty()&&!lost&&!losing){
             Core.speedMult = 12;
@@ -1273,6 +1301,7 @@ public class MenuGame extends Menu{
             ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
             Building start = list.get(0);
             Building end = buildingsToReplace.remove(start);
+            if(selectedBuilding==start)selectedBuilding = end;
             buildings.remove(start);
             buildings.add(end);
             refreshNetworks();
@@ -1368,6 +1397,8 @@ public class MenuGame extends Menu{
         }
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
         if(lost&&allowArmogeddon){
+            selectedBuilding = null;
+            notifyOnce("Game Over", 1);
             for(int i = 0; i<2; i++){
                 switch(rand.nextInt(3)){
                     case 0:
@@ -1492,8 +1523,14 @@ public class MenuGame extends Menu{
 //</editor-fold>
         addAll(componentsToAdd);
         componentsToAdd.clear();
-        if(autoTask&&selectedWorker!=null&&selectedWorker.task!=null){
-            dispenseWorkers();
+        if(autoTask){
+            synchronized(buildings){
+                for(Building building : buildings){
+                    if(building.task!=null&&building.task.getPendingWorkers()==0){
+                        assignWorker(building.task);
+                    }
+                }
+            }
         }
         for(EnemyAlien a : aliens){
             if(a.y+a.width>Display.getHeight()){
@@ -1560,7 +1597,7 @@ public class MenuGame extends Menu{
                     }
                 }
             }
-            selectedBuilding = null;
+            if(selectedWorker!=null)selectedBuilding = null;
         }while(false);
         //Power transfer
         getPowerNetworks();
@@ -1662,9 +1699,9 @@ public class MenuGame extends Menu{
         itemsToDrop.add(item);
     }
     public void addResources(Item item) {
+        actionUpdateRequired = true;
         for(ItemStack stack : base.resources){
             if(stack.item==item){
-                
                 stack.count++;
                 return;
             }
@@ -1705,8 +1742,10 @@ public class MenuGame extends Menu{
         addWorker(base.x+base.width/2, base.y+base.height-12);
     }
     public void replaceBuilding(Building start, Building end){
-        if(buildings.contains(start)){
-            buildingsToReplace.put(start,end);
+        synchronized(buildings){
+            if(buildings.contains(start)){
+                buildingsToReplace.put(start,end);
+            }
         }
     }
     private void textWithBackground(double left, double top, double right, double bottom, String str){
@@ -1737,7 +1776,7 @@ public class MenuGame extends Menu{
             public void actionPerformed(ActionEvent e) {
                 if(listener==null)return;
                 listener.actionPerformed(e);
-                selectedBuilding = null;
+                actionUpdateRequired = true;
             }
         }));
         if(label.contains("Demolish")||label.contains("Cancel Task")){
@@ -1748,7 +1787,9 @@ public class MenuGame extends Menu{
         action(label, task.canPerform(), new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae){
-                worker.task(task);
+                if(!task.canPerform())return;
+                task.create();
+                if(worker!=null)worker.task(task);
             }
         }, task.getTooltip());
     }
@@ -1915,7 +1956,7 @@ public class MenuGame extends Menu{
         }
         game.furnace.level = config.get("furnace level", 0);
         game.furnace.ironOre = config.get("furnace iron", 0);
-        game.autoTask = config.get("autotask", false);
+        game.autoTask = config.get("autotask", true);
         game.furnace.coal = config.get("furnace coal", 0);
         game.furnace.total = config.get("furnace xp", 0);
         game.furnace.auto = game.furnace.level>=2;
@@ -2071,7 +2112,7 @@ public class MenuGame extends Menu{
         }
         return drone;
     }
-    private void dispenseWorkers(){
+    private void assignAllWorkers(){
         ArrayList<Task> tasks = new ArrayList<>();
         for(Worker worker : workers){
             if(worker.task!=null){
@@ -2274,23 +2315,7 @@ public class MenuGame extends Menu{
                     }
                 }
             }
-            Building hit = null;
-            for(Building building : buildings){
-                if(building instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)building;
-                    if(isClickWithinBounds(x, y, building.x, building.y-(sky.floorCount*sky.floorHeight), building.x+building.width, building.y+building.height)){
-                        hit = building;
-                    }
-                }else if(building instanceof Base){
-                    if(isClickWithinBounds(x, y, building.x, building.y-25, building.x+building.width, building.y+building.height)){
-                        hit = building;
-                    }
-                }else{
-                    if(isClickWithinBounds(x, y, building.x, building.y, building.x+building.width, building.y+building.height)){
-                        hit = building;
-                    }
-                }
-            }
+            Building hit = getBuilding(x,y);
             if(hit==null||!hit.damage(x,y)||material!=null&&material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
                 double dmgRad = 25;
@@ -2329,6 +2354,28 @@ public class MenuGame extends Menu{
 //</editor-fold>
             }
         }
+    }
+    public Building getBuilding(double x, double y){
+        Building hit = null;
+        synchronized(buildings){
+            for(Building building : buildings){
+                if(building instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)building;
+                    if(isClickWithinBounds(x, y, building.x, building.y-(sky.floorCount*sky.floorHeight), building.x+building.width, building.y+building.height)){
+                        hit = building;
+                    }
+                }else if(building instanceof Base){
+                    if(isClickWithinBounds(x, y, building.x, building.y-25, building.x+building.width, building.y+building.height)){
+                        hit = building;
+                    }
+                }else{
+                    if(isClickWithinBounds(x, y, building.x, building.y, building.x+building.width, building.y+building.height)){
+                        hit = building;
+                    }
+                }
+            }
+        }
+        return hit;
     }
     public Item getItem(AsteroidMaterial material) {
         switch(material){
@@ -2584,6 +2631,14 @@ public class MenuGame extends Menu{
     public void refreshNetworks(){
         powerNetworks.clear();
         starlightNetworks.clear();
+    }
+    private void assignWorker(Task task){
+        for(Worker worker : workers){
+            if(worker.isAvailable()){
+                worker.task(task);
+                return;
+            }
+        }
     }
     private static class Notification{
         private String name;

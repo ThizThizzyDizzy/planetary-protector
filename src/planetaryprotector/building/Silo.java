@@ -41,6 +41,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
         removeRenderBound();
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
         renderDamages();
+        drawMouseover();
         drawCenteredText(x, y, x+width, y+20, ""+power);
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
     }

@@ -16,6 +16,7 @@ public class Wreck extends Building{
             return;
         }
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
+        drawMouseover();
     }
     @Override
     public void draw(){}
