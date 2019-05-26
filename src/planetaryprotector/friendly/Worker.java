@@ -105,6 +105,11 @@ public class Worker extends GameObject{
                 dropItem();
             }
             if(task.progress==0){
+                if(!task.canPerform()){
+                    task.building.task = null;
+                    task = null;
+                    return;
+                }
                 task.start();
             }
             task.work();
