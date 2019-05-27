@@ -25,7 +25,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     public void update(){
         super.update();
         if(burning>0){
-            power+=4+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*starlight>STARLIGHT_THRESHOLD?2:0;
+            power+=4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*starlight>STARLIGHT_THRESHOLD?2:0;
             if(starlight>STARLIGHT_THRESHOLD)starlight-=STARLIGHT_THRESHOLD;
             burning-=Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE));
         }
@@ -35,7 +35,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
                 coal++;
             }
         }
-        if(power==0&&burning==0&&coal>0){
+        if(power<=0&&burning<=0&&coal>0){
             coal--;
             burning = getBurnTime();
         }

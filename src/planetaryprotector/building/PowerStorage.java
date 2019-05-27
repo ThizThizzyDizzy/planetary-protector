@@ -59,7 +59,7 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     }
     @Override
     public double getMaxPower(){
-        return 7000+3000*getLevel();
+        return Math.round((7000+3000*Math.pow(getLevel(), 1.5))/1000)*1000;
     }
     @Override
     public double getDemand(){

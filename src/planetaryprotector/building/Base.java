@@ -29,10 +29,12 @@ public class Base extends Building implements BuildingDamagable{
         if(Core.game==null)return;
         if(!Core.game.paused){
             boolean open = false;
-            for(Worker worker : Core.game.workers){
-                if(Core.distance(worker, x+width/2, y+height-12.5)<=25){
-                    open = true;
-                    break;
+            synchronized(Core.game.workers){
+                for(Worker worker : Core.game.workers){
+                    if(Core.distance(worker, x+width/2, y+height-12.5)<=25){
+                        open = true;
+                        break;
+                    }
                 }
             }
             if(Core.game.workerCooldown<=16){
@@ -54,8 +56,10 @@ public class Base extends Building implements BuildingDamagable{
             }
             if(deathTick==100){
                 Core.game.addParticleEffect(new Particle(x+50, y+51, ParticleEffectType.EXPLOSION, 10));
-                for(Worker w : Core.game.workers){
-                    w.dead = true;
+                synchronized(Core.game.workers){
+                    for(Worker w : Core.game.workers){
+                        w.dead = true;
+                    }
                 }
             }
             if(deathTick==450){

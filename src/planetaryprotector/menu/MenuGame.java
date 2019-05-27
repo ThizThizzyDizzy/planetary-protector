@@ -285,13 +285,15 @@ public class MenuGame extends Menu{
                         if(o1 instanceof MenuComponentActionButton){
                             y1 += Display.getHeight()*10;
                         }
-                        for(Worker worker : workers){
-                            if(o1==worker.button){
-                                y1 += Display.getHeight()*10;
+                        synchronized(workers){
+                            for(Worker worker : workers){
+                                if(o1==worker.button){
+                                    y1 += Display.getHeight()*10;
+                                }
                             }
                         }
                         if(o1 instanceof MenuComponentFalling||o1 instanceof MenuComponentRising){
-                            y1 += Display.getHeight()*9;
+                            y1 += Display.getHeight()*15;
                         }
                         if(o1==mothership){
                             y1 += Display.getHeight()*7;
@@ -300,7 +302,7 @@ public class MenuGame extends Menu{
                             y1 += Display.getHeight()*4;
                         }
                         if(o1==furnace){
-                            y1 += Display.getHeight()*2;
+                            y1 += Display.getHeight()*20;
                         }
 //                    }
 //                    if(o2 instanceof ZComponent){
@@ -309,16 +311,18 @@ public class MenuGame extends Menu{
                         if(o2==overlay){
                             y2 += Display.getHeight()*50;
                         }
-                        for(Worker worker : workers){
-                            if(o2==worker.button){
-                                y2 += Display.getHeight()*10;
+                        synchronized(workers){
+                            for(Worker worker : workers){
+                                if(o2==worker.button){
+                                    y2 += Display.getHeight()*10;
+                                }
                             }
                         }
                         if(o2 instanceof MenuComponentActionButton){
                             y2 += Display.getHeight()*10;
                         }
                         if(o2 instanceof MenuComponentFalling||o2 instanceof MenuComponentRising){
-                            y2 += Display.getHeight()*9;
+                            y2 += Display.getHeight()*15;
                         }
                         if(o2==mothership){
                             y2 += Display.getHeight()*7;
@@ -327,7 +331,7 @@ public class MenuGame extends Menu{
                             y2 += Display.getHeight()*4;
                         }
                         if(o2==furnace){
-                            y2 += Display.getHeight()*2;
+                            y2 += Display.getHeight()*20;
                         }
 //                    }
                     y1 += height1/2;
@@ -365,18 +369,22 @@ public class MenuGame extends Menu{
         //<editor-fold defaultstate="collapsed" desc="BaseGUI location">
         if(baseGUI){
             coal.x = ironChunks.x = furnace.x = Display.getWidth()-100;
-            for(Worker worker : workers){
-                worker.button.x = 0;
-                worker.button.color = (!(worker.dead||worker.isWorking()))?Color.WHITE:Color.RED;
-                worker.button.enabled = !(worker.dead||worker.isWorking());
+            synchronized(workers){
+                for(Worker worker : workers){
+                    worker.button.x = 0;
+                    worker.button.color = (!(worker.dead||worker.isWorking()))?Color.WHITE:Color.RED;
+                    worker.button.enabled = !(worker.dead||worker.isWorking());
+                }
             }
             for(MenuComponentActionButton button : actionButtons){
                 button.x = 50;
             }
         }else{
             coal.x = ironChunks.x = furnace.x = -100;
-            for(Worker worker : workers){
-                worker.button.x = -50;
+            synchronized(workers){
+                for(Worker worker : workers){
+                    worker.button.x = -50;
+                }
             }
             for(MenuComponentActionButton button : actionButtons){
                 button.x = 0;
@@ -549,11 +557,6 @@ public class MenuGame extends Menu{
                     case BUNKER:
                         break;
                     case SILO:
-                        action("Toggle Power Outline", (ActionEvent e) -> {
-                            ((Silo)selectedBuilding).outline = !((Silo)selectedBuilding).outline;
-                        }, () -> {
-                            return true;
-                        });
                         action("Build Missile", (ActionEvent ae) -> {
                             ((Silo)selectedBuilding).buildMissile();
                         },() -> {
@@ -608,11 +611,6 @@ public class MenuGame extends Menu{
                         }, () -> {
                             return true;
                         });
-                        action("Toggle Power Outline", (ActionEvent e) -> {
-                            ((ShieldGenerator)selectedBuilding).powerOutline = !((ShieldGenerator)selectedBuilding).powerOutline;
-                        }, () -> {
-                            return true;
-                        });
                         if(phase>=3&&((ShieldGenerator)selectedBuilding).canBlast){
                             action("Blast", (ActionEvent e) -> {
                                 ((ShieldGenerator)selectedBuilding).blast();
@@ -647,7 +645,9 @@ public class MenuGame extends Menu{
                                 if(overlay!=null)return;
                                 overlay = add(new MenuExpedition(this));
                             }, () -> {
-                                return workers.size()>1;
+                                synchronized(workers){
+                                    return workers.size()>1;
+                                }
                             });
                         }
                         break;
@@ -771,9 +771,15 @@ public class MenuGame extends Menu{
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        mainLayer.addAll(buildings);
-        mainLayer.addAll(droppedItems);
-        mainLayer.addAll(workers);
+        synchronized(buildings){
+            mainLayer.addAll(buildings);
+        }
+        synchronized(droppedItems){
+            mainLayer.addAll(droppedItems);
+        }
+        synchronized(workers){
+            mainLayer.addAll(workers);
+        }
         Collections.sort(mainLayer, new Comparator<GameObject>(){
             @Override
             public int compare(GameObject o1, GameObject o2){
@@ -1112,35 +1118,37 @@ public class MenuGame extends Menu{
                     actionButtons.get(9).actionPerformed(null);
                 }
             }else{
-                if(key==Keyboard.KEY_1&&!workers.isEmpty()){
-                    selectedWorker = workers.get(0);
-                }
-                if(key==Keyboard.KEY_2&&workers.size()>1){
-                    selectedWorker = workers.get(1);
-                }
-                if(key==Keyboard.KEY_3&&workers.size()>2){
-                    selectedWorker = workers.get(2);
-                }
-                if(key==Keyboard.KEY_4&&workers.size()>3){
-                    selectedWorker = workers.get(3);
-                }
-                if(key==Keyboard.KEY_5&&workers.size()>4){
-                    selectedWorker = workers.get(4);
-                }
-                if(key==Keyboard.KEY_6&&workers.size()>5){
-                    selectedWorker = workers.get(5);
-                }
-                if(key==Keyboard.KEY_7&&workers.size()>6){
-                    selectedWorker = workers.get(6);
-                }
-                if(key==Keyboard.KEY_8&&workers.size()>7){
-                    selectedWorker = workers.get(7);
-                }
-                if(key==Keyboard.KEY_9&&workers.size()>8){
-                    selectedWorker = workers.get(8);
-                }
-                if(key==Keyboard.KEY_0&&workers.size()>9){
-                    selectedWorker = workers.get(9);
+                synchronized(workers){
+                    if(key==Keyboard.KEY_1&&!workers.isEmpty()){
+                        selectedWorker = workers.get(0);
+                    }
+                    if(key==Keyboard.KEY_2&&workers.size()>1){
+                        selectedWorker = workers.get(1);
+                    }
+                    if(key==Keyboard.KEY_3&&workers.size()>2){
+                        selectedWorker = workers.get(2);
+                    }
+                    if(key==Keyboard.KEY_4&&workers.size()>3){
+                        selectedWorker = workers.get(3);
+                    }
+                    if(key==Keyboard.KEY_5&&workers.size()>4){
+                        selectedWorker = workers.get(4);
+                    }
+                    if(key==Keyboard.KEY_6&&workers.size()>5){
+                        selectedWorker = workers.get(5);
+                    }
+                    if(key==Keyboard.KEY_7&&workers.size()>6){
+                        selectedWorker = workers.get(6);
+                    }
+                    if(key==Keyboard.KEY_8&&workers.size()>7){
+                        selectedWorker = workers.get(7);
+                    }
+                    if(key==Keyboard.KEY_9&&workers.size()>8){
+                        selectedWorker = workers.get(8);
+                    }
+                    if(key==Keyboard.KEY_0&&workers.size()>9){
+                        selectedWorker = workers.get(9);
+                    }
                 }
             }
         }
@@ -1208,7 +1216,17 @@ public class MenuGame extends Menu{
         }
         debugData.add("Meteor Shower: "+meteorShower);
         debugData.add("Meteor Shower Timer: "+meteorShowerTimer);
-        debugData.add("Workers: "+workers.size());
+        synchronized(workers){
+            debugData.add("Workers: "+workers.size());
+            for(int i = 0; i<workers.size(); i++){
+                Worker w = workers.get(i);
+                if(w.targetItem!=null)debugData.add("Worker "+(i+1)+": Targeted item");
+                if(w.grabbedItem!=null)debugData.add("Worker "+(i+1)+": Grabbed item");
+                if(w.targetTask!=null)debugData.add("Worker "+(i+1)+": Targeted task");
+                if(w.task!=null)debugData.add("Worker "+(i+1)+": Working");
+            }
+        }
+        debugData.add("Worker Cooldown: "+workerCooldown);
         debugData.add("Buildings: "+buildings.size());
         HashMap<BuildingType, Integer> theBuildings = new HashMap<>();
         for(Building building : buildings){
@@ -1222,7 +1240,6 @@ public class MenuGame extends Menu{
             int amount = theBuildings.get(building);
             debugData.add(" - "+amount+" "+building.name+" ("+Math.round(amount/(double)buildings.size()*100)+"%)");
         }
-        debugData.add("Worker Cooldown: "+workerCooldown);
         debugData.add("Phase: "+phase);
         debugData.add("Target population: "+targetPopulation);
         debugData.add("Population per floor: "+popPerFloor);
@@ -1245,13 +1262,8 @@ public class MenuGame extends Menu{
         debugData.add("Fog time increase: "+fogTimeIncrease);
         debugData.add("Fog intensity: "+fogIntensity);
         debugData.add("Fog Height intensity: "+fogHeightIntensity);
-        for(int i = 0; i<workers.size(); i++){
-            Worker w = workers.get(i);
-            if(w.targetItem!=null)debugData.add("Worker "+(i+1)+": Targeted item");
-            if(w.grabbedItem!=null)debugData.add("Worker "+(i+1)+": Grabbed item");
-            if(w.targetTask!=null)debugData.add("Worker "+(i+1)+": Targeted task");
-            if(w.task!=null)debugData.add("Worker "+(i+1)+": Working");
-        }
+        debugData.add("Super secret timer: "+secretTimer);
+        if(secretWaiting!=-1)debugData.add("Pending Secret: "+secretWaiting);
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
         if(lost&&phase>3){
@@ -1299,10 +1311,12 @@ public class MenuGame extends Menu{
             selectedWorker = null;
             selectedBuilding = null;
         }
-        if(workers.isEmpty()&&!lost&&!losing){
-            Core.speedMult = 12;
-        }else{
-            Core.speedMult = 1;
+        synchronized(workers){
+            if(workers.isEmpty()&&!lost&&!losing){
+                Core.speedMult = 12;
+            }else{
+                Core.speedMult = 1;
+            }
         }
         if(damageReportTimer>=0){
             damageReportTimer--;
@@ -1338,11 +1352,11 @@ public class MenuGame extends Menu{
                     it.remove();
                 }
             }
-        }
-        for(int i = 0; i<workers.size(); i++){//relocating worker buttons
-            Worker worker = workers.get(i);
-            worker.button.y = i*50;
-            worker.button.label = (i+1)+"";
+            for(int i = 0; i<workers.size(); i++){//relocating worker buttons
+                Worker worker = workers.get(i);
+                worker.button.y = i*50;
+                worker.button.label = (i+1)+"";
+            }
         }
         synchronized(droppedItems){
             for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){ 
@@ -1403,7 +1417,9 @@ public class MenuGame extends Menu{
         if(workerCooldown<0&&safe()&&!lost){
             notify("Worker spawned", 50);
             addWorker();
-            workerCooldown += Math.max(1200,6000-workers.size()*20);
+            synchronized(workers){
+                workerCooldown += Math.max(1200,6000-workers.size()*20);
+            }
         }
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
         if(lost&&allowArmogeddon){
@@ -1456,11 +1472,13 @@ public class MenuGame extends Menu{
             }
             meteorShowerTimer = (int)Math.round((meteorShower?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
         }
-        if(secretWaiting==-1&&workers.size()>0){
-            secretTimer--;
-            if(secretTimer<=0){
-                secretWaiting = rand.nextInt(secrets);
-                secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
+        synchronized(workers){
+            if(secretWaiting==-1&&workers.size()>0){
+                secretTimer--;
+                if(secretTimer<=0){
+                    secretWaiting = rand.nextInt(secrets);
+                    secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
+                }
             }
         }
         if(fogTime==0){
@@ -1509,17 +1527,19 @@ public class MenuGame extends Menu{
             components.remove(componentsToRemove.remove(0));
         }
         //<editor-fold defaultstate="collapsed" desc="Expeditions">
-        if(pendingExpedition!=null&&workers.size()>1){
-            for(Worker worker : workers){
-                if(worker.isAvailable()){
-                    pendingExpedition.workers++;
-                    worker.dead = true;
-                    break;
+        synchronized(workers){
+            if(pendingExpedition!=null&&workers.size()>1){
+                for(Worker worker : workers){
+                    if(worker.isAvailable()){
+                        pendingExpedition.workers++;
+                        worker.dead = true;
+                        break;
+                    }
                 }
-            }
-            if(pendingExpedition.workers>=pendingExpedition.requiredWorkers){
-                activeExpeditions.add(pendingExpedition);
-                pendingExpedition = null;
+                if(pendingExpedition.workers>=pendingExpedition.requiredWorkers){
+                    activeExpeditions.add(pendingExpedition);
+                    pendingExpedition = null;
+                }
             }
         }
         for (Iterator<Expedition> it = activeExpeditions.iterator(); it.hasNext();){
@@ -1634,9 +1654,11 @@ public class MenuGame extends Menu{
         if(button==furnace){
             furnace.upgrade();
         }
-        for(Worker worker : workers){
-            if(button==worker.button){
-                selectedWorker = worker;
+        synchronized(workers){
+            for(Worker worker : workers){
+                if(button==worker.button){
+                    selectedWorker = worker;
+                }
             }
         }
         for(MenuComponentActionButton actionButton : actionButtons){
@@ -2123,19 +2145,23 @@ public class MenuGame extends Menu{
     }
     private void assignAllWorkers(){
         ArrayList<Task> tasks = new ArrayList<>();
-        for(Worker worker : workers){
-            if(worker.task!=null){
-                if(worker.task instanceof TaskDemolish||worker.task.type==TaskType.REPAIR) continue;
-                tasks.add(worker.task);
+        synchronized(workers){
+            for(Worker worker : workers){
+                if(worker.task!=null){
+                    if(worker.task instanceof TaskDemolish||worker.task.type==TaskType.REPAIR) continue;
+                    tasks.add(worker.task);
+                }
             }
         }
         if(tasks.isEmpty()){
             return;
         }
         ArrayList<Worker> available = new ArrayList<>();
-        for(Worker worker : workers){
-            if(!worker.isWorking()&&selectedWorker!=worker){
-                available.add(worker);
+        synchronized(workers){
+            for(Worker worker : workers){
+                if(!worker.isWorking()&&selectedWorker!=worker){
+                    available.add(worker);
+                }
             }
         }
         while(!available.isEmpty()){
@@ -2454,7 +2480,9 @@ public class MenuGame extends Menu{
     }
     public void addWorker(double x, double y){
         Worker worker = new Worker(x, y, this);
-        workers.add(worker);
+        synchronized(workers){
+            workers.add(worker);
+        }
         add(worker.button);
     }
     public void playSecret(){
@@ -2513,11 +2541,13 @@ public class MenuGame extends Menu{
     private Worker getAvailableWorker(double x, double y){
         Worker closest = null;
         double distance = Double.MAX_VALUE;
-        for(Worker worker : workers){
-            if(!worker.isWorking()&&selectedWorker!=worker){
-                if(Core.distance(worker, x, y)<distance){
-                    closest = worker;
-                    distance = Core.distance(worker, x, y);
+        synchronized(workers){
+            for(Worker worker : workers){
+                if(!worker.isWorking()&&selectedWorker!=worker){
+                    if(Core.distance(worker, x, y)<distance){
+                        closest = worker;
+                        distance = Core.distance(worker, x, y);
+                    }
                 }
             }
         }
@@ -2638,14 +2668,20 @@ public class MenuGame extends Menu{
         notifyOnce(notification, 15);
     }
     public void refreshNetworks(){
-        powerNetworks.clear();
-        starlightNetworks.clear();
+        synchronized(powerNetworks){
+            powerNetworks.clear();
+        }
+        synchronized(starlightNetworks){
+            starlightNetworks.clear();
+        }
     }
     private void assignWorker(Task task){
-        for(Worker worker : workers){
-            if(worker.isAvailable()){
-                worker.task(task);
-                return;
+        synchronized(workers){
+            for(Worker worker : workers){
+                if(worker.isAvailable()){
+                    worker.task(task);
+                    return;
+                }
             }
         }
     }

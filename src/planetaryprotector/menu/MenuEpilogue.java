@@ -145,9 +145,15 @@ public class MenuEpilogue extends MenuGame{
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        mainLayer.addAll(buildings);
-        mainLayer.addAll(droppedItems);
-        mainLayer.addAll(workers);
+        synchronized(buildings){
+            mainLayer.addAll(buildings);
+        }
+        synchronized(droppedItems){
+            mainLayer.addAll(droppedItems);
+        }
+        synchronized(workers){
+            mainLayer.addAll(workers);
+        }
         Collections.sort(mainLayer, new Comparator<GameObject>(){
             @Override
             public int compare(GameObject o1, GameObject o2){

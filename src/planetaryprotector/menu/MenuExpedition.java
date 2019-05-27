@@ -28,7 +28,9 @@ public class MenuExpedition extends MenuComponent{
     }
     @Override
     public void renderBackground(){
-        add.enabled = game.workers.size()>workers+1;
+        synchronized(game.workers){
+            add.enabled = game.workers.size()>workers+1;
+        }
         remove.enabled = send.enabled = workers>0;
         if(game.pendingExpedition!=null){
             send.enabled = false;
@@ -51,7 +53,9 @@ public class MenuExpedition extends MenuComponent{
         for(Expedition e : game.activeExpeditions){
             drawTextRight(e);
         }
-        drawCenteredText(0, remove.y+remove.height+25, Display.getWidth(), back.y-25, workers+"/"+game.workers.size());
+        synchronized(game.workers){
+            drawCenteredText(0, remove.y+remove.height+25, Display.getWidth(), back.y-25, workers+"/"+game.workers.size());
+        }
     }
     Expedition close = null;
     @Override

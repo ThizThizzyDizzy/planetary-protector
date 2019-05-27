@@ -229,10 +229,12 @@ public class Worker extends GameObject{
                     return (int)Math.sqrt(x1*x1+y1*y1)-(int)Math.sqrt(x2*x2+y2*y2);
                 });
                 ONE:for(DroppedItem item : game.droppedItems){
-                    for (Iterator<Worker> it = game.workers.iterator(); it.hasNext();) {
-                        Worker c = it.next();
-                        if(c.targetItem==item){
-                            continue ONE;
+                    synchronized(game.workers){
+                        for (Iterator<Worker> it = game.workers.iterator(); it.hasNext();) {
+                            Worker c = it.next();
+                            if(c.targetItem==item){
+                                continue ONE;
+                            }
                         }
                     }
                     targetItem = item;
@@ -281,10 +283,12 @@ public class Worker extends GameObject{
             }
 //</editor-fold>
         }
-        for (Iterator<Worker> it = game.workers.iterator(); it.hasNext();) {
-            Worker c = it.next();
-            if(targetItem==c.grabbedItem){
-                targetItem = null;
+        synchronized(game.workers){
+            for(Iterator<Worker> it = game.workers.iterator(); it.hasNext();){
+                Worker c = it.next();
+                if(targetItem==c.grabbedItem){
+                    targetItem = null;
+                }
             }
         }
         if(y+width>Display.getHeight()){

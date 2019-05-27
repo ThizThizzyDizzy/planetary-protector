@@ -18,18 +18,22 @@ public abstract class Task{
     }
     public int getWorkers(){
         int workers = 0;
-        for(Worker worker : Core.game.workers){
-            if(worker.task==this){
-                workers++;
+        synchronized(Core.game.workers){
+            for(Worker worker : Core.game.workers){
+                if(worker.task==this){
+                    workers++;
+                }
             }
         }
         return workers;
     }
     public int getPendingWorkers(){
         int workers = 0;
-        for(Worker worker : Core.game.workers){
-            if(worker.targetTask==this||worker.task==this){
-                workers++;
+        synchronized(Core.game.workers){
+            for(Worker worker : Core.game.workers){
+                if(worker.targetTask==this||worker.task==this){
+                    workers++;
+                }
             }
         }
         return workers;
@@ -61,9 +65,11 @@ public abstract class Task{
     public void cancel(){
         if(started)onCancel();
         building.task = null;
-        for(Worker worker : Core.game.workers){
-            if(worker.targetTask==this||worker.task==this){
-                worker.targetTask = worker.task = null;
+        synchronized(Core.game.workers){
+            for(Worker worker : Core.game.workers){
+                if(worker.targetTask==this||worker.task==this){
+                    worker.targetTask = worker.task = null;
+                }
             }
         }
     }

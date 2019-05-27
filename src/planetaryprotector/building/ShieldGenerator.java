@@ -16,7 +16,6 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     public boolean canBlast = false;//replace with special upgrade
     public final Shield shield;
     public boolean shieldOutline = false;
-    public boolean powerOutline = false;
     private double power = 0;
     public ShieldGenerator(double x, double y){
         super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
@@ -81,9 +80,6 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
         renderDamages();
         drawMouseover();
-        if(powerOutline){
-            drawRect(x+width/2-250, y+height/2-250, x+width/2+250, y+height/2+250, ImageStash.instance.getTexture("/textures/buildings/power outline.png"));
-        }
         drawCenteredText(x, y, x+width, y+20, (int)power+":"+(int)shieldSize);
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
     }

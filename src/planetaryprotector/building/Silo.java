@@ -18,7 +18,6 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     public int drones = 0;
     int missiles = 0;
     public final ArrayList<Drone> droneList = new ArrayList<>();
-    public boolean outline;
     public static final ItemStack missileCost = new ItemStack(Item.ironIngot, 75);
     public static final ItemStack droneCost = new ItemStack(Item.ironIngot, 100);
     private int missilePowerCost = 2500;
@@ -51,9 +50,6 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
         }
         if(missiles>0){
             drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
-        }
-        if(outline){
-            drawRect(x+width/2-250, y+height/2-250, x+width/2+250, y+height/2+250, ImageStash.instance.getTexture("/textures/buildings/power outline.png"));
         }
     }
     @Override
