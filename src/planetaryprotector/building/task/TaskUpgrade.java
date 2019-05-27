@@ -68,11 +68,11 @@ public class TaskUpgrade extends Task{
         building.upgrade();
     }
     @Override
-    public void start(){
+    public void begin(){
         Core.game.removeResources(building.type.getCosts(building.getLevel()+1));
     }
     @Override
-    public void cancel() {
+    public void onCancel() {
         for(ItemStack stack : building.type.getCosts(building.getLevel()+1)){
             for(int i = 0; i<stack.count; i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;

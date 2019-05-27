@@ -14,6 +14,7 @@ public class Controls{
     public static int hideSkyscrapers = Keyboard.KEY_H;
     public static int showPowerNetworks = Keyboard.KEY_N;
     public static int CHEAT_LOSE = Keyboard.KEY_L;
+    public static int CHEAT_DEBUG = Keyboard.KEY_F11;
     public static int CHEAT_PHASE = Keyboard.KEY_6;
     public static int CHEAT_SECRET = Keyboard.KEY_S;
     public static int CHEAT_WORKER = Keyboard.KEY_ADD;

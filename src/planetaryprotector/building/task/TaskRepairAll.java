@@ -88,7 +88,7 @@ public class TaskRepairAll extends Task{
         building.clearFires();
     }
     @Override
-    public void start(){
+    public void begin(){
         building.fireIncreaseRate = 0;
         initialFire = building.fire;
         if(damages.isEmpty()){
@@ -99,7 +99,7 @@ public class TaskRepairAll extends Task{
         Core.game.removeResources(new ItemStack(building.type.repairCost[0].item, building.type.repairCost[0].count*damages.size()));
     }
     @Override
-    public void cancel(){
+    public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*progress()-1*damages.size(); i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;

@@ -7,7 +7,7 @@ import planetaryprotector.building.Plot;
 import java.util.ArrayList;
 import planetaryprotector.Core;
 import planetaryprotector.item.ItemStack;
-public class TaskWreckClean extends Task{
+public class TaskWreckClean extends TaskAnimated{
     private final Wreck wreck;
     public TaskWreckClean(Wreck wreck){
         super(wreck, TaskType.WRECK_CLEAN, Math.max(100,wreck.ingots));
@@ -72,16 +72,7 @@ public class TaskWreckClean extends Task{
         return building.task==null;
     }
     @Override
-    public void start(){}
-    @Override
-    public void create(){
-        super.create();
-        Core.game.startAnim(this);
-    }
-    @Override
-    public void cancel(){
-        Core.game.cancelAnim(this);
-    }
+    public void begin(){}
     @Override
     public ItemStack[] getTooltip(){
         return new ItemStack[0];

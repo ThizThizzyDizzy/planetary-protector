@@ -104,7 +104,7 @@ public class Worker extends GameObject{
             if(grabbedItem!=null){
                 dropItem();
             }
-            if(task.progress==0){
+            if(!task.started){
                 task.start();
             }
             task.work();
@@ -162,11 +162,11 @@ public class Worker extends GameObject{
                 }
             }
 //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="WASD Movement">
             if((targetItem!=null||grabbedItem!=null)&&target!=null){
                 targetItem = null;
                 target = null;
             }
+            //<editor-fold defaultstate="collapsed" desc="WASD Movement">
             boolean move = false;
             if(Keyboard.isKeyDown(Controls.up)){
                 if(selectedTarget==null)selectedTarget = new double[]{x+width/2,y+height/2};
@@ -301,12 +301,13 @@ public class Worker extends GameObject{
         }
     }
     public void task(Task task){
-        task.create();
+        task.start();
         targetTask = task;
     }
     public boolean isWorking(){
         return task!=null||targetTask!=null;
     }
+    @Deprecated
     public void cancelTask(){
         if(task==null){
             if(game.selectedBuilding!=null&&game.selectedBuilding.task!=null){

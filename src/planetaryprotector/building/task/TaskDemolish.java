@@ -67,9 +67,9 @@ public class TaskDemolish extends Task{
         }
     }
     @Override
-    public void start(){}
+    public void begin(){}
     @Override
-    public void cancel(){}
+    public void onCancel(){}
     @Override
     public ItemStack[] getTooltip(){
         return new ItemStack[0];

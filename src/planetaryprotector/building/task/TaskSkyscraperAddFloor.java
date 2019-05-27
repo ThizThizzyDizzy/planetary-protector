@@ -61,11 +61,11 @@ public class TaskSkyscraperAddFloor extends Task{
         return !skyscraper.falling&&building.task==null&&building.damages.isEmpty()&&Core.game.hasResources(new ItemStack(Item.ironIngot, 10*floors));
     }
     @Override
-    public void start(){
+    public void begin(){
         Core.game.removeResources(new ItemStack(Item.ironIngot, 10*floors));
     }
     @Override
-    public void cancel(){
+    public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*floors; i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;

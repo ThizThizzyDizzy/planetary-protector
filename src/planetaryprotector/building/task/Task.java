@@ -10,6 +10,7 @@ public abstract class Task{
     public int progress = 0;
     public boolean finished = false;
     public boolean important = false;
+    public boolean started = false;
     public Task(Building building, TaskType type, int time){
         this.building = building;
         this.type = type;
@@ -41,7 +42,13 @@ public abstract class Task{
     }
     public abstract boolean canPerform();
     public abstract String[] getDetails();
-    public abstract void start();
+    protected abstract void begin();
+    public void start(){
+        if(started)return;
+        building.task = this;
+        begin();
+        started = true;
+    }
     public void finishTask(){
         if(!finished){
             finish();
@@ -50,9 +57,15 @@ public abstract class Task{
     }
     public abstract void work();
     protected abstract void finish();
-    public abstract void cancel();
-    public abstract ItemStack[] getTooltip();
-    public void create(){
-        building.task = this;
+    protected abstract void onCancel();
+    public void cancel(){
+        if(started)onCancel();
+        building.task = null;
+        for(Worker worker : Core.game.workers){
+            if(worker.targetTask==this||worker.task==this){
+                worker.targetTask = worker.task = null;
+            }
+        }
     }
+    public abstract ItemStack[] getTooltip();
 }

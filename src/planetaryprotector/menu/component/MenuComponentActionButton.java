@@ -4,12 +4,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.menu.ActionUpdate;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public abstract class MenuComponentActionButton extends MenuComponentButton implements ActionListener{
+    private final ActionUpdate update;
     public final ItemStack[] tooltip;
-    public MenuComponentActionButton(int x, int y, int width, int height, String label, boolean enabled, ItemStack... tooltip){
-        super(x, y, width, height, label, enabled);
+    public MenuComponentActionButton(int x, int y, int width, int height, String label, ActionUpdate update, ItemStack... tooltip){
+        super(x, y, width, height, label, update.getEnabled());
+        this.update = update;
         this.tooltip = tooltip;
         textInset+=10;
     }
@@ -30,4 +33,7 @@ public abstract class MenuComponentActionButton extends MenuComponentButton impl
     }
     @Override
     public abstract void actionPerformed(ActionEvent e);
+    public void update(){
+        enabled = update.getEnabled();
+    }
 }

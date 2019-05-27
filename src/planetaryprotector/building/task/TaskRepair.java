@@ -85,14 +85,14 @@ public class TaskRepair extends Task{
         building.clearFires();
     }
     @Override
-    public void start(){
+    public void begin(){
         building.fireIncreaseRate = 0;
         initialFire = building.fire;
         progress = (int) Math.round((1-damage.opacity)*time);
         Core.game.removeResources(building.type.repairCost);
     }
     @Override
-    public void cancel(){
+    public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*progress()-1; i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;

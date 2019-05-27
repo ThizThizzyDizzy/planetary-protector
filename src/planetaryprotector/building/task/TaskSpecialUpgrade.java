@@ -53,14 +53,14 @@ public class TaskSpecialUpgrade extends Task{
     }
     @Override
     public void finish(){
-        if(!building.buyUpgrade(upgrade))cancel();
+        if(!building.buyUpgrade(upgrade))onCancel();
     }
     @Override
-    public void start(){
+    public void begin(){
         Core.game.removeResources(upgrade.costs);
     }
     @Override
-    public void cancel() {
+    public void onCancel() {
         for(ItemStack stack : upgrade.costs){
             for(int i = 0; i<stack.count; i++){
                 double itemX = building.x+MenuGame.rand.nextInt(79)+11;

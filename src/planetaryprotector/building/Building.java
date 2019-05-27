@@ -72,6 +72,7 @@ public abstract class Building extends GameObject{
     public void renderBackground(){
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.EMPTY.texture+".png"));
         renderDamages();
+        drawMouseover();
     }
     public void drawMouseover(){
         GL11.glColor4d(0, 1, 1, mouseover);
@@ -312,7 +313,9 @@ public abstract class Building extends GameObject{
     public boolean canUpgrade(){
         return getLevel()<getMaxLevel();
     }
-
+    public void cancelTask(){
+        task.cancel();
+    }
     public ArrayList<Upgrade> getBoughtUpgrades(){
         return upgrades;
     }

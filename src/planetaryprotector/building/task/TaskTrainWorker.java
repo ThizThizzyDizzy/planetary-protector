@@ -52,11 +52,11 @@ public class TaskTrainWorker extends Task{
         return Core.game.hasResources(new ItemStack(Item.ironIngot, 30))&&building.task==null&&building.damages.isEmpty();
     }
     @Override
-    public void start(){
+    public void begin(){
         Core.game.removeResources(new ItemStack(Item.ironIngot, 30));
     }
     @Override
-    public void cancel(){
+    public void onCancel(){
         for(int i = 0; i<30; i++){
             double itemX = building.x+MenuGame.rand.nextInt(79)+11;
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;

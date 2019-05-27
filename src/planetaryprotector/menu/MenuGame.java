@@ -103,7 +103,7 @@ public class MenuGame extends Menu{
     public ArrayList<MenuComponentActionButton> actionButtons = new ArrayList<>();
     public Worker selectedWorker;
     public Building selectedBuilding;
-    private boolean actionUpdateRequired = false;
+    private int actionUpdateRequired = 0;
     HashMap<Building, Building> buildingsToReplace = new HashMap<>();
     private Building oldSelectedBuilding;
     private Task oldSelectedTask;
@@ -495,8 +495,8 @@ public class MenuGame extends Menu{
             selectedTask = selectedBuilding.task;
         }
         //<editor-fold defaultstate="collapsed" desc="Replacing Action Buttons">
-        if(oldSelectedBuilding!=selectedBuilding||oldSelectedTask!=selectedTask||actionUpdateRequired){
-            actionUpdateRequired = false;
+        if(oldSelectedBuilding!=selectedBuilding||oldSelectedTask!=selectedTask||actionUpdateRequired==2){
+            actionUpdateRequired = 0;
             componentsToRemove.addAll(actionButtons);
             actionButtons.clear();
             actionButtonOffset = 20;
@@ -509,7 +509,9 @@ public class MenuGame extends Menu{
                     if(selectedBuilding.canUpgrade()){
                         taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
                     }else{
-                        action("Maxed", false, null);
+                        action("Maxed", null, () -> {
+                            return false;
+                        });
                     }
                 }
                 ArrayList<Upgrade> upgrades = selectedBuilding.getAvailableUpgrades();
@@ -529,106 +531,93 @@ public class MenuGame extends Menu{
                         taskButton("Train Worker", selectedWorker, new TaskTrainWorker((Workshop)selectedBuilding));
                         break;
                     case OBSERVATORY:
-                        action("Add Star", hasResources(new ItemStack(Item.star))&&((Observatory)selectedBuilding).canAddStar(), new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if(hasResources(new ItemStack(Item.star))){
-                            if(((Observatory)selectedBuilding).addStar()){
-                                removeResources(new ItemStack(Item.star));
+                        action("Add Star", (ActionEvent e) -> {
+                            if(hasResources(new ItemStack(Item.star))){
+                                if(((Observatory)selectedBuilding).addStar()){
+                                    removeResources(new ItemStack(Item.star));
+                                }
                             }
-                        }
-                    }
-                });
-                        action("Toggle Scan", true, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        ((Observatory)selectedBuilding).toggleScan();
-                    }
-                });
+                        }, () -> {
+                            return hasResources(new ItemStack(Item.star))&&((Observatory)selectedBuilding).canAddStar();
+                        });
+                        action("Toggle Scan", (ActionEvent e) -> {
+                            ((Observatory)selectedBuilding).toggleScan();
+                        }, () -> {
+                            return true;
+                        });
                         break;
                     case BUNKER:
                         break;
                     case SILO:
-                        action("Toggle Power Outline", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                ((Silo)selectedBuilding).outline = !((Silo)selectedBuilding).outline;
-                            }
+                        action("Toggle Power Outline", (ActionEvent e) -> {
+                            ((Silo)selectedBuilding).outline = !((Silo)selectedBuilding).outline;
+                        }, () -> {
+                            return true;
                         });
-                        action("Build Missile", ((Silo)selectedBuilding).canBuildMissile(), new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent ae){
-                                ((Silo)selectedBuilding).buildMissile();
-                            }
+                        action("Build Missile", (ActionEvent ae) -> {
+                            ((Silo)selectedBuilding).buildMissile();
+                        },() -> {
+                            return ((Silo)selectedBuilding).canBuildMissile();
                         }, ((Silo)selectedBuilding).missileCost());
                         if(selectedBuilding.getLevel()>1){
-                            action("Build Drone", ((Silo)selectedBuilding).canBuildDrone(), new ActionListener(){
-                                @Override
-                                public void actionPerformed(ActionEvent ae){
-                                    ((Silo)selectedBuilding).buildDrone();
-                                }
+                            action("Build Drone", (ActionEvent ae) -> {
+                                ((Silo)selectedBuilding).buildDrone();
+                            }, () -> {
+                                return ((Silo)selectedBuilding).canBuildDrone();
                             }, ((Silo)selectedBuilding).droneCost());
                         }
-                        action("Fire Missiles", ((Silo)selectedBuilding).canLaunchMissile(), new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent ae){
-                                ((Silo)selectedBuilding).launchMissile();
-                            }
+                        action("Fire Missiles", (ActionEvent ae) -> {
+                            ((Silo)selectedBuilding).launchMissile();
+                        }, () -> {
+                            return ((Silo)selectedBuilding).canLaunchMissile();
                         });
                         break;
                     case SOLAR_GENERATOR:
                         break;
                     case COAL_GENERATOR:
-                        action("Add Coal", hasResources(new ItemStack(Item.coal)), new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                removeResources(new ItemStack(Item.coal));
-                                ((CoalGenerator)selectedBuilding).coal++;
-                            }
+                        action("Add Coal", (ActionEvent e) -> {
+                            removeResources(new ItemStack(Item.coal));
+                            ((CoalGenerator)selectedBuilding).coal++;
+                        }, () -> {
+                            return hasResources(new ItemStack(Item.coal));
                         });
-                        action((((CoalGenerator)selectedBuilding).autoFuel?"Disable":"Enable")+" Auto-fueling", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                ((CoalGenerator)selectedBuilding).autoFuel = !((CoalGenerator)selectedBuilding).autoFuel;
-                            }
+                        action((((CoalGenerator)selectedBuilding).autoFuel?"Disable":"Enable")+" Auto-fueling", (ActionEvent e) -> {
+                            ((CoalGenerator)selectedBuilding).autoFuel = !((CoalGenerator)selectedBuilding).autoFuel;
+                        }, () -> {
+                            return true;
                         });
                         break;
                     case POWER_STORAGE:
                         PowerStorage s = (PowerStorage)selectedBuilding;
-                        action((s.charge?"Disable":"Enable")+" Charging", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                s.charge = !s.charge;
-                            }
+                        action((s.charge?"Disable":"Enable")+" Charging", (ActionEvent e) -> {
+                            s.charge = !s.charge;
+                        }, () -> {
+                            return true;
                         });
-                        action((s.discharge?"Disable":"Enable")+" Discharging", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                s.discharge = !s.discharge;
-                            }
+                        action((s.discharge?"Disable":"Enable")+" Discharging", (ActionEvent e) -> {
+                            s.discharge = !s.discharge;
+                        }, () -> {
+                            return true;
                         });
                         break;
                     case MINE:
                         break;
                     case SHIELD_GENERATOR:
-                        action("Toggle Shield Outline", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                ((ShieldGenerator)selectedBuilding).shieldOutline = !((ShieldGenerator)selectedBuilding).shieldOutline;
-                            }
+                        action("Toggle Shield Outline", (ActionEvent e) -> {
+                            ((ShieldGenerator)selectedBuilding).shieldOutline = !((ShieldGenerator)selectedBuilding).shieldOutline;
+                        }, () -> {
+                            return true;
                         });
-                        action("Toggle Power Outline", true, new ActionListener(){
-                            @Override
-                            public void actionPerformed(ActionEvent e){
-                                ((ShieldGenerator)selectedBuilding).powerOutline = !((ShieldGenerator)selectedBuilding).powerOutline;
-                            }
+                        action("Toggle Power Outline", (ActionEvent e) -> {
+                            ((ShieldGenerator)selectedBuilding).powerOutline = !((ShieldGenerator)selectedBuilding).powerOutline;
+                        }, () -> {
+                            return true;
                         });
                         if(phase>=3&&((ShieldGenerator)selectedBuilding).canBlast){
-                            action("Blast", ((ShieldGenerator)selectedBuilding).blastRecharge==0, new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    ((ShieldGenerator)selectedBuilding).blast();
-                                }
+                            action("Blast", (ActionEvent e) -> {
+                                ((ShieldGenerator)selectedBuilding).blast();
+                            }, () -> {
+                                return ((ShieldGenerator)selectedBuilding).blastRecharge==0;
                             });
                         }
                         break;
@@ -636,21 +625,29 @@ public class MenuGame extends Menu{
                         taskButton("Clean up", selectedWorker, new TaskWreckClean((Wreck) selectedBuilding));
                         break;
                     case BASE:
-                        action("Assign All Workers", true, (ActionEvent e) -> {
+                        action("Assign All Workers", (ActionEvent e) -> {
                             assignAllWorkers();
+                        }, () -> {
+                            return true;
                         });
-                        action((autoTask?"Disable":"Enable")+" Autotasking", true, (ActionEvent e) -> {
+                        action((autoTask?"Disable":"Enable")+" Autotasking", (ActionEvent e) -> {
                             autoTask = !autoTask;
+                        }, () -> {
+                            return true;
                         });
                         if(phase>=2){
-                            action("Damage Report", true, (ActionEvent e) -> {
+                            action("Damage Report", (ActionEvent e) -> {
                                 damageReport();
+                            }, () -> {
+                                return true;
                             });
                         }
                         if(phase>=3){
-                            action("Expeditions", workers.size()>1, (ActionEvent ae) -> {
+                            action("Expeditions", (ActionEvent ae) -> {
                                 if(overlay!=null)return;
                                 overlay = add(new MenuExpedition(this));
+                            }, () -> {
+                                return workers.size()>1;
                             });
                         }
                         break;
@@ -684,33 +681,35 @@ public class MenuGame extends Menu{
                     taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
                 }
                 if(selectedBuilding.task!=null&&selectedWorker!=null&&selectedWorker.task==null){
-                    action("Continue Task", true, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            selectedWorker.task = selectedBuilding.task;
-                        }
+                    action("Continue Task", (ActionEvent e) -> {
+                        selectedWorker.task = selectedBuilding.task;
+                    }, () -> {
+                        return true;
                     });
                 }
                 if(selectedBuilding.task!=null){
-                    action("Add Worker", getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2)!=null, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            if(selectedBuilding==null)return;
-                            Worker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
-                            if(worker==null)return;
-                            worker.targetTask = selectedBuilding.task;
-                        }
+                    action("Add Worker", (ActionEvent e) -> {
+                        if(selectedBuilding==null)return;
+                        Worker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
+                        if(worker==null)return;
+                        worker.targetTask = selectedBuilding.task;
+                    }, () -> {
+                        return getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2)!=null;
                     });
-                    action("Cancel Task", true, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e){
-                            selectedWorker.cancelTask();
-                        }
+                    action("Cancel Task", (ActionEvent e) -> {
+                        selectedBuilding.cancelTask();
+                    }, () -> {
+                        return true;
                     });
                 }
             }
         }
 //</editor-fold>
+        if(actionUpdateRequired==1){
+            for(MenuComponentActionButton button : actionButtons){
+                button.update();
+            }
+        }
         oldSelectedBuilding = selectedBuilding;
         oldSelectedTask = selectedTask;
         if(selectedBuilding!=null&&selectedBuilding.task!=null){
@@ -886,6 +885,9 @@ public class MenuGame extends Menu{
                     notify("Cheat: Losing Epilogue");
                     if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
                 }
+            }
+            if(key==Controls.CHEAT_DEBUG&&!repeat){
+                Core.debugMode = !Core.debugMode;
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)&&Keyboard.isKeyDown(Keyboard.KEY_LMENU)&&Keyboard.isKeyDown(Controls.CHEAT_SECRET)){
                 if(key==Keyboard.KEY_1){
@@ -1243,6 +1245,13 @@ public class MenuGame extends Menu{
         debugData.add("Fog time increase: "+fogTimeIncrease);
         debugData.add("Fog intensity: "+fogIntensity);
         debugData.add("Fog Height intensity: "+fogHeightIntensity);
+        for(int i = 0; i<workers.size(); i++){
+            Worker w = workers.get(i);
+            if(w.targetItem!=null)debugData.add("Worker "+(i+1)+": Targeted item");
+            if(w.grabbedItem!=null)debugData.add("Worker "+(i+1)+": Grabbed item");
+            if(w.targetTask!=null)debugData.add("Worker "+(i+1)+": Targeted task");
+            if(w.task!=null)debugData.add("Worker "+(i+1)+": Working");
+        }
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
         if(lost&&phase>3){
@@ -1270,6 +1279,7 @@ public class MenuGame extends Menu{
         }
         if(cheats){
             notifyOnce("Cheats Enabled", 1);
+            if(Core.debugMode)notifyOnce("Debug mode enabled");
         }
         for(Notification n : notifications)n.tick();
         if(time>=dayNightCycle){
@@ -1699,7 +1709,7 @@ public class MenuGame extends Menu{
         itemsToDrop.add(item);
     }
     public void addResources(Item item) {
-        actionUpdateRequired = true;
+        if(actionUpdateRequired<1)actionUpdateRequired = 1;
         for(ItemStack stack : base.resources){
             if(stack.item==item){
                 stack.count++;
@@ -1767,16 +1777,16 @@ public class MenuGame extends Menu{
         GL11.glColor4d(1, 1, 1, 1);
         drawCenteredText(left,top,right,bottom, str);
     }
-    private void action(String label, boolean enabled, ActionListener listener, ItemStack... tooltip){
+    private void action(String label, ActionListener listener, ActionUpdate update, ItemStack... tooltip){
         if(label.contains("Demolish")||label.contains("Cancel Task")){
             actionButtonOffset+=15;
         }
-        actionButtons.add(add(new MenuComponentActionButton(50/*+(actionButtons.size()*200)*/, /*Display.getHeight()-50*/actionButtons.size()*50+actionButtonOffset, actionButtonWidth, 50, label, enabled, tooltip){
+        actionButtons.add(add(new MenuComponentActionButton(50, actionButtons.size()*50+actionButtonOffset, actionButtonWidth, 50, label, update, tooltip){
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(listener==null)return;
                 listener.actionPerformed(e);
-                actionUpdateRequired = true;
+                actionUpdateRequired = 2;
             }
         }));
         if(label.contains("Demolish")||label.contains("Cancel Task")){
@@ -1784,13 +1794,12 @@ public class MenuGame extends Menu{
         }
     }
     private void taskButton(String label, Worker worker, Task task){
-        action(label, task.canPerform(), new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae){
-                if(!task.canPerform())return;
-                task.create();
-                if(worker!=null)worker.task(task);
-            }
+        action(label, (ActionEvent ae) -> {
+            if(!task.canPerform())return;
+            task.start();
+            if(worker!=null)worker.task(task);
+        }, () -> {
+            return task.canPerform();
         }, task.getTooltip());
     }
     public void startAnim(Task task){

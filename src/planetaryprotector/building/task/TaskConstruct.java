@@ -79,11 +79,11 @@ public class TaskConstruct extends Task{
         Core.game.replaceBuilding(building, target);
     }
     @Override
-    public void start(){
+    public void begin(){
         Core.game.removeResources(target.type.costs[0]);
     }
     @Override
-    public void cancel() {
+    public void onCancel() {
         int ingots = 0;
         for(ItemStack stack : target.type.costs[0]){
             if(stack.item==Item.ironIngot){
