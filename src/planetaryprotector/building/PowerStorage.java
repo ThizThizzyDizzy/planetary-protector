@@ -25,11 +25,15 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     @Override
     public Config save(Config cfg) {
         cfg.set("power", power);
+        cfg.set("charge", charge);
+        cfg.set("discharge", discharge);
         return cfg;
     }
     public static PowerStorage loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
         PowerStorage battery = new PowerStorage(x, y, level, upgrades);
         battery.power = cfg.get("power", 0d);
+        battery.charge = cfg.get("charge", true);
+        battery.discharge = cfg.get("discharge", true);
         return battery;
     }
     @Override

@@ -35,8 +35,7 @@ public class Main{
     public static final boolean webcam = false;
     public static final boolean textToSpeech = false;
     public static final boolean intellitype = true;
-    public static final boolean discord = true;
-    public static final boolean jna = true;
+    public static final boolean audioTagger = false;
     private static int downloadSize = 0;
     //Download details
     private static int total;
@@ -68,11 +67,12 @@ public class Main{
             addRequiredLibrary("https://www.dropbox.com/s/f369vf69mkjmwxd/jsapi.jar?dl=1", "jsapi.jar", 51);
             addRequiredLibrary("https://www.dropbox.com/s/tfsvbdkvvy41v8h/mbrola.jar?dl=1", "mbrola.jar", 12);
         }
-        if(jna||discord){
+        if(discordAppID!=null){
             addRequiredLibrary("https://www.dropbox.com/s/ml0rg2ze9ks4xbe/jna-5.3.1.jar?dl=1", "jna-5.3.1.jar", 1470);
-        }
-        if(discord){
             addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar", 8);
+        }
+        if(audioTagger){
+            addRequiredLibrary("https://www.dropbox.com/s/ehp6dwzjsfvsgj1/jaudiotagger-2.2.3.jar?dl=1", "jaudiotagger-2.2.3.jar", 920);
         }
     }
     public static int os;
@@ -159,10 +159,10 @@ public class Main{
             }
             String[] osPaths = nativesPaths[whichOS];
             //32 bit
-            if(!new File(getAppdataRoot()+"\\natives32.zip").exists()){
+            if(!new File(getLibraryRoot()+"\\natives32.zip").exists()){
                 downloadSize += 303;
             }
-            if((!new File(getAppdataRoot()+"\\natives64.zip").exists())&&whichBitDepth==BIT_64){
+            if((!new File(getLibraryRoot()+"\\natives64.zip").exists())&&whichBitDepth==BIT_64){
                 downloadSize += 338;
             }
             addRequiredLibrary("https://dl.dropboxusercontent.com/s/p7v72lix4gl96co/lwjgl.jar?dl=1&token_hash=AAG5TMAYw0Oq1_xwgVjKoE8FkKXMaWOfpj5cau1UuWKZlA", "lwjgl.jar", 912);
@@ -181,7 +181,7 @@ public class Main{
                 downloadSize+=simplelibraryExtendedSize+1;//1 kb for the versions file
             }
             if(downloadSize>0){
-                if(JOptionPane.showConfirmDialog(null, applicationName+" has a few dependencies that must be downloaded before play.\\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload them now?", applicationName+" - Dependencies", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+                if(JOptionPane.showConfirmDialog(null, applicationName+" has a few dependencies that must be downloaded before play.\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload them now?", applicationName+" - Dependencies", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
                         !=JOptionPane.YES_OPTION){
                     //no download
                     JOptionPane.showMessageDialog(null, applicationName+" will now exit.", "Exit", JOptionPane.OK_OPTION);
@@ -209,7 +209,7 @@ public class Main{
             if(bit64!=null){
                 extractFile(bit64, nativesDir);
             }
-            File simplibVersions = downloadFile("https://www.dropbox.com/s/as5y1ik7gb8gp6k/versions.dat?dl=1", new File("C:\\temp\\simplib.versions"));
+            File simplibVersions = forceDownloadFile("https://www.dropbox.com/s/as5y1ik7gb8gp6k/versions.dat?dl=1", new File("C:\\temp\\simplib.versions"));
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(simplibVersions)));
             ArrayList<String> versions = new ArrayList<>();
             HashMap<String, String> simplib = new HashMap<>();
@@ -226,7 +226,7 @@ public class Main{
             }
             addRequiredLibrary(simplib.get(requiredSimpleLibraryVersion), "Simplelibrary "+requiredSimpleLibraryVersion+".jar", simplelibrarySize);
             if(requiredSimpleLibraryExtendedVersion!=null){
-                File simpLibExtendedVersions = downloadFile("https://www.dropbox.com/s/7k4ri81to8hc9n2/versions.dat?dl=1", new File("C:\\temp\\simplibextended.versions"));
+                File simpLibExtendedVersions = forceDownloadFile("https://www.dropbox.com/s/7k4ri81to8hc9n2/versions.dat?dl=1", new File("C:\\temp\\simplibextended.versions"));
                 reader = new BufferedReader(new InputStreamReader(new FileInputStream(simpLibExtendedVersions)));
                 versions = new ArrayList<>();
                 HashMap<String, String> simpLibExtended = new HashMap<>();
@@ -381,6 +381,10 @@ public class Main{
         }catch (Exception ex){
             return null;
         }
+    }
+    private static File forceDownloadFile(String link, File destinationFile){
+        if(destinationFile.exists())destinationFile.delete();
+        return downloadFile(link, destinationFile);
     }
     public static InputStream getRemoteInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
         final InputStream[] is = new InputStream[1];

@@ -128,6 +128,9 @@ public class StarlightNetwork{
                 MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 25, 0);
             }
             drawConnectors(b);
+            GL11.glColor4d(0, .5, 1, 1);
+            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            GL11.glColor4d(0, .5, 1, 1);
         }
         for(Building b : supply){
             if(Core.debugMode){
@@ -135,6 +138,9 @@ public class StarlightNetwork{
                 MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 25, 0);
             }
             drawConnectors(b);
+            GL11.glColor4d(0, .5, 1, 1);
+            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            GL11.glColor4d(0, .5, 1, 1);
         }
     }
     private void drawConnectors(Building b){

@@ -82,7 +82,7 @@ import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuGame extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
-    public static final int actionButtonWidth = 350;
+    public static final int actionButtonWidth = 450;
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Base base;
     public static Random rand = new Random();

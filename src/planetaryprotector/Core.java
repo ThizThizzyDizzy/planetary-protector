@@ -2,7 +2,6 @@ package planetaryprotector;
 import club.minnced.discord.rpc.DiscordEventHandlers;
 import club.minnced.discord.rpc.DiscordRPC;
 import club.minnced.discord.rpc.DiscordRichPresence;
-import club.minnced.discord.rpc.DiscordUser;
 import planetaryprotector.menu.options.MenuOptions5;
 import planetaryprotector.menu.options.MenuOptions1;
 import planetaryprotector.menu.options.MenuOptions4;

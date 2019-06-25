@@ -107,6 +107,7 @@ public class PowerNetwork{
             demands.put((BuildingPowerConsumer)b,((BuildingPowerConsumer)b).getDemand());
         }
         while(power>0.01){
+            if(demands.isEmpty())return;
             double avg = power/demands.size();
             double min = avg;
             for(BuildingPowerConsumer c : demands.keySet()){
@@ -129,6 +130,9 @@ public class PowerNetwork{
                 MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 25, 0);
             }
             drawConnectors(b);
+            GL11.glColor4d(1, 0, 0, 1);
+            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            GL11.glColor4d(1, 1, 1, 1);
         }
         for(Building b : supply){
             if(Core.debugMode){
@@ -137,6 +141,9 @@ public class PowerNetwork{
                 MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 25, 0);
             }
             drawConnectors(b);
+            GL11.glColor4d(1, 0, 0, 1);
+            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            GL11.glColor4d(1, 1, 1, 1);
         }
     }
     private void drawConnectors(Building b){
