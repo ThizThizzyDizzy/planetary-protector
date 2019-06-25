@@ -29,11 +29,14 @@ public class Main{
     private static String requiredSimpleLibraryExtendedVersion = null;
     private static String versionListURL = "https://www.dropbox.com/s/capgobag47srs17/versions.txt?dl=1";
     public static final String applicationName = "Planetary Protector";
+    public static final String discordAppID = "592509210277838848";
     private static HashMap<String[], Integer> requiredLibraries = new HashMap<>();
     public static final boolean jLayer = true;
     public static final boolean webcam = false;
     public static final boolean textToSpeech = false;
     public static final boolean intellitype = true;
+    public static final boolean discord = true;
+    public static final boolean jna = true;
     private static int downloadSize = 0;
     //Download details
     private static int total;
@@ -65,7 +68,18 @@ public class Main{
             addRequiredLibrary("https://www.dropbox.com/s/f369vf69mkjmwxd/jsapi.jar?dl=1", "jsapi.jar", 51);
             addRequiredLibrary("https://www.dropbox.com/s/tfsvbdkvvy41v8h/mbrola.jar?dl=1", "mbrola.jar", 12);
         }
+        if(jna||discord){
+            addRequiredLibrary("https://www.dropbox.com/s/ml0rg2ze9ks4xbe/jna-5.3.1.jar?dl=1", "jna-5.3.1.jar", 1470);
+        }
+        if(discord){
+            addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar", 8);
+        }
     }
+    public static int os;
+    public static final int OS_WINDOWS = 0;
+    public static final int OS_SOLARIS = 1;
+    public static final int OS_MACOSX = 2;
+    public static final int OS_LINUX = 3;
     private static void addRequiredLibrary(String url, String filename, int sizeKB){
         requiredLibraries.put(new String[]{url,filename}, sizeKB);
     }
@@ -94,10 +108,6 @@ public class Main{
                 System.exit(0);
             }
             }
-            int OS_WINDOWS = 0;
-            int OS_SOLARIS = 1;
-            int OS_MACOSX = 2;
-            int OS_LINUX = 3;
             int BIT_32 = 0;
             int BIT_64 = 1;
             String[][] nativesPaths = {
@@ -128,6 +138,7 @@ public class Main{
                         System.exit(0);
                     }
             }
+            os = whichOS;
             String version = System.getenv("PROCESSOR_ARCHITECTURE");
             int whichBitDepth = -1;
             switch(version){

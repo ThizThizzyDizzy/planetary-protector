@@ -1,4 +1,5 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
 import simplelibrary.config2.Config;
 public class Workshop extends Building implements BuildingDamagable, BuildingDemolishable{
     public Workshop(double x, double y){
@@ -23,4 +24,7 @@ public class Workshop extends Building implements BuildingDamagable, BuildingDem
     public String getName(){
         return "Workshop";
     }
+
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){}
 }

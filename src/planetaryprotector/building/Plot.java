@@ -1,4 +1,5 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
 import planetaryprotector.Core;
 import planetaryprotector.building.task.TaskConstruct;
 import planetaryprotector.building.task.TaskType;
@@ -67,4 +68,6 @@ public class Plot extends Building implements BuildingDamagable{
     public String getName(){
         return "Empty Plot";
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){}
 }

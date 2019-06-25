@@ -48,6 +48,11 @@ public class MenuLost extends Menu{
     public void tick(){
         parent.tick();
         super.tick();
+        Core.discordDetails = "Game Over";
+        Core.discordEndTimestamp = (System.currentTimeMillis()+206000-(Sounds.songTimer()*50))/1000;
+        Core.discordLargeImageKey = "planet";
+        Core.discordLargeImageText = "Epilogue";
+        Core.discordState = "Epilogue";
         tick = Sounds.songTimer();
         if(tick>=20*(60+22)){
             for(double[] star : stars){

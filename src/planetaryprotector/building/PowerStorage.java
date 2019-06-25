@@ -78,4 +78,10 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     public boolean isPowerActive(){
         return true;
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){
+        data.add("Power: "+power);
+        data.add("Charge: "+charge);
+        data.add("Discharge: "+discharge);
+    }
 }

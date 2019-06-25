@@ -57,4 +57,9 @@ public class Wreck extends Building{
     public String getName(){
         return "Wreck ("+ingots+" ingots)";
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {
+        data.add("Ingots: "+ingots);
+        data.add("Progress: "+progress);
+    }
 }

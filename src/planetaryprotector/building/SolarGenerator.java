@@ -53,4 +53,6 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     public boolean isPowerActive(){
         return true;
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){}
 }

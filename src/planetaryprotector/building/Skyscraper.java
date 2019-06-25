@@ -1,4 +1,5 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
 import planetaryprotector.Core;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.particle.Particle;
@@ -14,7 +15,7 @@ import org.lwjgl.opengl.GL11;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 public class Skyscraper extends Building implements BuildingDamagable, BuildingDemolishable{
-    public int floorHeight = 10;
+    public static final int floorHeight = 10;
     public int floorCount = 0;
     public boolean falling;
     public boolean right = true;
@@ -187,5 +188,15 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     @Override
     public String getName(){
         return floorCount+" Floor Skyscraper";
+    }
+
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {
+        data.add("Floor Count: "+floorCount);
+        data.add("Falling: "+falling);
+        data.add("Right: "+right);
+        data.add("Fallen: "+fallen);
+        data.add("Falled: "+falled);
+        data.add("Pop: "+pop);
     }
 }

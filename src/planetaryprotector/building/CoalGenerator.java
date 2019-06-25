@@ -25,7 +25,7 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     public void update(){
         super.update();
         if(burning>0){
-            power+=4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*starlight>STARLIGHT_THRESHOLD?2:0;
+            power+=4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0);
             if(starlight>STARLIGHT_THRESHOLD)starlight-=STARLIGHT_THRESHOLD;
             burning-=Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE));
         }
@@ -122,5 +122,12 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     @Override
     public boolean isStarlightActive(){
         return hasUpgrade(Upgrade.STARLIGHT_INFUSED_FUEL);
+    }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){
+        data.add("Coal: "+coal);
+        data.add("Burning: "+burning);
+        data.add("Auto-fuel: "+(autoFuel?"Enabled":"Disabled"));
+        data.add("Power Production: "+(burning<=0?0:4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0)));
     }
 }

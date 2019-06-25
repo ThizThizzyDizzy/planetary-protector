@@ -204,4 +204,11 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
     public boolean isStarlightActive(){
         return true;
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){
+        data.add("Starlight: "+starlight);
+        data.add("Scanning: "+scanning);
+        data.add("Collecting: "+collecting);
+        data.add("power: "+power);
+    }
 }

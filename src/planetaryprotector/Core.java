@@ -1,4 +1,8 @@
 package planetaryprotector;
+import club.minnced.discord.rpc.DiscordEventHandlers;
+import club.minnced.discord.rpc.DiscordRPC;
+import club.minnced.discord.rpc.DiscordRichPresence;
+import club.minnced.discord.rpc.DiscordUser;
 import planetaryprotector.menu.options.MenuOptions5;
 import planetaryprotector.menu.options.MenuOptions1;
 import planetaryprotector.menu.options.MenuOptions4;
@@ -25,6 +29,8 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.menu.options.MenuOptions;
+import planetaryprotector.menu.options.MenuOptionsDiscord;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
@@ -52,6 +58,14 @@ public class Core extends Renderer2D{
     private static int maxLevel = 1;
     public static int latestLevel = 0;
     public static int speedMult = 1;
+    private static DiscordRichPresence discord;
+    public static String discordState;
+    public static String discordDetails;
+    public static String discordLargeImageKey;
+    public static String discordSmallImageKey;
+    public static String discordLargeImageText;
+    public static String discordSmallImageText;
+    public static long discordEndTimestamp;
     public static void main(String[] args) throws NoSuchMethodException{
         helper = new GameHelper();
         helper.setBackground(new Color(0, 200, 255));
@@ -71,6 +85,7 @@ public class Core extends Renderer2D{
         }
         helper.setRenderRange(0, 1000);
         helper.setFrameOfView(90);
+        initDiscord();
         Sys.initLWJGLGame(new File("/errors/"), new ErrorAdapter(){
             @Override
             public void warningError(String message, Throwable error, ErrorCategory catagory){
@@ -159,6 +174,16 @@ public class Core extends Renderer2D{
             for(int i = 0; i<speedMult; i++){
                 gui.tick();
             }
+            if(discord!=null){
+                discord.state = discordState;
+                discord.details = discordDetails;
+                discord.largeImageKey = discordLargeImageKey;
+                discord.smallImageKey = discordSmallImageKey;
+                discord.largeImageText = discordLargeImageText;
+                discord.smallImageText = discordSmallImageText;
+                discord.endTimestamp = discordEndTimestamp;
+                DiscordRPC.INSTANCE.Discord_UpdatePresence(discord);
+            }
         }else{
             saveOptions();
         }
@@ -233,6 +258,7 @@ public class Core extends Renderer2D{
         config.set("particles", MenuOptionsGraphics.particles);
         config.set("cloudI", MenuOptionsGraphics.cloudIntensity);
         config.set("fogI", MenuOptionsGraphics.fogIntensity);
+        config.set("autosave", MenuOptions.autosave);
         config.save();
     }
     public static void loadOptions(){
@@ -281,12 +307,13 @@ public class Core extends Renderer2D{
         MenuOptions5.music8 = config.get("music28", true);
         MenuOptions6.music1 = config.get("music29", true);
         MenuOptions6.music2 = config.get("music30", true);
-        MenuOptionsGraphics.fog = config.get("fog", false);
-        MenuOptionsGraphics.clouds = config.get("clouds", false);
+        MenuOptionsGraphics.fog = config.get("fog", true);
+        MenuOptionsGraphics.clouds = config.get("clouds", true);
         MenuOptionsGraphics.particulateMeteors = config.get("particle meteors", false);
         MenuOptionsGraphics.particles = config.get("particles", 1);
-        MenuOptionsGraphics.cloudIntensity = config.get("cloudI", .7f);
-        MenuOptionsGraphics.fogIntensity = config.get("fogI", .9f);
+        MenuOptionsGraphics.cloudIntensity = config.get("cloudI", MenuOptionsGraphics.cloudIntensity);
+        MenuOptionsGraphics.fogIntensity = config.get("fogI", MenuOptionsGraphics.fogIntensity);
+        MenuOptions.autosave = config.get("autosave", MenuOptions.autosave);
         config.save();
     }
     public static long getFPS(){
@@ -342,5 +369,40 @@ public class Core extends Renderer2D{
     }
     public static boolean canPlayLevel(int i){
         return debugMode||maxLevel>=i;
+    }
+    private static boolean rpc = false;
+    public static void initDiscord() {
+        if(Main.os!=Main.OS_WINDOWS)return;
+        if(MenuOptionsDiscord.rpc){
+            rpc = true;
+            DiscordEventHandlers handlers = new DiscordEventHandlers();
+    //        handlers.ready = new DiscordEventHandlers.OnReady() {
+    //            @Override
+    //            public void accept(DiscordUser user) {
+    //                System.out.println("Discord RPC Ready!");
+    //            }
+    //        };
+            DiscordRPC.INSTANCE.Discord_Initialize(Main.discordAppID, handlers, true, null);
+            discord = new DiscordRichPresence();
+            discord.startTimestamp = System.currentTimeMillis() / 1000; // epoch second
+            discord.largeImageKey = "city";
+            discord.largeImageText = "Starting up...";
+            discord.details = "Starting up...";
+            DiscordRPC.INSTANCE.Discord_UpdatePresence(discord);
+            // in a worker thread
+            new Thread(() -> {
+                while (rpc&&helper.running&&!Thread.currentThread().isInterrupted()) {
+                    DiscordRPC.INSTANCE.Discord_RunCallbacks();
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignored) {}
+                }
+            }, "RPC-Callback-Handler").start();
+        }else{
+            if(rpc){
+                rpc = false;
+                DiscordRPC.INSTANCE.Discord_Shutdown();
+            }
+        }
     }
 }

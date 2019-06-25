@@ -114,4 +114,10 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     public boolean isPowerActive(){
         return hasUpgrade(Upgrade.POWER_TOOLS);
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data){
+        data.add("Timer: "+timer);
+        data.add("Delay: "+delay);
+        data.add("Power: "+power);
+    }
 }

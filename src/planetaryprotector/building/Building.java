@@ -260,6 +260,9 @@ public abstract class Building extends GameObject{
         if(this instanceof BuildingPowerConsumer){
             cfg.set("power", ((BuildingPowerConsumer)this).getPower());
         }
+        if(this instanceof BuildingStarlightConsumer){
+            cfg.set("starlight", ((BuildingStarlightConsumer)this).getStarlight());
+        }
         return cfg;
     }
     protected abstract Config save(Config cfg);
@@ -380,6 +383,41 @@ public abstract class Building extends GameObject{
         Core.game.refreshNetworks();
         return true;
     }
+    public void getDebugInfo(ArrayList<String> data){
+        data.add(type.name);
+        data.add("Damage: "+damages.size());
+        data.add("Level "+getLevel());
+        data.add("Upgrades: "+upgrades.size());
+        for(int i = 0; i<upgrades.size(); i++){
+            data.add(" "+upgrades.get(i).name);
+        }
+        data.add("Fire: "+fire);
+        data.add("Fire damage: "+fireDamage);
+        data.add("Fire increase: "+fireIncreaseRate);
+        data.add("Fires: "+fires.size());
+        if(this instanceof BuildingPowerConsumer){
+            data.add("Power Consumer");
+            data.add(" Demand: "+((BuildingPowerConsumer)this).getDemand());
+            data.add(" Power: "+((BuildingPowerConsumer)this).getPower()+"/"+((BuildingPowerConsumer)this).getMaxPower());
+        }
+        if(this instanceof BuildingPowerProducer){
+            data.add("Power Producer");
+            data.add(" Supply: "+((BuildingPowerProducer)this).getProduction());
+            data.add(" Renewable: "+(((BuildingPowerProducer)this).isRenewable()?"TRUE":"FALSE"));
+        }
+        if(this instanceof BuildingStarlightConsumer){
+            data.add("Starlight Consumer");
+            data.add(" Demand: "+((BuildingStarlightConsumer)this).getStarlightDemand());
+            data.add(" Starlight: "+((BuildingStarlightConsumer)this).getStarlight()+"/"+((BuildingStarlightConsumer)this).getMaxStarlight());
+        }
+        if(this instanceof BuildingStarlightProducer){
+            data.add("Starlight Producer");
+            data.add(" Supply: "+((BuildingStarlightProducer)this).getStarlightProduction());
+            data.add(" Renewable: "+(((BuildingStarlightProducer)this).isStarlightRenewable()?"TRUE":"FALSE"));
+        }
+        getBuildingDebugInfo(data);
+    }
+    protected abstract void getBuildingDebugInfo(ArrayList<String> data);
     public static enum Upgrade{
         SUPERCHARGE("Supercharge", BuildingType.COAL_GENERATOR, false, 1200, 5, 4,8,12,16,20),
         ECOLOGICAL("Ecological", BuildingType.COAL_GENERATOR, false, 1200, 5, 4,8,12,16,20),

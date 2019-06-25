@@ -155,4 +155,9 @@ public class Base extends Building implements BuildingDamagable{
     public String getName(){
         return "Base";
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {
+        data.add("Door: "+door);
+        data.add("Death Tick: "+deathTick);
+    }
 }

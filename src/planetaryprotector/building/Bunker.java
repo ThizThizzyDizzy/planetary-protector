@@ -1,4 +1,5 @@
 package planetaryprotector.building;
+import java.util.ArrayList;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
 public class Bunker extends Building implements BuildingDamagable, BuildingDemolishable{
@@ -31,4 +32,6 @@ public class Bunker extends Building implements BuildingDamagable, BuildingDemol
     public String getName(){
         return "Bunker";
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {}
 }

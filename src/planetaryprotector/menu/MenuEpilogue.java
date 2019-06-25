@@ -56,6 +56,12 @@ public class MenuEpilogue extends MenuGame{
     }
     @Override
     public void tick(){
+        Core.discordState = "";
+        Core.discordDetails = "Epilogue";
+        Core.discordLargeImageKey = "city";
+        Core.discordLargeImageText = "Epilogue";
+        Core.discordSmallImageKey = "";
+        Core.discordEndTimestamp = (System.currentTimeMillis()+159000-Sounds.songTimer()*50)/1000;
         if(i>2){
             if(offset==0){
                 timer--;

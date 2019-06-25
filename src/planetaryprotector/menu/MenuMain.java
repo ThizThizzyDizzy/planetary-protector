@@ -96,6 +96,13 @@ public class MenuMain extends Menu{
 //        Core.game = example;
         blackOpacity = blackScreen?1:0;
     }
+    @Override
+    public void onGUIOpened() {
+        Core.discordState = Core.discordDetails = "";
+        Core.discordLargeImageKey = "city";
+        Core.discordLargeImageText = Core.discordDetails = "Main Menu";
+        Core.discordEndTimestamp = 0;
+    }
     private static File downloadFile(String link, File destinationFile){
         if(link==null){
             return destinationFile;

@@ -175,4 +175,14 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     public boolean isPowerActive(){
         return true;
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {
+        data.add("Shield size: "+shieldSize+"/"+maxShieldSize);
+        data.add("Shield Strength: "+shieldStrength);
+        data.add("oldPower: "+oldPower);
+        data.add("Blast Recharge: "+blastRecharge);
+        data.add("Can Blast: "+canBlast);
+        data.add("Shield outline: "+shieldOutline);
+        data.add("Power: "+power);
+    }
 }

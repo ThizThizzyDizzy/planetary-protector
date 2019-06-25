@@ -167,6 +167,8 @@ public class MenuGame extends Menu{
     public ArrayList<Particle> particles = new ArrayList<>();
     public boolean hideSkyscrapers = false;
     public boolean showPowerNetworks = false;
+    private int saveTimer = 0;
+    private static final int saveInterval = 20*60;
 //</editor-fold>
     public MenuGame(GUI gui){
         super(gui, null);
@@ -1176,6 +1178,64 @@ public class MenuGame extends Menu{
     }
     @Override
     public void tick(){
+        //<editor-fold defaultstate="collapsed" desc="Discord">
+        Core.discordState = "";
+        Core.discordSmallImageKey = "";
+        Core.discordSmallImageText = "";
+        switch(phase){
+            case 1:
+                Core.discordDetails = "Phase 1 - Armogeddon";
+                Core.discordLargeImageKey = "base";
+                Core.discordLargeImageText = "Phase 1 - Armogeddon";
+                break;
+            case 2:
+                Core.discordDetails = "Phase 2 - Reconstruction";
+                Core.discordLargeImageKey = "skyscraper";
+                Core.discordLargeImageText = "Phase 2 - Reconstruction";
+                int maxPop = calculatePopulationCapacity();
+                Core.discordState = "Pop. Cap.: "+maxPop/1000+"k/"+targetPopulation/1000+"k ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)";
+                break;
+            case 3:
+                Core.discordDetails = "Phase 3 - Repopulation";
+                Core.discordLargeImageKey = "city";
+                Core.discordLargeImageText = "Phase 3 - Repopulation";
+                int pop = calculatePopulation();
+                maxPop = calculatePopulationCapacity();
+                Core.discordState = "Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)";
+                break;
+            case 4:
+                if(mothership!=null){
+                    Core.discordDetails = "Boss Fight - Phase "+mothership.phase;
+                    Core.discordLargeImageText = "Boss Fight - Phase "+mothership.phase;
+                    switch(mothership.phase){
+                        case 1:
+                            Core.discordLargeImageKey = "mothership_1";
+                            break;
+                        case 2:
+                            Core.discordLargeImageKey = "mothership_2";
+                            break;
+                        case 3:
+                            Core.discordLargeImageKey = "mothership_3";
+                            break;
+                        case 4:
+                            Core.discordLargeImageKey = "mothership_4";
+                            break;
+                    }
+                }
+                break;
+        }
+        if(meteorShower){
+            Core.discordState = "Meteor Shower!";
+            Core.discordSmallImageKey = "asteroid_stone";
+            Core.discordSmallImageText = "Meteor Shower!";
+        }
+        if(lost){
+            Core.discordState = "Game Over";
+        }
+        if(won){
+            Core.discordState = "Victory!";
+        }
+//</editor-fold>
         if(fading){
             blackScreenOpacity+=0.01;
         }
@@ -1186,6 +1246,11 @@ public class MenuGame extends Menu{
 //</editor-fold>
         if(paused){
             return;
+        }
+        saveTimer++;
+        if(saveTimer>=saveInterval){
+            save();
+            saveTimer = 0;
         }
         //<editor-fold defaultstate="collapsed" desc="Debug Data">
         debugData.clear();
@@ -1240,6 +1305,14 @@ public class MenuGame extends Menu{
             int amount = theBuildings.get(building);
             debugData.add(" - "+amount+" "+building.name+" ("+Math.round(amount/(double)buildings.size()*100)+"%)");
         }
+        if(selectedBuilding!=null){
+            debugData.add("Selected building: ");
+            ArrayList<String> data = new ArrayList<>();
+            selectedBuilding.getDebugInfo(data);
+            for(String s : data){
+                debugData.add(" - "+s);
+            }
+        }
         debugData.add("Phase: "+phase);
         debugData.add("Target population: "+targetPopulation);
         debugData.add("Population per floor: "+popPerFloor);
@@ -1263,6 +1336,7 @@ public class MenuGame extends Menu{
         debugData.add("Fog intensity: "+fogIntensity);
         debugData.add("Fog Height intensity: "+fogHeightIntensity);
         debugData.add("Super secret timer: "+secretTimer);
+        debugData.add("Save timer: "+(saveInterval-saveTimer));
         if(secretWaiting!=-1)debugData.add("Pending Secret: "+secretWaiting);
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
@@ -1902,6 +1976,7 @@ public class MenuGame extends Menu{
         if(lost){
             return;
         }
+        notify("Game Saved");
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+Core.save+".dat");
         Config config = Config.newConfig(file);
         config.set("level", 0);

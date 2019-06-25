@@ -10,7 +10,7 @@ public class MenuOptionsGraphics extends Menu{
     private final MenuComponentButton back;
     public static boolean fog, clouds, particulateMeteors;
     public static int particles = 1;
-    public static float cloudIntensity, fogIntensity;
+    public static float cloudIntensity = .7f, fogIntensity = .9f;
     private final MenuComponentOptionButton fogToggle, cloudsToggle, particleMeteorsToggle, particlesToggle;
     private final MenuComponentSlider cloudIntensitySlider, fogIntensitySlider;
     public MenuOptionsGraphics(GUI gui, Menu parent){

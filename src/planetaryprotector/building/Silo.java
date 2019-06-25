@@ -223,4 +223,10 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     public boolean isPowerActive(){
         return true;
     }
+    @Override
+    protected void getBuildingDebugInfo(ArrayList<String> data) {
+        data.add("Drones: "+drones);
+        data.add("Missiles: "+missiles);
+        data.add("Power: "+power);
+    }
 }
