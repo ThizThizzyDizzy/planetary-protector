@@ -6,7 +6,8 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
 import planetaryprotector.Core;
-public class TaskSkyscraperAddFloor extends Task{
+import planetaryprotector.research.ResearchEvent;
+public class TaskSkyscraperAddFloor extends TaskAnimated{
     private final Skyscraper skyscraper;
     public TaskSkyscraperAddFloor(Skyscraper skyscraper){
         this(skyscraper, 1);
@@ -53,6 +54,7 @@ public class TaskSkyscraperAddFloor extends Task{
     }
     @Override
     public void finish(){
+        Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 10*floors));
         skyscraper.floorCount+=floors;
     }
     @Override
@@ -72,12 +74,26 @@ public class TaskSkyscraperAddFloor extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
             }
         }
     }
     @Override
     public ItemStack[] getTooltip(){
         return new ItemStack[]{new ItemStack(Item.ironIngot, 10*floors)};
+    }
+
+    @Override
+    public int[] getAnimation() {
+        if(floors==10)return getAnimation("/textures/tasks/construct/skyscraper/"+MenuGame.theme.tex());
+        return getAnimation("/textures/tasks/skyscraper/add "+floors+"/"+MenuGame.theme.tex());
+    }
+    @Override
+    public int getHeight(){
+        return 100+floors*Skyscraper.floorHeight;
+    }
+    @Override
+    public boolean isInBackground(){
+        return false;
     }
 }

@@ -1,4 +1,5 @@
 package planetaryprotector.enemy;
+import org.lwjgl.opengl.Display;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
@@ -7,7 +8,7 @@ import planetaryprotector.building.Building;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import simplelibrary.opengl.ImageStash;
-public class EnemyLaser extends MenuComponentEnemy{
+public class EnemyLaser extends Enemy{
     public int initialDelay = 20*5;
     public double laserPower = 1;
     public double laserTime = 20*10;
@@ -18,7 +19,7 @@ public class EnemyLaser extends MenuComponentEnemy{
         super(0, 0, 50, 50, 100);
         double[] location = getBestStrike();
         if(location==null){
-            location = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height/2};
+            location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
         }
         x=location[0];
         y=location[1];
@@ -27,7 +28,6 @@ public class EnemyLaser extends MenuComponentEnemy{
     }
     @Override
     public void render(){
-        removeRenderBound();
         if(laserFiring!=null){
             double xDiff = laserFiring[0]-x;
             double yDiff = laserFiring[1]-y;
@@ -62,7 +62,6 @@ public class EnemyLaser extends MenuComponentEnemy{
         }
         if(dead){
             increase = true;
-            game.componentsToRemove.add(this);
             game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<7.5){
                 strength+=.375;
@@ -73,7 +72,7 @@ public class EnemyLaser extends MenuComponentEnemy{
             laserFiring = null;
             initialDelay++;
             if(initialDelay>=20*5){
-                game.componentsToRemove.add(this);
+                dead = true;
                 if(increase&&strength<7.5){
                     strength+=.375;
                 }
@@ -112,6 +111,6 @@ public class EnemyLaser extends MenuComponentEnemy{
         }
         laserTime--;
         laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
-        gen.setShieldSize(gen.getShieldSize()-laserPower*75);
+        gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
 }

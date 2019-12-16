@@ -1,4 +1,7 @@
 package planetaryprotector.menu;
+import planetaryprotector.menu.ingame.MenuComponentOverlay;
+import planetaryprotector.menu.ingame.MenuIngame;
+import planetaryprotector.menu.ingame.MenuExpedition;
 import planetaryprotector.Controls;
 import planetaryprotector.Core;
 import planetaryprotector.Expedition;
@@ -20,9 +23,8 @@ import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.enemy.EnemyAlien;
-import planetaryprotector.enemy.MenuComponentEnemy;
+import planetaryprotector.enemy.Enemy;
 import planetaryprotector.building.task.TaskSkyscraperAddFloor;
-import planetaryprotector.building.task.MenuComponentTaskAnimation;
 import planetaryprotector.building.task.TaskDemolish;
 import planetaryprotector.building.task.TaskWreckClean;
 import planetaryprotector.building.task.TaskRepair;
@@ -31,12 +33,10 @@ import planetaryprotector.building.task.TaskType;
 import planetaryprotector.building.task.Task;
 import planetaryprotector.building.task.TaskUpgrade;
 import planetaryprotector.building.task.TaskConstruct;
-import planetaryprotector.building.Mine;
 import planetaryprotector.building.ShieldGenerator;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.building.CoalGenerator;
-import planetaryprotector.building.Bunker;
 import planetaryprotector.building.IllegalBuildingException;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
@@ -49,9 +49,14 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
@@ -64,16 +69,28 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.building.BuildingDamagable;
 import planetaryprotector.building.BuildingDemolishable;
+import planetaryprotector.building.Laboratory;
 import planetaryprotector.building.Observatory;
 import planetaryprotector.building.PowerStorage;
-import planetaryprotector.building.SolarGenerator;
 import planetaryprotector.building.Workshop;
 import planetaryprotector.building.PowerNetwork;
 import planetaryprotector.building.StarlightNetwork;
+import planetaryprotector.building.task.TaskAnimated;
+import planetaryprotector.building.task.TaskAnimation;
 import planetaryprotector.building.task.TaskSpecialUpgrade;
 import planetaryprotector.building.task.TaskTrainWorker;
+import planetaryprotector.event.BuildingChangeEventListener;
+import planetaryprotector.friendly.ShootingStar;
+import planetaryprotector.menu.ingame.MenuPowerStorageConfiguration;
+import planetaryprotector.menu.ingame.MenuResearch;
 import planetaryprotector.particle.ParticleEffectType;
+import planetaryprotector.research.Research;
+import planetaryprotector.research.ResearchEvent;
+import simplelibrary.Sys;
 import simplelibrary.config2.Config;
+import simplelibrary.config2.ConfigList;
+import simplelibrary.error.ErrorCategory;
+import simplelibrary.error.ErrorLevel;
 import simplelibrary.font.FontManager;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
@@ -84,11 +101,10 @@ public class MenuGame extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public static final int actionButtonWidth = 450;
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
-    public Base base;
     public static Random rand = new Random();
     public ArrayList<DroppedItem> itemsToDrop = new ArrayList<>();
     public ArrayList<MenuComponent> componentsToRemove = new ArrayList<>();
-    public boolean baseGUI = true;
+    public boolean showUI = true;
     private MenuComponentFurnace furnace;
     public ArrayList<MenuComponent> componentsToAdd = new ArrayList<>();
     public boolean lost = false;
@@ -98,10 +114,9 @@ public class MenuGame extends Menu{
     public int meteorShowerTimer = 100;
     public int actionButtonOffset = 0;
     public ArrayList<Worker> workers = new ArrayList<>();
-    public ArrayList<EnemyAlien> aliens = new ArrayList<>();
+//    public ArrayList<EnemyAlien> aliens = new ArrayList<>();
     public ArrayList<Building> buildings = new ArrayList<>();
     public ArrayList<MenuComponentActionButton> actionButtons = new ArrayList<>();
-    public Worker selectedWorker;
     public Building selectedBuilding;
     private int actionUpdateRequired = 0;
     HashMap<Building, Building> buildingsToReplace = new HashMap<>();
@@ -110,17 +125,17 @@ public class MenuGame extends Menu{
     private Task selectedTask;
     public boolean paused;
     public int workerCooldown = 1020;
-    public MenuComponent overlay;
-    private MenuComponent phaseMarker;
+    public MenuComponentOverlay overlay;
+    private MenuComponentPhaseMarker phaseMarker;
     public int phase;
     int targetPopulation = 8_000_000;
     public int popPerFloor = -1;
     private double meteorShowerDelayMultiplier = 1;
     private double meteorShowerIntensityMultiplier = 1;
-    Expedition pendingExpedition;
-    ArrayList<Expedition> activeExpeditions = new ArrayList<>();
+    public Expedition pendingExpedition;
+    public ArrayList<Expedition> activeExpeditions = new ArrayList<>();
     public ArrayList<Expedition> finishedExpeditions = new ArrayList<>();
-    public ArrayList<MenuComponentEnemy> enemies = new ArrayList<>();
+    public ArrayList<Enemy> enemies = new ArrayList<>();
     public ArrayList<Drone> drones = new ArrayList<>();
     private int enemyTimer = 20*30;
     private double damageReportTimer = 0;
@@ -142,19 +157,21 @@ public class MenuGame extends Menu{
     private static final int maxFogTime = 20*60*15;
     private static final int minFogTime = 20*60*5;
     private int fogTimer = rand.nextInt(maxFogTime-minFogTime)+minFogTime;
+    private double fogWinter = .7;//less fog in winter
+    private double fogSpooky = 1.2;//more fog around spookytime
     double fogTime = 0; //from 0 to 1
     double fogTimeIncrease = 0;
     double fogIntensity = .75;
     double fogHeightIntensity = 0.5;
-    public boolean losing = false;
+    public int losing = -1;
     private ArrayList<String> debugData = new ArrayList<>();
     private int lostTimer;
     private boolean allowArmogeddon = true;
     private int loseSongLength = 20*60*8;
     public int secretWaiting = -1;
     private int secrets = 1;
-    private static final int maxSecretTime = 20*60*60*12;
-    private static final int minSecretTime = 20*60*60;
+    private static final int maxSecretTime = 20*60*60*6;//6 hours
+    private static final int minSecretTime = 20*60*30;//30 minutes
     public int secretTimer = rand.nextInt(maxSecretTime-minSecretTime)+minSecretTime;
     public boolean observatory;
     public int time = 0;
@@ -162,95 +179,49 @@ public class MenuGame extends Menu{
     private ArrayList<PowerNetwork> powerNetworks = new ArrayList<>();
     private ArrayList<StarlightNetwork> starlightNetworks = new ArrayList<>();
     public ArrayList<Notification> notifications = new ArrayList<>();
-    public ArrayList<MenuComponentTaskAnimation> taskAnimations = new ArrayList<>();
+    public ArrayList<TaskAnimation> taskAnimations = new ArrayList<>();
     public ArrayList<Asteroid> asteroids = new ArrayList<>();
+    public ArrayList<ShootingStar> shootingStars = new ArrayList<>();
     public ArrayList<Particle> particles = new ArrayList<>();
     public boolean hideSkyscrapers = false;
     public boolean showPowerNetworks = false;
     private int saveTimer = 0;
     private static final int saveInterval = 20*60;
+    public ArrayList<TaskAnimation> animationsToRemove = new ArrayList<>();
+    public static Theme theme = Theme.NORMAL;
+    private ShieldGenerator setTarget;
+    public ArrayList<ItemStack> resources = new ArrayList<>();
 //</editor-fold>
+    {
+        resources.add(new ItemStack(Item.stone, 0));
+        resources.add(new ItemStack(Item.coal, 0));
+        resources.add(new ItemStack(Item.ironOre, 0));
+        resources.add(new ItemStack(Item.ironIngot, 0));
+        AsteroidMaterial.resetTimers();
+        coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, Item.coal.getTextureS()));
+        ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, Item.ironOre.getTextureS()));
+        furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
+    }
     public MenuGame(GUI gui){
         super(gui, null);
-        AsteroidMaterial.resetTimers();
-        coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
-        ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
-        phase = 1;
-    }
-    public MenuGame(GUI gui, Menu parent){
-        this(gui,parent,new Base(rand.nextInt(Display.getWidth()-100), rand.nextInt(Display.getHeight()-100)));
-    }
-    public MenuGame(GUI gui, Menu parent, Base base){
-        super(gui,parent);
-        AsteroidMaterial.resetTimers();
-        int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
-        this.base = base;
-        buildings.add(base);
-        for(int i = 0; i<buildingCount; i++){
-            Building building = Building.generateRandomBuilding(base, buildings);
-            if(building==null){
-                continue;
-            }
-            buildings.add(building);
-        }
-        coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
-        ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
-        addWorker();
         phase = 1;
     }
     public MenuGame(GUI gui, MenuGame game, int phase){
-        this(gui, game, game.base, game.buildings, phase);
+        this(gui, game.buildings, phase);
     }
-    public MenuGame(GUI gui, Menu parent, Base base, ArrayList<Building> buildings) {
-        this(gui, parent, base, buildings, 1);
+    public MenuGame(GUI gui, ArrayList<Building> buildings) {
+        this(gui, buildings, 1);
     }
-    public MenuGame(GUI gui, Menu parent, Base base, ArrayList<Building> buildings, int phase) {
-        super(gui,parent);
-        AsteroidMaterial.resetTimers();
-        this.base = base;
+    public MenuGame(GUI gui, ArrayList<Building> buildings, int phase) {
+        super(gui, null);
         this.buildings = new ArrayList<>(buildings);
-        coal = add(new MenuComponentClickable(Display.getWidth()-100, 20, 20, 20, "/textures/items/Coal.png"));
-        ironChunks = add(new MenuComponentClickable(Display.getWidth()-100, 40, 20, 20, "/textures/items/Iron Chunk.png"));
-        furnace = add(new MenuComponentFurnace(0, Display.getHeight()-100, 100, 100, this));
         addWorker();
         this.phase = phase;
     }
     @Override
     public void onGUIOpened(){
         paused = true;
-        phaseMarker = add(new MenuComponent(0, 0, Display.getWidth(), Display.getHeight()) {
-            private double opacity = 0;
-            private boolean opacitizing = true;
-            @Override
-            public void mouseEvent(double x, double y, int button, boolean isDown) {
-                opacitizing = false;
-                paused = false;
-            }
-            @Override
-            public void render(){
-                if(doNotDisturb||!paused){
-                    opacitizing = false;
-                }
-                if(opacitizing){
-                    opacity+=0.01;
-                    if(opacity>1){
-                        opacity = 1;
-                    }
-                }else{
-                    opacity-=0.01;
-                    if(opacity<=0){
-                        x = Display.getWidth();
-                        return;
-                    }
-                }
-                if(phase>3)return;
-                GL11.glColor4d(1, 1, 1, opacity);
-                drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/phase/"+phase+".png"));
-                GL11.glColor4d(1, 1, 1, 1);
-            }
-        });
+        phaseMarker = add(new MenuComponentPhaseMarker(this));
         //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
         if(popPerFloor==-1){
             int floorCount = 0;
@@ -271,75 +242,46 @@ public class MenuGame extends Menu{
     public void renderBackground(){
         //<editor-fold defaultstate="collapsed" desc="BAD - Sorting all components">
         synchronized(components){
-            Collections.sort(components, new Comparator<MenuComponent>(){
-                @Override
-                public int compare(MenuComponent o1, MenuComponent o2){
-                    double y1 = o1.y;
-                    double y2 = o2.y;
-                    double height1 = o1.height;
-                    double height2 = o2.height;
-//                    if(o1 instanceof ZComponent){
-//                        y1 += Display.getHeight()*((ZComponent)o1).getZ();
-//                    }else{
-                        if(o1==overlay){
-                            y1 += Display.getHeight()*50;
-                        }
-                        if(o1 instanceof MenuComponentActionButton){
-                            y1 += Display.getHeight()*10;
-                        }
-                        synchronized(workers){
-                            for(Worker worker : workers){
-                                if(o1==worker.button){
-                                    y1 += Display.getHeight()*10;
-                                }
-                            }
-                        }
-                        if(o1 instanceof MenuComponentFalling||o1 instanceof MenuComponentRising){
-                            y1 += Display.getHeight()*15;
-                        }
-                        if(o1==mothership){
-                            y1 += Display.getHeight()*7;
-                        }
-                        if(o1 instanceof MenuComponentEnemy){
-                            y1 += Display.getHeight()*4;
-                        }
-                        if(o1==furnace){
-                            y1 += Display.getHeight()*20;
-                        }
-//                    }
-//                    if(o2 instanceof ZComponent){
-//                        y2 += Display.getHeight()*((ZComponent)o2).getZ();
-//                    }else{
-                        if(o2==overlay){
-                            y2 += Display.getHeight()*50;
-                        }
-                        synchronized(workers){
-                            for(Worker worker : workers){
-                                if(o2==worker.button){
-                                    y2 += Display.getHeight()*10;
-                                }
-                            }
-                        }
-                        if(o2 instanceof MenuComponentActionButton){
-                            y2 += Display.getHeight()*10;
-                        }
-                        if(o2 instanceof MenuComponentFalling||o2 instanceof MenuComponentRising){
-                            y2 += Display.getHeight()*15;
-                        }
-                        if(o2==mothership){
-                            y2 += Display.getHeight()*7;
-                        }
-                        if(o2 instanceof MenuComponentEnemy){
-                            y2 += Display.getHeight()*4;
-                        }
-                        if(o2==furnace){
-                            y2 += Display.getHeight()*20;
-                        }
-//                    }
-                    y1 += height1/2;
-                    y2 += height2/2;
-                    return (int) Math.round(y1-y2);
-                }
+            Collections.sort(components, (MenuComponent o1, MenuComponent o2) -> {
+                double y1 = o1.y;
+                double y2 = o2.y;
+                double height1 = o1.height;
+                double height2 = o2.height;
+//                if(o1 instanceof ZComponent){
+//                    y1 += Display.getHeight()*((ZComponent)o1).getZ();
+//                }else{
+                    if(o1==overlay){
+                        y1 += Display.getHeight()*50;
+                    }
+                    if(o1 instanceof MenuComponentActionButton){
+                        y1 += Display.getHeight()*10;
+                    }
+                    if(o1 instanceof MenuComponentFalling||o1 instanceof MenuComponentRising){
+                        y1 += Display.getHeight()*15;
+                    }
+                    if(o1==furnace){
+                        y1 += Display.getHeight()*20;
+                    }
+//                }
+//                if(o2 instanceof ZComponent){
+//                    y2 += Display.getHeight()*((ZComponent)o2).getZ();
+//                }else{
+                    if(o2==overlay){
+                        y2 += Display.getHeight()*50;
+                    }
+                    if(o2 instanceof MenuComponentActionButton){
+                        y2 += Display.getHeight()*10;
+                    }
+                    if(o2 instanceof MenuComponentFalling||o2 instanceof MenuComponentRising){
+                        y2 += Display.getHeight()*15;
+                    }
+                    if(o2==furnace){
+                        y2 += Display.getHeight()*20;
+                    }
+//                }
+                y1 += height1/2;
+                y2 += height2/2;
+                return (int) Math.round(y1-y2);
             });
         }
 //</editor-fold>
@@ -347,50 +289,29 @@ public class MenuGame extends Menu{
             for(Building building : buildings){
                 building.mouseover = 0;
             }
-            Collections.sort(buildings, new Comparator<Building>(){
-                @Override
-                public int compare(Building o1, Building o2){
-                    double y1 = o1.y;
-                    double y2 = o2.y;
-                    double height1 = o1.height;
-                    double height2 = o2.height;
-                    if(o1 instanceof Skyscraper){
-                        Skyscraper sky = (Skyscraper)o1;
-                        y1 -= sky.fallen;
-                    }
-                    if(o2 instanceof Skyscraper){
-                        Skyscraper sky = (Skyscraper)o2;
-                        y2 -= sky.fallen;
-                    }
-                    y1 += height1/2;
-                    y2 += height2/2;
-                    return (int) Math.round(y1-y2);
+            Collections.sort(buildings, (Building o1, Building o2) -> {
+                double y1 = o1.y;
+                double y2 = o2.y;
+                double height1 = o1.height;
+                double height2 = o2.height;
+                if(o1 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o1;
+                    y1 -= sky.fallen;
                 }
+                if(o2 instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)o2;
+                    y2 -= sky.fallen;
+                }
+                y1 += height1/2;
+                y2 += height2/2;
+                return (int) Math.round(y1-y2);
             });
         }
         //<editor-fold defaultstate="collapsed" desc="BaseGUI location">
-        if(baseGUI){
+        if(showUI){
             coal.x = ironChunks.x = furnace.x = Display.getWidth()-100;
-            synchronized(workers){
-                for(Worker worker : workers){
-                    worker.button.x = 0;
-                    worker.button.color = (!(worker.dead||worker.isWorking()))?Color.WHITE:Color.RED;
-                    worker.button.enabled = !(worker.dead||worker.isWorking());
-                }
-            }
-            for(MenuComponentActionButton button : actionButtons){
-                button.x = 50;
-            }
         }else{
             coal.x = ironChunks.x = furnace.x = -100;
-            synchronized(workers){
-                for(Worker worker : workers){
-                    worker.button.x = -50;
-                }
-            }
-            for(MenuComponentActionButton button : actionButtons){
-                button.x = 0;
-            }
         }
 //</editor-fold>
         Building building = getBuilding(Mouse.getX(), Display.getHeight()-Mouse.getY());
@@ -403,17 +324,15 @@ public class MenuGame extends Menu{
     }
     @Override
     public void render(int millisSinceLastTick){
-        if(baseGUI){
+        if(showUI){
             drawRect(Display.getWidth()-100, Display.getHeight()-200, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/gui/sidebar.png"));
         }
         super.render(millisSinceLastTick);
-        if(Mouse.isButtonDown(1)&&selectedWorker!=null){
-            selectedWorker.selectedTarget = new double[]{Mouse.getX(),Display.getHeight()-Mouse.getY()};
-        }
         //<editor-fold defaultstate="collapsed" desc="Damage Report">
         if(damageReportTimer>=0){
             for(Building b : buildings){
                 if(b.damages.size()>10) continue;
+                
                 GL11.glColor4d(1, 0, 0, (damageReportTimer/damageReportTime)*(b.damages.size()/10D));
                 if(b.type==BuildingType.WRECK){
                     GL11.glColor4d(1, 0, 0, 1*(damageReportTimer/damageReportTime));
@@ -471,19 +390,19 @@ public class MenuGame extends Menu{
             if(selectedBuilding!=null){
                 String upgrades = "";
                 for(Upgrade u : selectedBuilding.getBoughtUpgrades())upgrades+="*";
-                textWithBackground(baseGUI?50:0, 0, (baseGUI?50:0)+actionButtonWidth, 20, upgrades+" "+selectedBuilding.getName());
+                textWithBackground(showUI?50:0, 0, (showUI?50:0)+actionButtonWidth, 20, upgrades+" "+selectedBuilding.getName());
             }
             drawText(furnace.x+10, Display.getHeight()-60, Display.getWidth()-10, Display.getHeight()-40, furnace.ironOre+" Iron");
             drawText(furnace.x+10, Display.getHeight()-40, Display.getWidth()-10, Display.getHeight()-20, furnace.coal+" Coal");
             drawText(furnace.x+10, Display.getHeight()-20, Display.getWidth()-10, Display.getHeight(), furnace.level>=MenuComponentFurnace.maxLevel?"Maxed":"Level "+(furnace.level+1));
-            if(baseGUI){
-                for(int i = 0; i<base.resources.size(); i++){
+            if(showUI){
+                for(int i = 0; i<resources.size(); i++){
                     int I = 1;
                     if(i==0)I = 0;
-                    if(i==base.resources.size()-1)I = 2;
+                    if(i==resources.size()-1)I = 2;
                     drawRect(Display.getWidth()-100, i*20, Display.getWidth(), (i+1)*20+(I==2?5:0), ImageStash.instance.getTexture("/textures/gui/sidebar "+I+".png"));
-                    drawText(Display.getWidth()-80, i*20, Display.getWidth(), (i+1)*20, base.resources.get(i).count+"");
-                    drawRect(Display.getWidth()-100, i*20, Display.getWidth()-80, (i+1)*20, ImageStash.instance.getTexture("/textures/items/"+base.resources.get(i).item.texture+".png"));
+                    drawText(Display.getWidth()-80, i*20, Display.getWidth(), (i+1)*20, resources.get(i).count+"");
+                    drawRect(Display.getWidth()-100, i*20, Display.getWidth()-80, (i+1)*20, resources.get(i).item.getTexture());
                 }
             }
         }else if(won){
@@ -512,12 +431,12 @@ public class MenuGame extends Menu{
             actionButtonOffset = 20;
             if(selectedBuilding!=null){
                 if(selectedBuilding instanceof BuildingDamagable){
-                    taskButton("Repair", selectedWorker, new TaskRepair(selectedBuilding));
-                    taskButton("Repair All", selectedWorker, new TaskRepairAll(selectedBuilding));
+                    taskButton("Repair", new TaskRepair(selectedBuilding));
+                    taskButton("Repair All", new TaskRepairAll(selectedBuilding));
                 }
                 if(selectedBuilding.getMaxLevel()>-1){
                     if(selectedBuilding.canUpgrade()){
-                        taskButton("Upgrade", selectedWorker, new TaskUpgrade(selectedBuilding));
+                        taskButton("Upgrade", new TaskUpgrade(selectedBuilding));
                     }else{
                         action("Maxed", null, () -> {
                             return false;
@@ -528,20 +447,20 @@ public class MenuGame extends Menu{
                 if(!upgrades.isEmpty()){
                     actionButtonOffset+=5;
                     for(Upgrade upgrade : upgrades){
-                        taskButton("Install "+upgrade.toString(), selectedWorker, new TaskSpecialUpgrade(selectedBuilding, upgrade));
+                        taskButton("Install "+upgrade.toString(), new TaskSpecialUpgrade(selectedBuilding, upgrade));
                     }
                     actionButtonOffset+=5;
                 }
                 switch(selectedBuilding.type){
                     case SKYSCRAPER:
-                        taskButton("Add Floor", selectedWorker, new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding));
-                        taskButton("Add 10 Floors", selectedWorker, new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding,10));
+                        taskButton("Add Floor", new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding));
+                        taskButton("Add 10 Floors", new TaskSkyscraperAddFloor((Skyscraper)selectedBuilding,10));
                         break;
                     case WORKSHOP:
-                        taskButton("Train Worker", selectedWorker, new TaskTrainWorker((Workshop)selectedBuilding));
+                        taskButton("Train Worker", new TaskTrainWorker((Workshop)selectedBuilding));
                         break;
                     case OBSERVATORY:
-                        action("Add Star", (ActionEvent e) -> {
+                        action("Add Star", (e) -> {
                             if(hasResources(new ItemStack(Item.star))){
                                 if(((Observatory)selectedBuilding).addStar()){
                                     removeResources(new ItemStack(Item.star));
@@ -550,28 +469,31 @@ public class MenuGame extends Menu{
                         }, () -> {
                             return hasResources(new ItemStack(Item.star))&&((Observatory)selectedBuilding).canAddStar();
                         });
-                        action("Toggle Scan", (ActionEvent e) -> {
+                        action("Toggle Scan", (e) -> {
                             ((Observatory)selectedBuilding).toggleScan();
                         }, () -> {
                             return true;
                         });
-                        break;
-                    case BUNKER:
+                        action("Summon Shooting Star", (e) -> {
+                            ((Observatory)selectedBuilding).summonStar();
+                        }, () -> {
+                            return ((Observatory)selectedBuilding).canSummonStar();
+                        });
                         break;
                     case SILO:
-                        action("Build Missile", (ActionEvent ae) -> {
+                        action("Build Missile", (e) -> {
                             ((Silo)selectedBuilding).buildMissile();
                         },() -> {
                             return ((Silo)selectedBuilding).canBuildMissile();
                         }, ((Silo)selectedBuilding).missileCost());
                         if(selectedBuilding.getLevel()>1){
-                            action("Build Drone", (ActionEvent ae) -> {
+                            action("Build Drone", (e) -> {
                                 ((Silo)selectedBuilding).buildDrone();
                             }, () -> {
                                 return ((Silo)selectedBuilding).canBuildDrone();
                             }, ((Silo)selectedBuilding).droneCost());
                         }
-                        action("Fire Missiles", (ActionEvent ae) -> {
+                        action("Fire Missiles", (e) -> {
                             ((Silo)selectedBuilding).launchMissile();
                         }, () -> {
                             return ((Silo)selectedBuilding).canLaunchMissile();
@@ -580,13 +502,13 @@ public class MenuGame extends Menu{
                     case SOLAR_GENERATOR:
                         break;
                     case COAL_GENERATOR:
-                        action("Add Coal", (ActionEvent e) -> {
+                        action("Add Coal", (e) -> {
                             removeResources(new ItemStack(Item.coal));
                             ((CoalGenerator)selectedBuilding).coal++;
                         }, () -> {
                             return hasResources(new ItemStack(Item.coal));
                         });
-                        action((((CoalGenerator)selectedBuilding).autoFuel?"Disable":"Enable")+" Auto-fueling", (ActionEvent e) -> {
+                        action((((CoalGenerator)selectedBuilding).autoFuel?"Disable":"Enable")+" Auto-fueling", (e) -> {
                             ((CoalGenerator)selectedBuilding).autoFuel = !((CoalGenerator)selectedBuilding).autoFuel;
                         }, () -> {
                             return true;
@@ -594,13 +516,19 @@ public class MenuGame extends Menu{
                         break;
                     case POWER_STORAGE:
                         PowerStorage s = (PowerStorage)selectedBuilding;
-                        action((s.charge?"Disable":"Enable")+" Charging", (ActionEvent e) -> {
+                        action((s.charge?"Disable":"Enable")+" Charging", (e) -> {
                             s.charge = !s.charge;
                         }, () -> {
                             return true;
                         });
-                        action((s.discharge?"Disable":"Enable")+" Discharging", (ActionEvent e) -> {
+                        action((s.discharge?"Disable":"Enable")+" Discharging", (e) -> {
                             s.discharge = !s.discharge;
+                        }, () -> {
+                            return true;
+                        });
+                        action("Power Storage Configuration", (e) -> {
+                            if(overlay!=null)return;
+                            overlay = add(new MenuPowerStorageConfiguration(this, s));
                         }, () -> {
                             return true;
                         });
@@ -608,42 +536,63 @@ public class MenuGame extends Menu{
                     case MINE:
                         break;
                     case SHIELD_GENERATOR:
-                        action("Toggle Shield Outline", (ActionEvent e) -> {
+                        action("Toggle Shield Outline", (e) -> {
                             ((ShieldGenerator)selectedBuilding).shieldOutline = !((ShieldGenerator)selectedBuilding).shieldOutline;
                         }, () -> {
                             return true;
                         });
                         if(phase>=3&&((ShieldGenerator)selectedBuilding).canBlast){
-                            action("Blast", (ActionEvent e) -> {
+                            action("Blast", (e) -> {
                                 ((ShieldGenerator)selectedBuilding).blast();
                             }, () -> {
                                 return ((ShieldGenerator)selectedBuilding).blastRecharge==0;
                             });
                         }
+                        if(((ShieldGenerator)selectedBuilding).hasUpgrade(Upgrade.SHIELD_PROJECTOR)){
+                            if(setTarget==null){
+                                action(((ShieldGenerator)selectedBuilding).projectorTarget!=null?"Change Projector Target":"Set Projector Target", (e) -> {
+                                    if(setTarget==null){
+                                        setTarget = (ShieldGenerator)selectedBuilding;
+                                    }else{
+                                        setTarget = null;
+                                    }
+                                }, () -> {
+                                    return true;
+                                });
+                                if(((ShieldGenerator)selectedBuilding).projectorTarget!=null){
+                                    action("Clear Projector Target", (e) -> {
+                                        ((ShieldGenerator)selectedBuilding).setProjectorTarget(null);
+                                        setTarget = null;
+                                    }, () -> {
+                                        return true;
+                                    });
+                                }
+                            }
+                        }
                         break;
                     case WRECK:
-                        taskButton("Clean up", selectedWorker, new TaskWreckClean((Wreck) selectedBuilding));
+                        taskButton("Clean up", new TaskWreckClean((Wreck) selectedBuilding));
                         break;
                     case BASE:
-                        action("Assign All Workers", (ActionEvent e) -> {
+                        action("Assign All Workers", (e) -> {
                             assignAllWorkers();
                         }, () -> {
                             return true;
                         });
-                        action((autoTask?"Disable":"Enable")+" Autotasking", (ActionEvent e) -> {
+                        action((autoTask?"Disable":"Enable")+" Autotasking", (e) -> {
                             autoTask = !autoTask;
                         }, () -> {
                             return true;
                         });
                         if(phase>=2){
-                            action("Damage Report", (ActionEvent e) -> {
+                            action("Damage Report", (e) -> {
                                 damageReport();
                             }, () -> {
                                 return true;
                             });
                         }
                         if(phase>=3){
-                            action("Expeditions", (ActionEvent ae) -> {
+                            action("Expeditions", (e) -> {
                                 if(overlay!=null)return;
                                 overlay = add(new MenuExpedition(this));
                             }, () -> {
@@ -653,44 +602,29 @@ public class MenuGame extends Menu{
                             });
                         }
                         break;
-//                    case LABORATORY://TODO research
-//                            action("Research", true, (ActionEvent ae) -> {
-//                                if(overlay!=null)return;
-//                                overlay = add(new MenuResearch(this));
-//                            });
-//                        break;
+                    case LABORATORY:
+                            action("Research", (e) -> {
+                                if(overlay!=null)return;
+                                overlay = add(new MenuResearch(this, (Laboratory)selectedBuilding));
+                            }, () -> {
+                                return true;
+                            });
+                        break;
                     case EMPTY:
-                        taskButton("Build Bunker", selectedWorker, new TaskConstruct(selectedBuilding, new Bunker(selectedBuilding.x, selectedBuilding.y)));
-                        if(phase>=3){
-                            taskButton("Build Silo", selectedWorker, new TaskConstruct(selectedBuilding, new Silo(selectedBuilding.x, selectedBuilding.y)));
-                        }
-                        taskButton("Build Skyscraper", selectedWorker, new TaskConstruct(selectedBuilding, new Skyscraper(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Mine", selectedWorker, new TaskConstruct(selectedBuilding, new Mine(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Solar Generator", selectedWorker, new TaskConstruct(selectedBuilding, new SolarGenerator(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Coal Generator", selectedWorker, new TaskConstruct(selectedBuilding, new CoalGenerator(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Power Storage", selectedWorker, new TaskConstruct(selectedBuilding, new PowerStorage(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Shield Generator", selectedWorker, new TaskConstruct(selectedBuilding, new ShieldGenerator(selectedBuilding.x, selectedBuilding.y)));
-                        taskButton("Build Workshop", selectedWorker, new TaskConstruct(selectedBuilding, new Workshop(selectedBuilding.x, selectedBuilding.y)));
-//                        taskButton("Build Laboratory", selectedWorker, new TaskConstruct(selectedBuilding, new MenuComponentLaboratory(selectedBuilding.x, selectedBuilding.y)));
-                        if(observatory){
-                            taskButton("Build Observatory", selectedWorker, new TaskConstruct(selectedBuilding, new Observatory(selectedBuilding.x, selectedBuilding.y)));
+                        for(BuildingType type : BuildingType.values()){
+                            if(type.isConstructable(this)){
+                                taskButton("Build "+type.name, new TaskConstruct(selectedBuilding, type.createNewBuilding(selectedBuilding.x, selectedBuilding.y)));
+                            }
                         }
                         break;
                     default:
                         throw new IllegalBuildingException(selectedBuilding.type);
                 }
                 if(selectedBuilding instanceof BuildingDemolishable){
-                    taskButton("Demolish", selectedWorker, new TaskDemolish(selectedBuilding));
-                }
-                if(selectedBuilding.task!=null&&selectedWorker!=null&&selectedWorker.task==null){
-                    action("Continue Task", (ActionEvent e) -> {
-                        selectedWorker.task = selectedBuilding.task;
-                    }, () -> {
-                        return true;
-                    });
+                    taskButton("Demolish", new TaskDemolish(selectedBuilding));
                 }
                 if(selectedBuilding.task!=null){
-                    action("Add Worker", (ActionEvent e) -> {
+                    action("Add Worker", (e) -> {
                         if(selectedBuilding==null)return;
                         Worker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
                         if(worker==null)return;
@@ -698,7 +632,7 @@ public class MenuGame extends Menu{
                     }, () -> {
                         return getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2)!=null;
                     });
-                    action("Cancel Task", (ActionEvent e) -> {
+                    action("Cancel Task", (e) -> {
                         selectedBuilding.cancelTask();
                     }, () -> {
                         return true;
@@ -716,7 +650,7 @@ public class MenuGame extends Menu{
         oldSelectedTask = selectedTask;
         if(selectedBuilding!=null&&selectedBuilding.task!=null){
             for(int i = 0; i<selectedBuilding.task.getDetails().length; i++){
-                textWithBackground((baseGUI?50:0)+actionButtonWidth, 30*i, Display.getWidth(), 30*(i+1), selectedBuilding.task.getDetails()[i], selectedBuilding.task.important);
+                textWithBackground((showUI?50:0)+actionButtonWidth, 30*i, Display.getWidth(), 30*(i+1), selectedBuilding.task.getDetails()[i], selectedBuilding.task.important);
             }
         }
         if(Core.debugMode&&cheats){
@@ -756,14 +690,14 @@ public class MenuGame extends Menu{
         renderForeground();
     }
     public void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         synchronized(buildings){
             for(Building building : buildings){
                 building.renderBackground();
             }
         }
-        for(MenuComponentTaskAnimation anim : taskAnimations){
-            anim.render();
+        for(TaskAnimation anim : taskAnimations){
+            if(anim.task.isInBackground())anim.render();
         }
         ArrayList<Particle> groundParticles = new ArrayList<>();
         synchronized(particles){
@@ -782,27 +716,41 @@ public class MenuGame extends Menu{
         synchronized(workers){
             mainLayer.addAll(workers);
         }
-        Collections.sort(mainLayer, new Comparator<GameObject>(){
-            @Override
-            public int compare(GameObject o1, GameObject o2){
-                if(o1==null||o2==null)return 0;
-                int y1 = (int)o1.y;
-                int height1 = (int)o1.height;
-                int y2 = (int)o2.y;
-                int height2 = (int)o2.height;
-                if(o1 instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)o1;
-                    y1 -= sky.fallen;
-                }
-                if(o2 instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)o2;
-                    y2 -= sky.fallen;
-                }
-                y1 += height1/2;
-                y2 += height2/2;
-                return y1-y2;
+        synchronized(enemies){
+            for(Enemy e : enemies){
+                if(e instanceof EnemyAlien)mainLayer.add(e);
             }
+        }
+        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
+            if(o1==null||o2==null)return 0;
+            int y1 = (int)o1.y;
+            int height1 = (int)o1.height;
+            int y2 = (int)o2.y;
+            int height2 = (int)o2.height;
+            if(o1 instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper)o1;
+                y1 -= sky.fallen;
+            }
+            if(o2 instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper)o2;
+                y2 -= sky.fallen;
+            }
+            y1 += height1/2;
+            y2 += height2/2;
+            return y1-y2;
         });
+        for(TaskAnimation anim : taskAnimations){
+            if(anim.task.isInBackground())continue;
+            int index = mainLayer.indexOf(anim.task.building);
+            mainLayer.add(index+1, anim);
+        }
+        for(TaskAnimation anim : taskAnimations){
+            if(anim.task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
+                anim.task.anim = anim;
+                continue;
+            }
+            if(!anim.task.isInBackground())mainLayer.add(anim);
+        }
         for(GameObject o : mainLayer){
             if(o!=null)o.render();
         }
@@ -841,6 +789,17 @@ public class MenuGame extends Menu{
                 asteroid.render();
             }
         }
+        synchronized(shootingStars){
+            for(ShootingStar star : shootingStars){
+                star.render();
+            }
+        }
+        synchronized(enemies){
+            for(Enemy e : enemies){
+                if(!(e instanceof EnemyAlien))e.render();
+            }
+        }
+        if(mothership!=null)mothership.render();
         drawDayNightCycle();
     }
     @Override
@@ -851,14 +810,9 @@ public class MenuGame extends Menu{
     }
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
-        if(key==Controls.deselect&&pressed&&!repeat&&selectedWorker!=null){
-            selectedWorker = null;
-            selectedBuilding = null;
-        }
-        if(key==Controls.cancel&&pressed&&!repeat){
-            if(selectedWorker!=null&&selectedWorker.task!=null){
-                selectedWorker.cancelTask();
-            }
+        if(overlay!=null){
+            overlay.keyboardEvent(character, key, pressed, repeat);
+            return;
         }
         if(key==Controls.hideSkyscrapers&&pressed&&!repeat){
             hideSkyscrapers = !hideSkyscrapers;
@@ -938,6 +892,14 @@ public class MenuGame extends Menu{
                     notify("Cheat: Secret #10");
                     secretWaiting = 9;
                 }
+                if(key==Keyboard.KEY_MINUS){
+                    notify("Cheat: Secret #11");
+                    secretWaiting = 10;
+                }
+                if(key==Keyboard.KEY_EQUALS){
+                    notify("Cheat: Secret #12");
+                    secretWaiting = 11;
+                }
             }
             if(key==Controls.CHEAT_PHASE&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
                 int oldPhase = phase;
@@ -949,7 +911,7 @@ public class MenuGame extends Menu{
             }
             if(key==Controls.CHEAT_RESOURCES){
                 notify("Cheat: Resources");
-                for(ItemStack resource : base.resources){
+                for(ItemStack resource : resources){
                     resource.count+=100;
                 }
             }
@@ -963,82 +925,98 @@ public class MenuGame extends Menu{
             }
             if(!actionButtons.isEmpty()&&selectedBuilding!=null&&selectedBuilding.task==null){
                 if(key==Keyboard.KEY_1){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(0).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_2&&actionButtons.size()>1){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(1).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_3&&actionButtons.size()>2){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(2).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_4&&actionButtons.size()>3){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(3).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_5&&actionButtons.size()>4){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(4).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_6&&actionButtons.size()>5){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(5).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_7&&actionButtons.size()>6){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(6).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_8&&actionButtons.size()>7){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(7).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_9&&actionButtons.size()>8){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(8).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
                 if(key==Keyboard.KEY_0&&actionButtons.size()>9){
-                    Building selectedBuilding = this.selectedBuilding;
                     actionButtons.get(9).actionPerformed(null);
                     if(selectedBuilding.task!=null){
                         notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
+                        selectedBuilding.task.progress = selectedBuilding.task.time-1;
+                    }
+                }
+                if(key==Keyboard.KEY_MINUS&&actionButtons.size()>10){
+                    actionButtons.get(10).actionPerformed(null);
+                    if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
+                        selectedBuilding.task.progress = selectedBuilding.task.time-1;
+                    }
+                }
+                if(key==Keyboard.KEY_EQUALS&&actionButtons.size()>11){
+                    actionButtons.get(11).actionPerformed(null);
+                    if(selectedBuilding.task!=null){
+                        notify("Cheat: Instant Completion");
+//                        selectedBuilding.task.finishTask();
                         selectedBuilding.task.progress = selectedBuilding.task.time-1;
                     }
                 }
@@ -1052,10 +1030,10 @@ public class MenuGame extends Menu{
                     notify("Cheat: Shooting Star");
                     int X = Mouse.getX()-25;
                     int Y = Display.getHeight()-Mouse.getY()-25;
-                    addAsteroid(new Asteroid(X, Y, AsteroidMaterial.SHOOTING_STAR, 2));
+                    addShootingStar(new ShootingStar(X, Y));
                 }else if(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)){
-                    MenuComponentEnemy.strength++;
-                    notify("Cheat: Enemy Strength: ", MenuComponentEnemy.strength+"");
+                    Enemy.strength++;
+                    notify("Cheat: Enemy Strength: ", Enemy.strength+"");
                 }else{
                     if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
                         notify("Cheat: Add Enemy");
@@ -1119,44 +1097,21 @@ public class MenuGame extends Menu{
                 if(key==Keyboard.KEY_0&&actionButtons.size()>9&&actionButtons.get(9).enabled&&!actionButtons.get(9).label.contains("Demolish")){
                     actionButtons.get(9).actionPerformed(null);
                 }
-            }else{
-                synchronized(workers){
-                    if(key==Keyboard.KEY_1&&!workers.isEmpty()){
-                        selectedWorker = workers.get(0);
-                    }
-                    if(key==Keyboard.KEY_2&&workers.size()>1){
-                        selectedWorker = workers.get(1);
-                    }
-                    if(key==Keyboard.KEY_3&&workers.size()>2){
-                        selectedWorker = workers.get(2);
-                    }
-                    if(key==Keyboard.KEY_4&&workers.size()>3){
-                        selectedWorker = workers.get(3);
-                    }
-                    if(key==Keyboard.KEY_5&&workers.size()>4){
-                        selectedWorker = workers.get(4);
-                    }
-                    if(key==Keyboard.KEY_6&&workers.size()>5){
-                        selectedWorker = workers.get(5);
-                    }
-                    if(key==Keyboard.KEY_7&&workers.size()>6){
-                        selectedWorker = workers.get(6);
-                    }
-                    if(key==Keyboard.KEY_8&&workers.size()>7){
-                        selectedWorker = workers.get(7);
-                    }
-                    if(key==Keyboard.KEY_9&&workers.size()>8){
-                        selectedWorker = workers.get(8);
-                    }
-                    if(key==Keyboard.KEY_0&&workers.size()>9){
-                        selectedWorker = workers.get(9);
-                    }
+                if(key==Keyboard.KEY_MINUS&&actionButtons.size()>10&&actionButtons.get(10).enabled&&!actionButtons.get(10).label.contains("Demolish")){
+                    actionButtons.get(10).actionPerformed(null);
+                }
+                if(key==Keyboard.KEY_EQUALS&&actionButtons.size()>11&&actionButtons.get(11).enabled&&!actionButtons.get(11).label.contains("Demolish")){
+                    actionButtons.get(11).actionPerformed(null);
                 }
             }
         }
     }
     @Override
     public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
+        if(overlay!=null){
+            overlay.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
+            return;
+        }
         super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
         for(MenuComponent c : components){
             if(c instanceof MenuComponentButton){
@@ -1164,16 +1119,17 @@ public class MenuGame extends Menu{
             }
         }
         if(pressed&&button==0){
-            Building building = getBuilding(x, y);
+            Building building = getMouseoverBuilding(x, y);
             if(building!=null){
-                selectedBuilding = building;
-                selectedWorker = null;
+                if(setTarget!=null){
+                    setTarget.setProjectorTarget(building);
+                    setTarget = null;
+                }else selectedBuilding = building;
             }
         }
         if(pressed&&button==1){
-            if(selectedWorker==null){
-                selectedBuilding = null;
-            }
+            if(setTarget!=null)setTarget = null;
+            selectedBuilding = null;
         }
     }
     @Override
@@ -1260,7 +1216,7 @@ public class MenuGame extends Menu{
             debugData.add("Mothership Health: "+mothership.health+"/"+mothership.maxHealth+" ("+Math.round(mothership.health/(double)mothership.maxHealth*100)+"%)");
         }
         debugData.add("Furnace XP: "+furnace.total);
-        debugData.add("Enemy Strength: "+MenuComponentEnemy.strength);
+        debugData.add("Enemy Strength: "+Enemy.strength);
         debugData.add("Enemy Timer: "+enemyTimer);
         debugData.add("Dropped items: "+droppedItems.size());
         HashMap<Item, Integer> items = new HashMap<>();
@@ -1338,6 +1294,7 @@ public class MenuGame extends Menu{
         debugData.add("Super secret timer: "+secretTimer);
         debugData.add("Save timer: "+(saveInterval-saveTimer));
         if(secretWaiting!=-1)debugData.add("Pending Secret: "+secretWaiting);
+        debugData.add("Time: "+time);
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
         if(lost&&phase>3){
@@ -1358,10 +1315,10 @@ public class MenuGame extends Menu{
         tick++;
         time++;
         if(hideSkyscrapers){
-            notifyOnce("Hiding skyscrapers", 1);
+            notifyOnce("Hiding skyscrapers (H)", 1);
         }
         if(showPowerNetworks){
-            notifyOnce("Showing power networks", 1);
+            notifyOnce("Showing power networks (N)", 1);
         }
         if(cheats){
             notifyOnce("Cheats Enabled", 1);
@@ -1381,12 +1338,8 @@ public class MenuGame extends Menu{
         if(hasResources(new ItemStack(Item.star))){
             observatory = true;
         }
-        if(selectedWorker!=null&&selectedWorker.dead){
-            selectedWorker = null;
-            selectedBuilding = null;
-        }
         synchronized(workers){
-            if(workers.isEmpty()&&!lost&&!losing){
+            if(workers.isEmpty()&&!lost&&losing<=-1){
                 Core.speedMult = 12;
             }else{
                 Core.speedMult = 1;
@@ -1395,19 +1348,44 @@ public class MenuGame extends Menu{
         if(damageReportTimer>=0){
             damageReportTimer--;
         }
-        while(!buildingsToReplace.isEmpty()){
-            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
-            Building start = list.get(0);
-            Building end = buildingsToReplace.remove(start);
-            if(selectedBuilding==start)selectedBuilding = end;
-            buildings.remove(start);
-            buildings.add(end);
-            refreshNetworks();
-        }
         synchronized(buildings){
             for(Building building : buildings){
                 building.tick();
             }
+        }
+        while(!buildingsToReplace.isEmpty()){
+            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
+            Building start = list.get(0);
+            Building end = buildingsToReplace.remove(start);
+            buildings.remove(start);
+            start.dead = true;
+            if(selectedBuilding==start)selectedBuilding = end;
+            if(setTarget==start){
+                if(end instanceof ShieldGenerator)setTarget = (ShieldGenerator)end;
+                else setTarget = null;
+            }
+            for(Building b : buildings){
+                if(b instanceof BuildingChangeEventListener){
+                    ((BuildingChangeEventListener) b).onBuildingChange(start, end);
+                }
+            }
+            buildings.add(end);
+        }
+        refreshNetworks();
+        synchronized(enemies){
+            for(Iterator<Enemy> it = enemies.iterator(); it.hasNext();){
+                Enemy enemy = it.next();
+                enemy.tick();
+                if(enemy.x<enemy.width/2)enemy.x = enemy.width/2;
+                if(enemy.y<enemy.height/2)enemy.y = enemy.height/2;
+                if(enemy.x>Display.getWidth()-enemy.width/2)enemy.x = Display.getWidth()-enemy.width/2;
+                if(enemy.y>Display.getHeight()-enemy.height/2)enemy.y = Display.getHeight()-enemy.height/2;
+                if(enemy.dead)it.remove();
+            }
+        }
+        if(mothership!=null){
+            mothership.tick();
+            if(mothership.dead)mothership = null;
         }
         synchronized(drones){
             for(Iterator<Drone> it = drones.iterator(); it.hasNext();){
@@ -1422,14 +1400,8 @@ public class MenuGame extends Menu{
                 worker.tick();
                 if(worker.dead){
                     notify("Death: Worker", 35);
-                    components.remove(worker.button);
                     it.remove();
                 }
-            }
-            for(int i = 0; i<workers.size(); i++){//relocating worker buttons
-                Worker worker = workers.get(i);
-                worker.button.y = i*50;
-                worker.button.label = (i+1)+"";
             }
         }
         synchronized(droppedItems){
@@ -1446,11 +1418,28 @@ public class MenuGame extends Menu{
                 if(asteroid.dead)it.remove();
             }
         }
+        synchronized(shootingStars){
+            for(Iterator<ShootingStar> it = shootingStars.iterator(); it.hasNext();){ 
+                ShootingStar shootingStar = it.next();
+                shootingStar.tick();
+                if(shootingStar.dead)it.remove();
+            }
+        }
         synchronized(particles){
             for(Iterator<Particle> it = particles.iterator(); it.hasNext();){ 
                 Particle particle = it.next();
                 particle.tick();
                 if(particle.dead)it.remove();
+            }
+        }
+        synchronized(buildings){
+            for(Building b : buildings){
+                if(b.type==BuildingType.LABORATORY){
+                    for(Research research : Research.values()){
+                        research.tick(this);
+                    }
+                    break;
+                }
             }
         }
         if(blackScreenOpacity>=1){
@@ -1514,7 +1503,7 @@ public class MenuGame extends Menu{
             }
         }
         if(lost){
-            baseGUI = false;
+            showUI = false;
         }
 //</editor-fold>
         if(meteorShower){
@@ -1560,6 +1549,8 @@ public class MenuGame extends Menu{
             if(fogTimer<=0){
                 startFog();
                 fogTimer = rand.nextInt(maxFogTime-minFogTime)+minFogTime;
+                if(theme==Theme.SNOWY)fogTimer/=fogWinter;
+                if(theme==Theme.SPOOKY)fogTimer/=fogSpooky;
             }
         }
         if(meteorShowerTimer>3000){
@@ -1587,18 +1578,12 @@ public class MenuGame extends Menu{
             droppedItems.addAll(itemsToDrop);
             itemsToDrop.clear();
         }
-        while(!componentsToRemove.isEmpty()){
-            if(componentsToRemove.get(0) instanceof MenuComponentTaskAnimation){
-                taskAnimations.remove(componentsToRemove.remove(0));
-                continue;
+        taskAnimations.removeAll(animationsToRemove);
+        animationsToRemove.clear();
+        synchronized(components){
+            while(!componentsToRemove.isEmpty()){
+                components.remove(componentsToRemove.remove(0));
             }
-            if(componentsToRemove.get(0) instanceof EnemyAlien){
-                aliens.remove(componentsToRemove.get(0));
-            }
-            if(componentsToRemove.get(0) instanceof MenuComponentEnemy){
-                enemies.remove(componentsToRemove.get(0));
-            }
-            components.remove(componentsToRemove.remove(0));
         }
         //<editor-fold defaultstate="collapsed" desc="Expeditions">
         synchronized(workers){
@@ -1636,24 +1621,21 @@ public class MenuGame extends Menu{
                 }
             }
         }
-        for(EnemyAlien a : aliens){
-            if(a.y+a.width>Display.getHeight()){
-                a.y = Display.getHeight()-a.height;
-            }
-            if(a.x+a.height>Display.getWidth()){
-                a.x = Display.getWidth()-a.width;
-            }
-            if(a.x<0){
-                a.x=0;
-            }
-            if(a.y<0){
-                a.y=0;
-            }
-        }
-        for(Building b : buildings){
-            if(b instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) b;
-                sky.isSelectedWorkerBehind = selectedWorker!=null&&selectedWorker.x>=sky.x&&selectedWorker.x<=sky.x+sky.width&&selectedWorker.y<=sky.y+sky.height/2&&selectedWorker.y>=sky.y-(sky.floorCount*sky.floorHeight);
+        synchronized(enemies){
+            for(Enemy a : enemies){
+                if(!(a instanceof EnemyAlien))continue;
+                if(a.y+a.width>Display.getHeight()){
+                    a.y = Display.getHeight()-a.height;
+                }
+                if(a.x+a.height>Display.getWidth()){
+                    a.x = Display.getWidth()-a.width;
+                }
+                if(a.x<0){
+                    a.x=0;
+                }
+                if(a.y<0){
+                    a.y=0;
+                }
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Phase 3">
@@ -1661,7 +1643,7 @@ public class MenuGame extends Menu{
             enemyTimer--;
             if(enemyTimer<=0){
                 addEnemy();
-                enemyTimer+=rand.nextInt((int)Math.max(20*60*4-Math.round(MenuComponentEnemy.strength*60*4),1))+20*60;
+                enemyTimer+=rand.nextInt((int)Math.max(20*60*4-Math.round(Enemy.strength*60*4),1))+20*60;
             }
             for(int i = 0; i<6; i++){
                 civilianCooldown--;
@@ -1683,26 +1665,6 @@ public class MenuGame extends Menu{
             }
         }
 //</editor-fold>
-        DO:do{
-            for(Building building : buildings){
-                Skyscraper sky = null;
-                if(building.type==BuildingType.SKYSCRAPER){
-                    sky = (Skyscraper) building;
-                }
-                if(selectedWorker!=null){
-                    if(Keyboard.isKeyDown(Controls.up))continue;
-                    if(Keyboard.isKeyDown(Controls.down))continue;
-                    if(Keyboard.isKeyDown(Controls.right))continue;
-                    if(Keyboard.isKeyDown(Controls.left))continue;
-                    if(selectedWorker.selectedTarget!=null)continue;
-                    if(Core.isClickWithinBounds(selectedWorker.x+selectedWorker.width/2, selectedWorker.y+selectedWorker.height/2, building.x, building.y-(sky==null?0:sky.fallen), building.x+building.width, building.y+building.height-(sky==null?0:sky.fallen))){
-                        selectedBuilding = building;
-                        break DO;
-                    }
-                }
-            }
-            if(selectedWorker!=null)selectedBuilding = null;
-        }while(false);
         //Power transfer
         getPowerNetworks();
         synchronized(powerNetworks){
@@ -1716,6 +1678,27 @@ public class MenuGame extends Menu{
                 network.tick();
             }
         }
+        if(losing==-1){
+            synchronized(buildings){
+                boolean base = false;
+                for(Building b : buildings){
+                    if(b instanceof Base){
+                        if(((Base) b).deathTick>=0)continue;
+                        base = true;
+                    }
+                }
+                if(!base)losing = 0;
+            }
+        }else if(canLose()){
+            if(losing==0){
+                Sounds.stopSound("music");
+                Sounds.playSound("music", "EndMusic1");
+            }
+            losing++;
+            if(losing>=450){
+                lose();
+            }
+        }
         super.tick();
     }
     @Override
@@ -1727,13 +1710,6 @@ public class MenuGame extends Menu{
         }
         if(button==furnace){
             furnace.upgrade();
-        }
-        synchronized(workers){
-            for(Worker worker : workers){
-                if(button==worker.button){
-                    selectedWorker = worker;
-                }
-            }
         }
         for(MenuComponentActionButton actionButton : actionButtons){
             if(button==actionButton){
@@ -1753,6 +1729,7 @@ public class MenuGame extends Menu{
         if(hasResources(new ItemStack(Item.ironOre, amount))){
             removeResources(new ItemStack(Item.ironOre, amount));
             furnace.ironOre+=amount;
+            researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironOre, amount));
             componentsToAdd.add(new MenuComponentFalling(Display.getWidth()-60, Display.getHeight()-150, Item.ironOre));
         }
     }
@@ -1760,6 +1737,7 @@ public class MenuGame extends Menu{
         if(hasResources(new ItemStack(Item.coal, amount))){
             removeResources(new ItemStack(Item.coal, amount));
             furnace.coal+=amount;
+            researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.coal, amount));
             componentsToAdd.add(new MenuComponentFalling(Display.getWidth()-60, Display.getHeight()-150, Item.coal));
         }
     }
@@ -1767,9 +1745,9 @@ public class MenuGame extends Menu{
         if(lost)return;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        baseGUI = false;
+        showUI = false;
         if(mothership!=null){
-            componentsToRemove.add(mothership);
+            mothership.dead = true;
         }
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             m.timer = Integer.MAX_VALUE;
@@ -1780,9 +1758,10 @@ public class MenuGame extends Menu{
     }
     public void lose(){
         if(won)return;
+        losing = -1;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        baseGUI = false;
+        showUI = false;
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             m.timer = Integer.MAX_VALUE;
         }
@@ -1806,13 +1785,13 @@ public class MenuGame extends Menu{
     }
     public void addResources(Item item) {
         if(actionUpdateRequired<1)actionUpdateRequired = 1;
-        for(ItemStack stack : base.resources){
+        for(ItemStack stack : resources){
             if(stack.item==item){
                 stack.count++;
                 return;
             }
         }
-        base.resources.add(new ItemStack(item, 1));
+        resources.add(new ItemStack(item, 1));
     }
     public boolean hasResources(ItemStack[] resources) {
         for(ItemStack s : resources){
@@ -1823,7 +1802,7 @@ public class MenuGame extends Menu{
         return true;
     }
     public boolean hasResources(ItemStack stack) {
-        return base.resources.stream().anyMatch((s) -> (s.item==stack.item&&s.count>=stack.count));
+        return resources.stream().anyMatch((s) -> (s.item==stack.item&&s.count>=stack.count));
     }
     public void removeResources(ItemStack[] resources) {
         for(ItemStack s : resources){
@@ -1831,12 +1810,21 @@ public class MenuGame extends Menu{
         }
     }
     public void removeResources(ItemStack stack) {
-        for(ItemStack s : base.resources){
+        for(ItemStack s : resources){
             if(s.item==stack.item){
                 s.count-=stack.count;
                 return;
             }
         }
+    }
+    public int getResources(Item item){
+        int count = 0;
+        for(ItemStack s : resources){
+            if(s.item==item){
+                count+=s.count;
+            }
+        }
+        return count;
     }
     public Particle addParticleEffect(Particle particle){
         synchronized(particles){
@@ -1845,7 +1833,14 @@ public class MenuGame extends Menu{
         }
     }
     public void addWorker(){
-        addWorker(base.x+base.width/2, base.y+base.height-12);
+        synchronized(buildings){
+            for(Building b : buildings){
+                if(b instanceof Base){
+                    addWorker(((Base)b).getWorkerX(), ((Base)b).getWorkerY());
+                    break;
+                }
+            }
+        }
     }
     public void replaceBuilding(Building start, Building end){
         synchronized(buildings){
@@ -1877,7 +1872,7 @@ public class MenuGame extends Menu{
         if(label.contains("Demolish")||label.contains("Cancel Task")){
             actionButtonOffset+=15;
         }
-        actionButtons.add(add(new MenuComponentActionButton(50, actionButtons.size()*50+actionButtonOffset, actionButtonWidth, 50, label, update, tooltip){
+        actionButtons.add(add(new MenuComponentActionButton(0, actionButtons.size()*50+actionButtonOffset, actionButtonWidth, 50, label, update, tooltip){
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(listener==null)return;
@@ -1889,32 +1884,19 @@ public class MenuGame extends Menu{
             actionButtonOffset+=15;
         }
     }
-    private void taskButton(String label, Worker worker, Task task){
-        action(label, (ActionEvent ae) -> {
+    private void taskButton(String label, Task task){
+        action(label, (e) -> {
             if(!task.canPerform())return;
             task.start();
-            if(worker!=null)worker.task(task);
         }, () -> {
             return task.canPerform();
         }, task.getTooltip());
     }
-    public void startAnim(Task task){
-        taskAnimations.add(new MenuComponentTaskAnimation(task.building.x, task.building.y, task.building.width, task.building.height, task.type.images, this, task){
-            @Override
-            public double getProgress(){
-                return task.progress();
-            }
-        });
-    }
-    public void cancelAnim(Task task){
-        for(MenuComponent component : components){
-            if(component instanceof MenuComponentTaskAnimation){
-                MenuComponentTaskAnimation anim = (MenuComponentTaskAnimation) component;
-                anim.paused = true;
-            }
-        }
+    public void startAnim(TaskAnimated task){
+        taskAnimations.add(new TaskAnimation(this, task));
     }
     public boolean safe(Worker worker) {
+        if(superSafe(worker))return true;
         if(lost){
             return false;
         }
@@ -1978,9 +1960,21 @@ public class MenuGame extends Menu{
         }
         notify("Game Saved");
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+Core.save+".dat");
-        Config config = Config.newConfig(file);
+        FileOutputStream stream = null;
+        try {
+            if(file.exists())file.delete();
+            file.createNewFile();
+            stream = new FileOutputStream(file);
+        } catch (IOException ex) {
+            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
+        }
+        Config config = Config.newConfig();
         config.set("level", 0);
         config.set("version", VersionManager.currentVersion);
+        config.save(stream);
+        for(AsteroidMaterial m : AsteroidMaterial.values()){
+            config.set(m.name()+" timer", m.timer);
+        }
         if(mothership!=null){
             config.set("mothership health", mothership.health);
         }
@@ -1989,7 +1983,7 @@ public class MenuGame extends Menu{
         config.set("furnace iron", furnace.ironOre);
         config.set("furnace coal", furnace.coal);
         config.set("furnace xp", furnace.total);
-        config.set("enemy strength", MenuComponentEnemy.strength);
+        config.set("enemy strength", Enemy.strength);
         config.set("enemy timer", enemyTimer);
         Config cfg = Config.newConfig();
         cfg.set("count", droppedItems.size());
@@ -2044,21 +2038,57 @@ public class MenuGame extends Menu{
         config.set("secret waiting", secretWaiting);
         config.set("observatoryUnlocked", observatory);
         config.set("time", time);
-        config.save();
+        ConfigList researches = new ConfigList();
+        for(Research r : Research.values()){
+            Config research = Config.newConfig();
+            research.set("name", r.name());
+            research.set("research", r.save(Config.newConfig()));
+            researches.add(research);
+        }
+        config.set("research", researches);
+        Config c = Config.newConfig();
+        c.set("count", resources.size());
+        for(int i = 0; i<resources.size(); i++){
+            ItemStack stack = resources.get(i);
+            if(stack.item==null)continue;
+            c.set(i+" item", stack.item.name);
+            c.set(i+" count", stack.count);
+        }
+        config.set("Resources", c);
+        config.set("losing", losing);
+        config.save(stream);
+        try {
+            stream.close();
+        } catch (IOException ex) {
+            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
+        }
     }
     public static MenuGame load(GUI gui){
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+Core.save+".dat");
-        if(!file.exists()){
+        FileInputStream stream;
+        try{
+            stream = new FileInputStream(file);
+        }catch(FileNotFoundException ex){
+            return null;
+        }
+        Config config = Config.newConfig(stream);
+        config.load();
+        config.load();
+        try{
+            stream.close();
+        }catch(IOException ex){
+            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
             return null;
         }
         MenuGame game = new MenuGame(gui);
-        Config config = Config.newConfig(file);
-        config.load();
+        for(AsteroidMaterial m : AsteroidMaterial.values()){
+            m.timer = config.get(m.name()+" timer", m.timer);
+        }
         int hp = config.get("mothership health", -1);
         if(hp!=-1){
-            EnemyMothership ship = new EnemyMothership();
+            EnemyMothership ship = new EnemyMothership(game);
             ship.health = hp;
-            game.mothership = game.add(ship);
+            game.mothership = ship;
         }
         game.furnace.level = config.get("furnace level", 0);
         game.furnace.ironOre = config.get("furnace iron", 0);
@@ -2066,26 +2096,26 @@ public class MenuGame extends Menu{
         game.furnace.coal = config.get("furnace coal", 0);
         game.furnace.total = config.get("furnace xp", 0);
         game.furnace.auto = game.furnace.level>=2;
-        MenuComponentEnemy.strength = config.get("enemy strength", 1d);
+        Enemy.strength = config.get("enemy strength", 1d);
         game.enemyTimer = config.get("enemy timer", 20*30);
         Config cfg = config.get("Dropped Items", Config.newConfig());
         for(int i = 0; i<cfg.get("count", 0); i++){
-            DroppedItem item = new DroppedItem(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), Item.getItemByName(cfg.get(i+" item","iron ingot")), game);
+            DroppedItem item = new DroppedItem(cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), Item.getItemByName(cfg.get(i+" item","iron ingot")));
             item.life = cfg.get(i+" life", item.life);
             game.droppedItems.add(item);
         }
         game.meteorShower = config.get("Meteor Shower", game.meteorShower);
         game.meteorShowerTimer = config.get("Meteor Shower Timer", game.meteorShowerTimer);
         cfg = config.get("Buildings", Config.newConfig());
+        HashMap<Building, Config> buildings = new HashMap<>();
         for(int i = 0; i<cfg.get("count", 0); i++){
-            Building b = Building.load(cfg.get(i+"", Config.newConfig()));
-            if(b instanceof Base){
-                game.base = (Base) b;
-            }
+            Config conf = cfg.get(i+"", Config.newConfig());
+            Building b = Building.load(conf);
             game.buildings.add(b);
+            buildings.put(b, conf);
         }
-        if(game.base==null){
-            return null;
+        for(Building b : game.buildings){
+            b.postLoad(game, buildings.get(b));
         }
         for(int i = 0; i<config.get("workers", 1); i++){
             game.addWorker();
@@ -2115,7 +2145,21 @@ public class MenuGame extends Menu{
         game.secretWaiting = config.get("secret waiting", game.secretWaiting);
         game.observatory = config.get("observatoryUnlocked", game.observatory);
         game.time = config.get("time", game.time);
-        config.save();
+        ConfigList researches = config.get("research", new ConfigList());
+        for(int i = 0; i<researches.size(); i++){
+            Config research = researches.get(i);
+            String name = research.get("name");
+            if(name==null)continue;
+            Research.valueOf(name).load(research.get("research", Config.newConfig()));
+        }
+        game.resources.clear();
+        cfg = config.get("Resources", Config.newConfig());
+        for(int i = 0; i<cfg.get("count", 0); i++){
+            Item item = Item.getItemByName(cfg.get(i+" item", ""));
+            if(item==null)continue;
+            game.resources.add(new ItemStack(item, cfg.get(i+" count", 0)));
+        }
+        game.losing = config.get("losing", game.losing);
         return game;
     }
     public void addCivilians(int civilians){
@@ -2127,13 +2171,15 @@ public class MenuGame extends Menu{
             }
         }
     }
-    void addEnemy(){
-        if(rand.nextDouble()<(MenuComponentEnemy.strength)/100D){
-            for(int i = 0; i<Math.min(10,Math.abs(rand.nextGaussian()*3)); i++){
-                enemies.add(add(MenuComponentEnemy.randomEnemy(this)));
+    public void addEnemy(){
+        synchronized(enemies){
+            if(rand.nextDouble()<(Enemy.strength)/100D){
+                for(int i = 0; i<Math.min(10,Math.abs(rand.nextGaussian()*3)); i++){
+                    enemies.add(Enemy.randomEnemy(this));
+                }
+            }else{
+                enemies.add(Enemy.randomEnemy(this));
             }
-        }else{
-            enemies.add(add(MenuComponentEnemy.randomEnemy(this)));
         }
     }
     public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
@@ -2186,28 +2232,28 @@ public class MenuGame extends Menu{
         GL11.glColor4d(outerR, outerG, outerB, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
-            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), size/2D,10,0);
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), size/2D,5,0);
         }
         GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
-            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(2/3D))/2D,10,0);
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(2/3D))/2D,5,0);
         }
         GL11.glColor4d(innerR, innerG, innerB, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
-            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(1/3D))/2D,10,0);
+            MenuGame.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(1/3D))/2D,5,0);
         }
         GL11.glColor4d(1, 1, 1, 1);
     }
     public static void drawConnector(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
         drawLaser(x1, y1, x2, y2, size, innerR, innerG, innerB, outerR, outerG, outerB);
         GL11.glColor4d(outerR,outerG,outerB,1);
-        drawRegularPolygon(x1, y1, size*1.5, 10, 0);
-        drawRegularPolygon(x2, y2, size*1.5, 10, 0);
+        drawRegularPolygon(x1, y1, size*1.5, 5, 0);
+        drawRegularPolygon(x2, y2, size*1.5, 5, 0);
         GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
-        drawRegularPolygon(x1, y1, size, 10, 0);
-        drawRegularPolygon(x2, y2, size, 10, 0);
+        drawRegularPolygon(x1, y1, size, 5, 0);
+        drawRegularPolygon(x2, y2, size, 5, 0);
     }
     private void damageReport(){
         damageReportTimer = damageReportTime;
@@ -2234,7 +2280,7 @@ public class MenuGame extends Menu{
         ArrayList<Worker> available = new ArrayList<>();
         synchronized(workers){
             for(Worker worker : workers){
-                if(!worker.isWorking()&&selectedWorker!=worker){
+                if(!worker.isWorking()){
                     available.add(worker);
                 }
             }
@@ -2278,7 +2324,7 @@ public class MenuGame extends Menu{
                     material.timer = Integer.MAX_VALUE;
                 }
                 if(mothership==null&&!isDestroyed()&&!won&&!lost){
-                    mothership = add(new EnemyMothership());
+                    mothership = new EnemyMothership();
                     Sounds.fadeSound("music");
                 }
                 break;
@@ -2293,51 +2339,58 @@ public class MenuGame extends Menu{
     }
     public void addCloud(double x, double y){
         if(!MenuOptionsGraphics.clouds)return;
-        double strength = rand.nextInt(42);
         double rateOfChange = (rand.nextDouble()-.4)/80;
         double speed = Core.game.rand.nextGaussian()/10+1;
+        int min = 0;
+        double mod = 1;
         switch(Core.game.phase){
             case 2:
-                strength = rand.nextInt(40)+2;
-                rateOfChange*=1.05;
+                min+=2;
+                mod+=.05;
                 break;
             case 3:
-                strength = rand.nextInt(35)+7;
-                rateOfChange*=1.1;
+                min+=5;
+                mod+=.1;
                 break;
             case 4:
                 if(Core.game.mothership!=null){
                     switch(Core.game.mothership.phase){
                         case 2:
-                            strength = rand.nextInt(30)+12;
-                            rateOfChange*=1.15;
+                            min+=12;
+                            mod+=.15;
                             break;
                         case 3:
-                            strength = rand.nextInt(25)+17;
-                            rateOfChange*=1.175;
+                            min+=17;
+                            mod+=.175;
                             break;
                         case 4:
-                            strength = rand.nextInt(20)+22;
-                            rateOfChange*=1.2;
+                            min+=22;
+                            mod+=.2;
                             break;
                         case 1:
                         default:
-                            strength = rand.nextInt(32)+10;
-                            rateOfChange*=1.125;
+                            min+=10;
+                            mod+=.125;
                             break;
                     }
                     break;
                 }
         }
+        if(MenuGame.theme==Theme.SPOOKY){
+            min+=12;
+            mod+=.15;
+        }
         if(lost){
-            strength = rand.nextInt(42-Particle.rainThreshold)+Particle.rainThreshold;
+            min = Particle.rainThreshold;
             rateOfChange = Math.max(0, rateOfChange);
             speed*=.75;
         }
+        double strength = rand.nextInt(42-min)+min;
+        rateOfChange*=mod;
         if(won){
             strength = rand.nextInt(10);
         }
-        int wide = rand.nextInt(25)+5;
+        int wide = rand.nextInt(25+(MenuGame.theme==Theme.SPOOKY?8:(MenuGame.theme==Theme.SNOWY?-3:0)))+5;
         int high = rand.nextInt(wide/5)+2;
         int height = 1;
         for(double X = 0; X<wide; X+=.5){
@@ -2415,11 +2468,9 @@ public class MenuGame extends Menu{
                 if(building instanceof ShieldGenerator){
                     ShieldGenerator shield = (ShieldGenerator) building;
                     if(Core.distance(building, x, y)<=shield.getShieldSize()/2){
-                        shield.setShieldSize(shield.getShieldSize() - 100);
-                        if(shield.getShieldSize()>=0){
+                        if(shield.shieldHit()){
                             continue DAMAGE;
                         }else{
-                            shield.setShieldSize(0);
                             break;
                         }
                     }
@@ -2445,19 +2496,19 @@ public class MenuGame extends Menu{
                 }
                 if(material!=null){
                     if(material.forceDrop){
-                        itemsToDrop.add(new DroppedItem(x, y, getItem(material), this));
+                        itemsToDrop.add(new DroppedItem(x, y, getItem(material)));
                     }else{
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new DroppedItem(x+15-25, y+8-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+15-25, y+8-25, getItem(material)));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new DroppedItem(x+8-25, y+28-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+8-25, y+28-25, getItem(material)));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new DroppedItem(x+38-25, y+24-25, getItem(material),  this));
+                            itemsToDrop.add(new DroppedItem(x+38-25, y+24-25, getItem(material)));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            itemsToDrop.add(new DroppedItem(x+23-25, y+34-25, getItem(material), this));
+                            itemsToDrop.add(new DroppedItem(x+23-25, y+34-25, getItem(material)));
                         }
                     }
                 }
@@ -2470,16 +2521,11 @@ public class MenuGame extends Menu{
         synchronized(buildings){
             for(Building building : buildings){
                 if(building instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)building;
-                    if(isClickWithinBounds(x, y, building.x, building.y-(sky.floorCount*sky.floorHeight), building.x+building.width, building.y+building.height)){
-                        hit = building;
-                    }
-                }else if(building instanceof Base){
-                    if(isClickWithinBounds(x, y, building.x, building.y-25, building.x+building.width, building.y+building.height)){
+                    if(isClickWithinBounds(x, y, building.x, building.y-building.getBuildingHeight()-((Skyscraper) building).fallen, building.x+building.width, building.y+building.height-((Skyscraper) building).fallen)){
                         hit = building;
                     }
                 }else{
-                    if(isClickWithinBounds(x, y, building.x, building.y, building.x+building.width, building.y+building.height)){
+                    if(isClickWithinBounds(x, y, building.x, building.y-building.getBuildingHeight(), building.x+building.width, building.y+building.height)){
                         hit = building;
                     }
                 }
@@ -2495,8 +2541,6 @@ public class MenuGame extends Menu{
                 return Item.ironOre;
             case COAL:
                 return Item.coal;
-            case SHOOTING_STAR:
-                return Item.star;
         }
         return null;
     }
@@ -2507,8 +2551,8 @@ public class MenuGame extends Menu{
      * @param radius The radius of the push field
      * @param distance How far to push the particles
      */
-    public void pushParticles(double x, double y, double radius, double distance){
-        pushParticles(x, y, radius, distance, 1);
+    public void pushParticles(double x, double y, double radius, double distance, Particle.PushCause cause){
+        pushParticles(x, y, radius, distance, 1, cause);
     }
     /**
      * Push particles away from a location.
@@ -2517,11 +2561,11 @@ public class MenuGame extends Menu{
      * @param radius The radius of the push field
      * @param distance How far to push the particles
      * @param fadeFactor How much the particles should fade
+     * @param cause The force that's pushing the particles
      */
-    public void pushParticles(double x, double y, double radius, double distance, double fadeFactor){
+    public void pushParticles(double x, double y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
         synchronized(particles){
             for(Particle particle : particles){
-                if(particle.type==ParticleEffectType.EXPLOSION)continue;
                 if(Core.distance(particle.getX(), particle.getY(), x, y)<=radius){
                     double mult = 1-(Core.distance(particle.getX(), particle.getY(), x, y)/radius);
                     double distX = particle.getX()-x;
@@ -2532,14 +2576,8 @@ public class MenuGame extends Menu{
                     if(Double.isNaN(distX)){
                         continue;
                     }
-                    particle.x+=distX*distance*mult;
-                    particle.y+=distY*distance*mult;
-                    if(particle instanceof ParticleFog){
-                        ((ParticleFog)particle).opacity-=.1*fadeFactor*mult;
-                    }
-                    if(particle.type==ParticleEffectType.CLOUD){
-                        particle.strength-=fadeFactor*mult;
-                    }
+                    particle.push(distX*distance*mult,distY*distance*mult, cause);
+                    particle.fade(fadeFactor*mult);
                 }
             }
         }
@@ -2558,7 +2596,6 @@ public class MenuGame extends Menu{
         synchronized(workers){
             workers.add(worker);
         }
-        add(worker.button);
     }
     public void playSecret(){
         playSecret(secretWaiting);
@@ -2567,13 +2604,23 @@ public class MenuGame extends Menu{
     private void playSecret(int secret){
         switch(secret){
             case 0://observatory
+                if(getSunlight()>0){
+                    secretWaiting = 0;
+                    return;
+                }
                 Sounds.playSound("music", "MysteryMusic3");
                 addShootingStar();
                 break;
         }
     }
     private void addShootingStar(){
-        addAsteroid(new Asteroid(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.SHOOTING_STAR, 2));
+        addShootingStar(new ShootingStar(rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50)));
+    }
+    public ShootingStar addShootingStar(ShootingStar star){
+        synchronized(shootingStars){
+            shootingStars.add(star);
+        }
+        return star;
     }
     public Asteroid addAsteroid(Asteroid asteroid){
         synchronized(asteroids){
@@ -2582,8 +2629,8 @@ public class MenuGame extends Menu{
         return asteroid;
     }
     protected void drawDayNightCycle(){
-        Color noon = new Color(255, 216, 0, 32);
-        Color night = new Color(22, 36, 114, 72);
+        Color noon = theme.day;
+        Color night = theme.night;
         if(time>=dayNightCycle/8&&time<dayNightCycle/2-dayNightCycle/8){
             GL11.glColor4d(noon.getRed()/255d, noon.getGreen()/255d, noon.getBlue()/255d, noon.getAlpha()/255d);
         }
@@ -2618,7 +2665,7 @@ public class MenuGame extends Menu{
         double distance = Double.MAX_VALUE;
         synchronized(workers){
             for(Worker worker : workers){
-                if(!worker.isWorking()&&selectedWorker!=worker){
+                if(!worker.isWorking()){
                     if(Core.distance(worker, x, y)<distance){
                         closest = worker;
                         distance = Core.distance(worker, x, y);
@@ -2722,7 +2769,7 @@ public class MenuGame extends Menu{
                 return;
             }
         }
-        notifications.add(new Notification(notification, time));
+        notifications.add(new Notification(notification+value, time));
     }
     public void notify(String notification, String value){
         notify(notification, value, 15);
@@ -2760,6 +2807,39 @@ public class MenuGame extends Menu{
             }
         }
     }
+    public void closeOverlay(){
+        paused = false;
+        if(overlay!=null)componentsToRemove.add(overlay);
+        overlay = null;
+    }
+    public void researchEvent(ResearchEvent event){
+        for(Research research : Research.values()){
+            research.event(event);
+        }
+    }
+    private Building getMouseoverBuilding(float x, float y){
+        Building hit = null;
+        synchronized(buildings){
+            for(Building building : buildings){
+                int h = building.getBuildingHeight();
+                if(building instanceof Skyscraper&&hideSkyscrapers)h = 0;
+                if(building instanceof Skyscraper){
+                    if(isClickWithinBounds(x, y, building.x, building.y-h-((Skyscraper) building).fallen, building.x+building.width, building.y+building.height-((Skyscraper) building).fallen)){
+                        hit = building;
+                    }
+                }else{
+                    if(isClickWithinBounds(x, y, building.x, building.y-h, building.x+building.width, building.y+building.height)){
+                        hit = building;
+                    }
+                }
+            }
+        }
+        return hit;
+    }
+    public boolean canLose(){
+        if(won||lost)return false;
+        return true;
+    }
     private static class Notification{
         private String name;
         private int time;
@@ -2794,6 +2874,50 @@ public class MenuGame extends Menu{
         @Override
         public String toString(){
             return "-- "+name+(num==1?"":" x"+num)+" --";
+        }
+    }
+    public static enum Theme{
+        NORMAL("normal", "grass", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
+        SNOWY("snowy", "snow", new Color(255, 244, 179, 15),new Color(20, 33, 107, 72), new Color(31, 31, 31, 255)),
+        SPOOKY("normal", "grass", new Color(255, 200, 0, 32),new Color(16, 27, 86, 72), new Color(255, 255, 255, 255));
+        private final String texture;
+        private final String background;
+        private final Color day;
+        private final Color night;
+        private final Color text;
+        private Theme(String texture, String background, Color day, Color night, Color text){
+            this.texture = texture;
+            this.background = background;
+            this.day = day;
+            this.night = night;
+            this.text = text;
+        }
+        public String tex(){
+            return texture;
+        }
+        public int getBackgroundTexture(){
+            return ImageStash.instance.getTexture(getBackgroundTextureS());
+        }
+        public String getBackgroundTextureS(){
+            return "/textures/background/"+background+".png";
+        }
+        public void applyTextColor(){
+            GL11.glColor4d(text.getRed()/255d, text.getGreen()/255d, text.getBlue()/255d, text.getAlpha()/255d);
+        }
+    }
+    public static void refreshTheme(){
+        GregorianCalendar calendar = new GregorianCalendar();
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        MenuGame.theme = MenuGame.Theme.NORMAL;
+        if(MenuOptionsGraphics.theme==2){
+            MenuGame.theme = MenuGame.Theme.SNOWY;
+        }
+        if(MenuOptionsGraphics.theme==0&&(month==0||month==11)){
+            MenuGame.theme = MenuGame.Theme.SNOWY;
+        }
+        if(MenuGame.theme==MenuGame.Theme.NORMAL&&month==9&&day>=25){
+            MenuGame.theme = MenuGame.Theme.SPOOKY;
         }
     }
 }

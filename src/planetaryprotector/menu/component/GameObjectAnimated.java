@@ -1,18 +1,19 @@
 package planetaryprotector.menu.component;
 import planetaryprotector.GameObject;
+import simplelibrary.opengl.ImageStash;
     public class GameObjectAnimated extends GameObject{
-    public int[] images;
+    public String[] images;
     public int frame = 0;
     public int delay = 3;
     public int timeWaited = 0;
     public boolean loop = false;
-    public GameObjectAnimated(double x, double y, double width, double height, int[] images){
+    public GameObjectAnimated(double x, double y, double width, double height, String[] images){
         super(x,y,width,height);
         this.images=images;
     }
     @Override
     public void render(){
-        drawRect(x, y, x+width, y+height, images[frame]);
+        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(images[frame]));
     }
     public void tick(){
         timeWaited++;

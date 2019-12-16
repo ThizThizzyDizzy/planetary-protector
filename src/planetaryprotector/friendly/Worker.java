@@ -1,31 +1,25 @@
 package planetaryprotector.friendly;
 import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.Controls;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.building.task.TaskRepair;
 import planetaryprotector.building.task.Task;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import java.util.Iterator;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.GameObject;
+import planetaryprotector.building.Base;
 import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.task.TaskDemolish;
 import planetaryprotector.enemy.Asteroid;
+import planetaryprotector.research.ResearchEvent;
 import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
     public DroppedItem grabbedItem;
-    public MenuComponentButton button;
     public static final int workerSpeed = 5;
     public int speed = workerSpeed;
-    public int opacitizing;
-    public double opacity;
     public double[] target;
     public double[] runningFrom;
     public double[] selectedTarget;
@@ -34,48 +28,30 @@ public class Worker extends GameObject{
     private final MenuGame game;
     public Worker(double x, double y, MenuGame game){
         super(x,y,10,10);
-        button = new MenuComponentButton(0, game.workers.size()*50, 50, 50, game.workers.size()+1+"", true);
         this.game = game;
     }
     @Override
     public void render(){
-        if(game.selectedWorker==this){
-            GL11.glColor4d(1, 1, 1, opacity);
-            drawRect(x-opacity*10, y-opacity*10, x+width+opacity*10, y+height+opacity*10, ImageStash.instance.getTexture("/textures/him.png"));
-            GL11.glColor4d(1, 1, 1, 1);
-        }
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/him.png"));
+        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/worker.png"));
         if(grabbedItem!=null){
             grabbedItem.render();
         }
     }
     public void tick(){
-        if(game.selectedWorker==this){
-            if(!game.paused){
-                if(opacity>=0.5){
-                    opacitizing = -1;
-                }
-                if(opacity<=0){
-                    opacitizing = 1;
-                }
-                opacity += (opacitizing*0.025);
-            }
-        }
         if(dead){
             if(grabbedItem!=null){
                 dropItem();
             }
-            cancelTask();
             return;
         }
+        Base base = getClosestBase();
+        double baseDist = getClosestBaseDistance();
+        runningFrom = null;
+        if(base==null)runningFrom = new double[]{Display.getWidth()/2, Display.getHeight()/2};
         for(Asteroid asteroid : game.asteroids){
             if(Core.distance(asteroid, this)<50){
-                for(Building building : game.buildings){
-                    if(building.type==BuildingType.BUNKER&&Core.isPointWithinComponent(x+width/2, y+height/2, building)||game.superSafe(this)){
-                        //whew, in a bunker or under a shield, safe.
-                    }else{
-                        runningFrom = new double[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
-                    }
+                if(!game.superSafe(this)){
+                    runningFrom = new double[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
                 }
             }
         }
@@ -88,6 +64,12 @@ public class Worker extends GameObject{
                 }
             }
         }
+        if(targetItem!=null&&targetItem.dead){
+            targetItem = null;
+            target = null;
+        }
+//</editor-fold>
+        if(grabbedItem!=null&&grabbedItem.dead)grabbedItem = null;
         //<editor-fold defaultstate="collapsed" desc="Running from something">
         if(runningFrom!=null){
             dropItem();
@@ -96,7 +78,6 @@ public class Worker extends GameObject{
                 task = null;
             }
             moveAway(runningFrom);
-            runningFrom = null;
         }
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="return - Working">
@@ -135,95 +116,22 @@ public class Worker extends GameObject{
             return;
         }
 //</editor-fold>
-        if(game.selectedWorker==this){
-            //<editor-fold defaultstate="collapsed" desc="Grab Item">
-            if((!game.droppedItems.isEmpty())&&grabbedItem==null){
-                for(DroppedItem item : game.droppedItems){
-                    if(Core.distance(this, item.x+item.width/2, item.y+item.height/2)<=10){
-                        game.droppedItems.remove(item);
-                        grabbedItem = item;
-                        break;
-                    }
-                }
-            }
-    //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="Put away Item">
-            if(grabbedItem!=null&&Core.distance(this, game.base.x+game.base.width/2,game.base.y+game.base.width-12.5)<15){
-                game.addResources(grabbedItem.item);
-                grabbedItem.dead = true;
-                dropItem();
-            }
-    //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="Right Click Movement">
-            if(selectedTarget!=null){
-                move(selectedTarget);
-                if(Core.distance(this,selectedTarget[0],selectedTarget[1])<=speed){
-                    selectedTarget = null;
-                }
-            }
+        selectedTarget = null;
+        //<editor-fold defaultstate="collapsed" desc="Put away Item">
+        if(grabbedItem!=null&&baseDist<15&&baseDist>-1){
+            game.addResources(grabbedItem.item);
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.GAIN_RESOURCE, grabbedItem.item, 1));
+            grabbedItem.dead = true;
+            dropItem();
+        }
 //</editor-fold>
-            if((targetItem!=null||grabbedItem!=null)&&target!=null){
-                targetItem = null;
-                target = null;
-            }
-            //<editor-fold defaultstate="collapsed" desc="WASD Movement">
-            boolean move = false;
-            if(Keyboard.isKeyDown(Controls.up)){
-                if(selectedTarget==null)selectedTarget = new double[]{x+width/2,y+height/2};
-                selectedTarget[1]-=speed;
-                move = true;
-            }
-            if(Keyboard.isKeyDown(Controls.left)){
-                if(selectedTarget==null)selectedTarget = new double[]{x+width/2,y+height/2};
-                selectedTarget[0]-=speed;
-                move = true;
-            }
-            if(Keyboard.isKeyDown(Controls.down)){
-                if(selectedTarget==null)selectedTarget = new double[]{x+width/2,y+height/2};
-                selectedTarget[1]+=speed;
-                move = true;
-            }
-            if(Keyboard.isKeyDown(Controls.right)){
-                if(selectedTarget==null)selectedTarget = new double[]{x+width/2,y+height/2};
-                selectedTarget[0]+=speed;
-                move = true;
-            }
-            if(selectedTarget!=null&&move){
-                move(selectedTarget);
-                selectedTarget = null;
-            }
-            if(grabbedItem!=null){
-                grabbedItem.x = x;
-                grabbedItem.y = y-10;
-            }
-//</editor-fold>
-            target = null;
-            targetItem = null;
-        }else{
-            selectedTarget = null;
-            //<editor-fold defaultstate="collapsed" desc="Grab Item">
-            if((!game.droppedItems.isEmpty())&&grabbedItem==null){
-                for(DroppedItem item : game.droppedItems){
-                    if(Core.distance(this, item.x+item.width/2, item.y+item.height/2)<=10){
-                        game.droppedItems.remove(item);
-                        grabbedItem = item;
-                        targetItem = null;
-                        target = null;
-                        break;
-                    }
-                }
-            }
-    //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="Put away Item">
-            if(grabbedItem!=null&&Core.distance(this, game.base.x+game.base.width/2,game.base.y+game.base.width-12.5)<15){
-                game.addResources(grabbedItem.item);
-                grabbedItem.dead = true;
-                dropItem();
-            }
-    //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="Go to Item">
-            if(targetItem==null&&grabbedItem==null){
+        //<editor-fold defaultstate="collapsed" desc="Go to Item">
+        if(targetItem==null&&grabbedItem==null){
+            synchronized(game.droppedItems){
                 Collections.sort(game.droppedItems, (o1, o2) -> {
+                    if(o1.item.priority!=o2.item.priority){
+                        return o2.item.priority-o1.item.priority;
+                    }
                     float x1 = (int)o1.x-(int)x, y1 = (int)o1.y-(int)y;
                     float x2 = (int)o2.x-(int)x, y2 = (int)o2.y-(int)y;
                     return (int)Math.sqrt(x1*x1+y1*y1)-(int)Math.sqrt(x2*x2+y2*y2);
@@ -241,66 +149,74 @@ public class Worker extends GameObject{
                     break;
                 }
             }
-            if(targetItem!=null&&grabbedItem==null){
-                target = new double[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
-            }
-    //</editor-fold>
-            //<editor-fold defaultstate="collapsed" desc="Head to base">
-            if(((game.droppedItems.isEmpty())&&grabbedItem==null)||grabbedItem!=null){
-                target = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height-12.5};
-            }
-    //</editor-fold>
-            if(!game.safe(this)){
-                if(grabbedItem!=null){
-                    game.droppedItems.add(grabbedItem);
-                }
-                dropItem();
+        }
+//</editor-fold>
+        if(targetItem!=null&&grabbedItem==null){
+            target = new double[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
+            //<editor-fold defaultstate="collapsed" desc="Grab Item">
+            if(Core.distance(this, targetItem.x+targetItem.width/2, targetItem.y+targetItem.height/2)<=10){
+                game.droppedItems.remove(targetItem);
+                grabbedItem = targetItem;
                 targetItem = null;
-                //<editor-fold defaultstate="collapsed" desc="Run">
-                target = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height-12.5};
+                target = null;
+            }
+        }
+//</editor-fold>
+        if(!game.safe(this)){
+            if(grabbedItem!=null){
+                game.droppedItems.add(grabbedItem);
+            }
+            dropItem();
+            targetItem = null;
+            //<editor-fold defaultstate="collapsed" desc="Run">
+            target = null;
+            synchronized(game.buildings){
                 for(Building building : game.buildings){
                     if(building.type==BuildingType.SHIELD_GENERATOR){
                         target = new double[]{building.x+building.width/2,building.y+building.height/2};
                     }
                 }
-                for(Building building : game.buildings){
-                    if(building.type==BuildingType.BUNKER){
-                        target = new double[]{building.x+building.width/2,building.y+building.height/2};
-                    }
-                }
-//</editor-fold>
-            }
-            //<editor-fold defaultstate="collapsed" desc="Movement">
-            if(target!=null){
-                move(target);
-                if(grabbedItem!=null){
-                    grabbedItem.x = x;
-                    grabbedItem.y = y-10;
-                }
-                if(Core.distance(this,target[0],target[1])<=workerSpeed){
-                    target = null;
-                }
             }
 //</editor-fold>
         }
+        if(target==null&&base!=null){
+            target = new double[]{base.getWorkerX(),base.getWorkerY()};
+        }
+        //<editor-fold defaultstate="collapsed" desc="Movement">
+        if(target!=null&&runningFrom==null){
+            move(target);
+            if(grabbedItem!=null){
+                grabbedItem.x = x;
+                grabbedItem.y = y-10;
+            }
+            if(Core.distance(this,target[0],target[1])<=workerSpeed){
+                target = null;
+            }
+        }
+//</editor-fold>
         synchronized(game.workers){
             for(Iterator<Worker> it = game.workers.iterator(); it.hasNext();){
                 Worker c = it.next();
                 if(targetItem==c.grabbedItem){
                     targetItem = null;
+                    target = null;
                 }
             }
         }
         if(y+width>Display.getHeight()){
+            if(base==null)dead = true;
             y = Display.getHeight()-height;
         }
         if(x+height>Display.getWidth()){
+            if(base==null)dead = true;
             x = Display.getWidth()-width;
         }
         if(x<0){
+            if(base==null)dead = true;
             x=0;
         }
         if(y<0){
+            if(base==null)dead = true;
             y=0;
         }
     }
@@ -311,39 +227,20 @@ public class Worker extends GameObject{
     public boolean isWorking(){
         return task!=null||targetTask!=null;
     }
-    @Deprecated
-    public void cancelTask(){
-        if(task==null){
-            if(game.selectedBuilding!=null&&game.selectedBuilding.task!=null){
-                game.selectedBuilding.task.cancel();
-                game.selectedBuilding.task = null;
-            }
-            return;
-        }
-        task.cancel();
-        task.building.task = null;
-        task = null;
-    }
     private void finishTask(){
+        Base base = getClosestBase();
         if(task instanceof TaskDemolish){
-            x = Core.game.base.x+Core.game.base.width/2;
-            y = Core.game.base.y+Core.game.base.height/2;
+            x = base.getWorkerX();
+            y = base.getWorkerY();
         }
         task.finishTask();
         task.building.task = null;
         task = null;
     }
     public boolean isAvailable(){
-        return !(dead||isWorking()||grabbedItem!=null||game.selectedWorker==this);
+        return !(dead||isWorking()||grabbedItem!=null);
     }
     public void damage(double x, double y){
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.BUNKER){
-                if(Core.distance(this, building)<=50){
-                    return;
-                }
-            }
-        }
         dead = true;
     }
     private void move(double[] location){
@@ -378,5 +275,25 @@ public class Worker extends GameObject{
             }
         }
         grabbedItem = null;
+    }
+    private Base getClosestBase(){
+        Base closest = null;
+        double dist = 0;
+        for(Building b : game.buildings){
+            if(b instanceof Base){
+                if(((Base) b).deathTick>=0)continue;
+                double d = Core.distance(this, ((Base) b).getWorkerX(),((Base) b).getWorkerY());
+                if(closest==null||d<dist){
+                    closest = (Base) b;
+                    dist = d;
+                }
+            }
+        }
+        return closest;
+    }
+    private double getClosestBaseDistance(){
+        Base base = getClosestBase();
+        if(base==null)return -1;
+        return Core.distance(this, base.getWorkerX(),base.getWorkerY());
     }
 }

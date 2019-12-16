@@ -2,12 +2,14 @@ package planetaryprotector.building;
 import java.util.ArrayList;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.Core;
-import planetaryprotector.enemy.MenuComponentEnemy;
+import planetaryprotector.enemy.Enemy;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
+import planetaryprotector.event.BuildingChangeEventListener;
+import planetaryprotector.menu.MenuGame;
+import planetaryprotector.particle.Particle;
 import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.drawRect;
-public class ShieldGenerator extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
+public class ShieldGenerator extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable, BuildingChangeEventListener{
     public double shieldSize = 0;
     public double maxShieldSize = 500;
     public double shieldStrength = 1;
@@ -17,6 +19,7 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     public final Shield shield;
     public boolean shieldOutline = false;
     private double power = 0;
+    public Building projectorTarget;
     public ShieldGenerator(double x, double y){
         super(x, y, 100, 100, BuildingType.SHIELD_GENERATOR);
         shield = new Shield(this);
@@ -40,9 +43,9 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
             blastRecharge++;
             double size = (Display.getWidth()*1.8)-(((-blastRecharge)%10)*(Display.getWidth()/5));
             shieldSize = size;
-            Core.game.pushParticles(x+width/2, y+height/2, size, size/50);
+            Core.game.pushParticles(x+width/2, y+height/2, size, size/50, Particle.PushCause.SHEILD_BLAST);
             if(size==0){
-                for(MenuComponentEnemy enemy : Core.game.enemies){
+                for(Enemy enemy : Core.game.enemies){
                     enemy.dead = true;
                 }
                 Core.game.meteorShower = false;
@@ -60,6 +63,9 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
             }
         }//</editor-fold>
         double surface = 2*Math.PI*Math.pow(shieldSize/2,2);
+        if(projectorTarget!=null){
+            surface+=projectorTarget.getBuildingHeight()*4+10_000;
+        }
         double powerDrawFactor = 50_000D;
         power -= surface/powerDrawFactor;
         double maxSurface = power/100*powerDrawFactor;
@@ -76,12 +82,11 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
         shieldSize = Math.max(0, Math.min(maxShieldSize, shieldSize));
     }
     @Override
-    public void draw(){
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
-        renderDamages();
-        drawMouseover();
+    public void drawForeground(){
+        MenuGame.theme.applyTextColor();
         drawCenteredText(x, y, x+width, y+20, (int)power+":"+(int)shieldSize);
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public int getMaxLevel(){
@@ -120,6 +125,7 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
         cfg.set("strength", shieldStrength);
         cfg.set("oldPower", oldPower);
         cfg.set("shieldOutline", shieldOutline);
+        cfg.set("target", projectorTarget==null?-1:projectorTarget.getIndex());
         return cfg;
     }
     public static ShieldGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
@@ -140,10 +146,6 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
     @Override
     protected double getIgnitionChance(){
         return .8;
-    }
-    @Override
-    public String getName(){
-        return "Level "+getLevel()+" Shield Generator";
     }
     private double getStats(int level){
         return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
@@ -184,5 +186,46 @@ public class ShieldGenerator extends Building implements BuildingPowerConsumer, 
         data.add("Can Blast: "+canBlast);
         data.add("Shield outline: "+shieldOutline);
         data.add("Power: "+power);
+        data.add("Projector target: "+(projectorTarget==null?"NONE":projectorTarget.toString()));
+    }
+    public void setProjectorTarget(Building building){
+        if(projectorTarget!=null){
+            projectorTarget.shield = null;
+        }
+        projectorTarget = building;
+        if(projectorTarget!=null){
+            projectorTarget.shield = this;
+        }
+    }
+    @Override
+    public void onBuildingChange(Building from, Building to){
+        if(projectorTarget==from)setProjectorTarget(to);
+    }
+    @Override
+    public void postLoad(MenuGame game, Config config) {
+        super.postLoad(game, config);
+        int index = config.get("target", -1);
+        if(index!=-1){
+            projectorTarget = game.buildings.get(index);
+        }
+    }
+    /**
+     * Damage the shield
+     * @return true if the shield successfully absorbed the hit
+     */
+    public boolean shieldHit(){
+        setShieldSize(getShieldSize() - 100);
+        if(getShieldSize()>0){
+            return true;
+        }
+        setShieldSize(0);
+        return false;
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return false;
+    }
+    public double getProjectedShieldStrength(){
+        return Math.min(1, shieldSize/100);
     }
 }

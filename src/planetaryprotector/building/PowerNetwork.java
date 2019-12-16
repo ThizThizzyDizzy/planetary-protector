@@ -1,7 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
@@ -84,21 +83,18 @@ public class PowerNetwork{
                 }
             }
         }
-        Collections.sort(supply, new Comparator<Building>(){//power storage CAN send power to itself, this will give the illusion of discharge rate decreasing as its charge decreases, and never hitting zero.
-            @Override
-            public int compare(Building o1, Building o2){
-                boolean r1 = ((BuildingPowerProducer)o1).isRenewable();
-                boolean r2 = ((BuildingPowerProducer)o2).isRenewable();
-                boolean s1 = o1 instanceof BuildingPowerStorage;
-                boolean s2 = o2 instanceof BuildingPowerStorage;
-                int i1 = 0;
-                int i2 = 0;
-                if(r1)i1 = 1;
-                if(r2)i2 = 1;
-                if(s1)i1 = -1;
-                if(s2)i2 = -1;
-                return i2-i1;
-            }
+        Collections.sort(supply, (Building o1, Building o2) -> {//power storage CAN send power to itself, this will give the illusion of discharge rate decreasing as its charge decreases, and never hitting zero.
+            boolean r1 = ((BuildingPowerProducer)o1).isRenewable();
+            boolean r2 = ((BuildingPowerProducer)o2).isRenewable();
+            boolean s1 = o1 instanceof BuildingPowerStorage;
+            boolean s2 = o2 instanceof BuildingPowerStorage;
+            int i1 = 0;
+            int i2 = 0;
+            if(r1)i1 = 1;
+            if(r2)i2 = 1;
+            if(s1)i1 = -1;
+            if(s2)i2 = -1;
+            return i2-i1;
         });
     }
     private void distributePower(double power){
@@ -127,7 +123,7 @@ public class PowerNetwork{
         for(Building b : demand){
             if(Core.debugMode){
                 GL11.glColor4d(.8, 0, 0, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 25, 0);
+                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(1, 0, 0, 1);
@@ -138,7 +134,7 @@ public class PowerNetwork{
             if(Core.debugMode){
                 GL11.glColor4d(0, .3, .9, 1);
                 if(((BuildingPowerProducer)b).isRenewable())GL11.glColor4d(0, .5, 1, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 25, 0);
+                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(1, 0, 0, 1);

@@ -1,4 +1,5 @@
 package planetaryprotector.enemy;
+import org.lwjgl.opengl.Display;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
@@ -7,7 +8,7 @@ import planetaryprotector.building.Building;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import simplelibrary.opengl.ImageStash;
-public class EnemyLaserMeteor extends MenuComponentEnemy{
+public class EnemyLaserMeteor extends Enemy{
     public int initialDelay = 20*5;
     public double laserPower = 1.5;
     public double laserTime = 20*30;
@@ -22,7 +23,7 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
         if(location==null){
             location = EnemyMeteorStrike.getBestStrike();
             if(location==null){
-                location = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height/2};
+                location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
             }
         }
         loc = location;
@@ -33,7 +34,6 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
     }
     @Override
     public void render(){
-        removeRenderBound();
         if(laserFiring!=null){
             double xDiff = laserFiring[0]-x;
             double yDiff = laserFiring[1]-y;
@@ -69,7 +69,6 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
         }
         if(dead){
             increase = true;
-            game.componentsToRemove.add(this);
             game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<maxStrength){
                 strength++;
@@ -81,7 +80,7 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
             strike.x = loc[0];
             strike.y = loc[1];
             strike.initialDelay = 0;
-            game.enemies.add(game.add(strike));
+            game.enemies.add(strike);
             meteor = true;
             increase = false;
         }
@@ -89,7 +88,7 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
             laserFiring = null;
             initialDelay++;
             if(initialDelay>=20*5){
-                game.componentsToRemove.add(this);
+                dead = true;
                 if(increase&&strength<maxStrength){
                     strength++;
                 }
@@ -128,6 +127,6 @@ public class EnemyLaserMeteor extends MenuComponentEnemy{
         }
         laserTime--;
         laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
-        gen.setShieldSize(gen.getShieldSize()-laserPower*75);
+        gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
 }

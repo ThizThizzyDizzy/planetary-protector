@@ -12,7 +12,6 @@ import planetaryprotector.menu.options.MenuOptions6;
 import planetaryprotector.menu.MenuMain;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.task.TaskType;
 import java.awt.Color;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -21,6 +20,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -28,8 +29,15 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.building.BuildingType;
+import planetaryprotector.building.task.TaskAnimated;
+import planetaryprotector.building.task.TaskType;
+import planetaryprotector.item.Item;
+import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
+import planetaryprotector.research.DiscoveryStage;
+import planetaryprotector.research.Research;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
@@ -65,6 +73,7 @@ public class Core extends Renderer2D{
     public static String discordLargeImageText;
     public static String discordSmallImageText;
     public static long discordEndTimestamp;
+    private static int fpsLimit = 60;
     public static void main(String[] args) throws NoSuchMethodException{
         helper = new GameHelper();
         helper.setBackground(new Color(0, 200, 255));
@@ -72,7 +81,7 @@ public class Core extends Renderer2D{
         helper.setRenderInitMethod(Core.class.getDeclaredMethod("renderInit", new Class<?>[0]));
         helper.setTickInitMethod(Core.class.getDeclaredMethod("tickInit", new Class<?>[0]));
         helper.setFinalInitMethod(Core.class.getDeclaredMethod("finalInit", new Class<?>[0]));
-        helper.setMaximumFramerate(60);
+        helper.setMaximumFramerate(fpsLimit);
         helper.setRenderMethod(Core.class.getDeclaredMethod("render", int.class));
         helper.setTickMethod(Core.class.getDeclaredMethod("tick", boolean.class));
         helper.setUsesControllers(true);
@@ -96,6 +105,13 @@ public class Core extends Renderer2D{
                 }
             }
         }, null, helper);
+    }
+    public static void setFPSLimit(int limit){
+        fpsLimit = limit;
+        helper.setMaximumFramerate(limit);
+    }
+    public static int getFPSLimit(){
+        return fpsLimit;
     }
     public static void renderInit() throws LWJGLException{
         helper.frame.addWindowListener(new WindowAdapter(){
@@ -130,30 +146,7 @@ public class Core extends Renderer2D{
             }
         });
         gui = new GUI(is3D?GameHelper.MODE_HYBRID:GameHelper.MODE_2D, helper);
-        gui.open(new MenuMain(gui));
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            if(m==AsteroidMaterial.SHOOTING_STAR){
-                continue;
-//                for(int i = 0; i<40+36; i++){
-//                    m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
-//                }
-//                continue;
-            }
-            for(int i = 0; i<10; i++){
-                m.images[i] = ImageStash.instance.getTexture("/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png");
-                if(i<9) {
-                    m.images[i+10] = ImageStash.instance.getTexture("/textures/asteroids/crash/Step "+(i+1)+".png");
-                }
-            }
-        }
-        for(int i = 0; i<100; i++){
-            TaskType.WRECK_CLEAN.images[i] = ImageStash.instance.getTexture("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+(i+1)+".png");
-        }
-        for(ParticleEffectType p : ParticleEffectType.values()){
-            for(int i = 0; i<p.frames; i++){
-                p.images[i] = ImageStash.instance.getTexture("/textures/particles/"+p.texture+"/"+(i+1)+".png");
-            }
-        }
+        gui.open(new MenuLoadTextures(gui));
     }
     public static void tickInit() throws LWJGLException{
         loadOptions();
@@ -163,6 +156,20 @@ public class Core extends Renderer2D{
         if(Main.jLayer){
             Sounds.create();
             Sounds.enableAutoplay();
+        }
+        MenuGame.refreshTheme();
+        for(AsteroidMaterial m : AsteroidMaterial.values()){
+            for(int i = 0; i<10; i++){
+                m.images[i] = "/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png";
+                if(i<9) {
+                    m.images[i+10] = "/textures/asteroids/crash/Step "+(i+1)+".png";
+                }
+            }
+        }
+        for(ParticleEffectType p : ParticleEffectType.values()){
+            for(int i = 0; i<p.frames; i++){
+                p.images[i] = "/textures/particles/"+p.texture+"/"+(i+1)+".png";
+            }
         }
     }
     public static void tick(boolean isLastTick){
@@ -207,7 +214,6 @@ public class Core extends Renderer2D{
     }
     public static void saveOptions(){
         Config config = Config.newConfig(Main.getAppdataRoot()+"\\options.cfg");
-        config.load();
         config.set("level", latestLevel);
         config.set("song1", MenuOptions1.song1);
         config.set("song2", MenuOptions1.song2);
@@ -257,6 +263,7 @@ public class Core extends Renderer2D{
         config.set("particles", MenuOptionsGraphics.particles);
         config.set("cloudI", MenuOptionsGraphics.cloudIntensity);
         config.set("fogI", MenuOptionsGraphics.fogIntensity);
+        config.set("theme", MenuOptionsGraphics.theme);
         config.set("autosave", MenuOptions.autosave);
         config.save();
     }
@@ -312,8 +319,8 @@ public class Core extends Renderer2D{
         MenuOptionsGraphics.particles = config.get("particles", 1);
         MenuOptionsGraphics.cloudIntensity = config.get("cloudI", MenuOptionsGraphics.cloudIntensity);
         MenuOptionsGraphics.fogIntensity = config.get("fogI", MenuOptionsGraphics.fogIntensity);
+        MenuOptionsGraphics.theme = config.get("theme", MenuOptionsGraphics.theme);
         MenuOptions.autosave = config.get("autosave", MenuOptions.autosave);
-        config.save();
     }
     public static long getFPS(){
         return FPStracker.size()/5;
@@ -403,5 +410,131 @@ public class Core extends Renderer2D{
                 DiscordRPC.INSTANCE.Discord_Shutdown();
             }
         }
+    }
+    /*
+        extra draw methods Borrowed from simplelibrary extended
+    */
+    public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
+        if(quality<3){
+            throw new IllegalArgumentException("A polygon must have at least 3 sides!");
+        }
+        ImageStash.instance.bindTexture(texture);
+        GL11.glBegin(GL11.GL_TRIANGLES);
+        double angle = 0;
+        for(int i = 0; i<quality; i++){
+            GL11.glVertex2d(x, y);
+            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X, Y);
+            angle+=(360D/quality);
+            X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X, Y);
+        }
+        GL11.glEnd();
+    }
+    public static void drawOval(double x, double y, double xRadius, double yRadius, double xThickness, double yThickness, int quality, int texture){
+        drawOval(x, y, xRadius, yRadius, xThickness, yThickness, quality, texture, 0, quality-1);
+    }
+    public static void drawOval(double x, double y, double xRadius, double yRadius, double thickness, int quality, int texture){
+        drawOval(x, y, xRadius, yRadius, thickness, thickness, quality, texture, 0, quality-1);
+    }
+    public static void drawOval(double x, double y, double xRadius, double yRadius, double thickness, int quality, int texture, int left, int right){
+        drawOval(x, y, xRadius, yRadius, thickness, thickness, quality, texture, left, right);
+    }
+    public static void drawOval(double x, double y, double xRadius, double yRadius, double xThickness, double yThickness, int quality, int texture, int left, int right){
+        if(quality<3){
+            throw new IllegalArgumentException("Quality must be >=3!");
+        }
+        while(left<0)left+=quality;
+        while(right<0)right+=quality;
+        while(left>quality)left-=quality;
+        while(right>quality)right-=quality;
+        ImageStash.instance.bindTexture(texture);
+        GL11.glBegin(GL11.GL_QUADS);
+        double angle = 0;
+        for(int i = 0; i<quality; i++){
+            boolean inRange = false;
+            if(left>right)inRange = i>=left||i<=right;
+            else inRange = i>=left&&i<=right;
+            if(inRange){
+                double X = x+Math.cos(Math.toRadians(angle-90))*xRadius;
+                double Y = y+Math.sin(Math.toRadians(angle-90))*yRadius;
+                GL11.glVertex2d(X, Y);
+                X = x+Math.cos(Math.toRadians(angle-90))*(xRadius-xThickness);
+                Y = y+Math.sin(Math.toRadians(angle-90))*(yRadius-yThickness);
+                GL11.glVertex2d(X, Y);
+            }
+            angle+=(360D/quality);
+            if(inRange){
+                double X = x+Math.cos(Math.toRadians(angle-90))*(xRadius-xThickness);
+                double Y = y+Math.sin(Math.toRadians(angle-90))*(yRadius-yThickness);
+                GL11.glVertex2d(X, Y);
+                X = x+Math.cos(Math.toRadians(angle-90))*xRadius;
+                Y = y+Math.sin(Math.toRadians(angle-90))*yRadius;
+                GL11.glVertex2d(X, Y);
+            }
+        }
+        GL11.glEnd();
+    }
+    public static void drawHorizontalLine(double x1, double y, double x2, double thickness, int texture){
+        drawRect(x1, y-thickness/2, x2, y+thickness/2, texture);
+    }
+    public static void drawVerticalLine(double x, double y1, double y2, double thickness, int texture){
+        drawRect(x-thickness/2, y1, x+thickness/2, y2, texture);
+    }
+    public static void drawCosGear(double x, double y, double averageRadius, double toothSize, int teeth, int texture, double rot){
+        drawCosGear(x, y, averageRadius, toothSize, teeth, texture, rot, 10);
+    }
+    public static void drawCosGear(double x, double y, double averageRadius, double toothSize, int teeth, int texture, double rot, int resolution){
+        if(teeth<3){
+            throw new IllegalArgumentException("A gear must have at least 3 teeth!");
+        }
+        ImageStash.instance.bindTexture(texture);
+        GL11.glBegin(GL11.GL_TRIANGLES);
+        double angle = rot;
+        double radius = averageRadius+toothSize/2;
+        for(int i = 0; i<teeth*resolution; i++){
+            GL11.glVertex2d(x, y);
+            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X,Y);
+            angle+=(360d/(teeth*resolution));
+            if(angle>=360)angle-=360;
+            radius = averageRadius+(toothSize/2)*Math.cos(Math.toRadians(teeth*(angle-rot)));
+            X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X,Y);
+        }
+        GL11.glEnd();
+    }
+    public static void drawHollowCosGear(double x, double y, double holeRadius, double averageRadius, double toothSize, int teeth, int texture, double rot){
+        drawCosGear(x, y, averageRadius, toothSize, teeth, texture, rot, 10);
+    }
+    public static void drawHollowCosGear(double x, double y, double holeRadius, double averageRadius, double toothSize, int teeth, int texture, double rot, int resolution){
+        if(teeth<3){
+            throw new IllegalArgumentException("A gear must have at least 3 teeth!");
+        }
+        ImageStash.instance.bindTexture(texture);
+        GL11.glBegin(GL11.GL_TRIANGLES);
+        double angle = rot;
+        double radius = averageRadius+toothSize/2;
+        for(int i = 0; i<teeth*resolution; i++){
+            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X, Y);
+            X = x+Math.cos(Math.toRadians(angle-90))*holeRadius;
+            Y = y+Math.sin(Math.toRadians(angle-90))*holeRadius;
+            GL11.glVertex2d(X, Y);
+            angle+=(360d/(teeth*resolution));
+            radius = averageRadius+(toothSize/2)*Math.cos(Math.toRadians(teeth*(angle-rot)));
+            X = x+Math.cos(Math.toRadians(angle-90))*holeRadius;
+            Y = y+Math.sin(Math.toRadians(angle-90))*holeRadius;
+            GL11.glVertex2d(X, Y);
+            X = x+Math.cos(Math.toRadians(angle-90))*radius;
+            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
+            GL11.glVertex2d(X, Y);
+        }
+        GL11.glEnd();
     }
 }

@@ -41,7 +41,7 @@ public class MenuLost extends Menu{
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
         if(key==Keyboard.KEY_ESCAPE){
-            gui.open(new MenuMain(gui));
+            gui.open(new MenuMain(gui, true));
         }
     }
     @Override
@@ -74,9 +74,9 @@ public class MenuLost extends Menu{
                         }
                     });
                 }
-                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth(), 50, 2);
+                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth(), 50, 2, Particle.PushCause.EXPLOSION);
             }else{
-                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth()/8, 4, .2);
+                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth()/8, 4, .2, Particle.PushCause.EXPLOSION);
             }
         }
     }
@@ -92,7 +92,7 @@ public class MenuLost extends Menu{
         if(tick<20*34){//on the planet
             //<editor-fold defaultstate="collapsed" desc="Planet surface">
             if(gottenFar){
-                gui.open(new MenuMain(gui));
+                gui.open(new MenuMain(gui, true));
                 return;
             }
             super.render(millisSinceLastTick);

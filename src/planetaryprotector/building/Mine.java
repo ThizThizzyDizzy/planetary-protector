@@ -1,5 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
+import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.DroppedItem;
@@ -9,6 +10,7 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     private int timer = 0;
     private int delay = 20;
     private double power;
+    private boolean powerTools = true;//used for every-other-tick double items
     public Mine(double x, double y){
         super(x,y,100,100,BuildingType.MINE);
     }
@@ -31,15 +33,18 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
         double itemY = y+MenuGame.rand.nextInt(79)+11;
         itemX-=5;
         itemY-=5;
-        Core.game.addItem(new DroppedItem(itemX, itemY, randomItem(), Core.game));
+        Core.game.addItem(new DroppedItem(itemX, itemY, randomItem()));
     }
     @Override
     public void update(){
         if(timer<=0){
             deployItem();
             if(hasUpgrade(Upgrade.POWER_TOOLS)&&power>=5&&canDeployItem()){
-                if(MenuGame.rand.nextBoolean()){
+                if(powerTools){
                     deployItem();//1.5x items with power tools
+                    powerTools = false;
+                }else{
+                    powerTools = true;
                 }
                 power-=5;
             }
@@ -49,12 +54,12 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
         super.update();
     }
     @Override
-    public void renderBackground() {
-        super.draw();
+    public void drawForeground(){
+        MenuGame.theme.applyTextColor();
         if(power>0)drawCenteredText(x, y, x+width, y+20, (int)power+"");
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        GL11.glColor4d(1, 1, 1, 1);
     }
-    public void draw(){}
     @Override
     public int getMaxLevel(){
         return 20;
@@ -63,12 +68,14 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     public Config save(Config cfg) {
         cfg.set("timer", timer);
         cfg.set("delay", delay);
+        cfg.set("powerTools", powerTools);
         return cfg;
     }
     public static Mine loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
         Mine mine = new Mine(x, y, level, upgrades);
         mine.timer = cfg.get("timer", mine.timer);
         mine.delay = cfg.get("delay", mine.delay);
+        mine.powerTools = cfg.get("powerTools", mine.powerTools);
         return mine;
     }
     @Override
@@ -78,10 +85,6 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     @Override
     protected double getIgnitionChance(){
         return 1/3d;
-    }
-    @Override
-    public String getName(){
-        return "Level "+getLevel()+" Mine";
     }
     @Override
     public void upgrade(){
@@ -119,5 +122,9 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
         data.add("Timer: "+timer);
         data.add("Delay: "+delay);
         data.add("Power: "+power);
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return true;
     }
 }

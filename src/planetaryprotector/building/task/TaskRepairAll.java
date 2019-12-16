@@ -9,6 +9,7 @@ import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.BuildingDamage;
 import java.util.ArrayList;
 import planetaryprotector.Core;
+import planetaryprotector.research.ResearchEvent;
 public class TaskRepairAll extends Task{
     ArrayList<BuildingDamage> damages = new ArrayList<>();
     private double initialFire;
@@ -41,7 +42,10 @@ public class TaskRepairAll extends Task{
                 }
                 break;
         }
-        return building.task==null&&building.damages.size()>0&&Core.game.hasResources(new ItemStack(building.type.repairCost[0].item, building.type.repairCost[0].count*building.damages.size()));
+        for(ItemStack s : building.type.repairCost){
+            if(!Core.game.hasResources(new ItemStack(s.item, s.count*building.damages.size())))return false;
+        }
+        return building.task==null&&building.damages.size()>0;
     }
     @Override
     public String[] getDetails(){
@@ -83,6 +87,9 @@ public class TaskRepairAll extends Task{
     }
     @Override
     public void finish(){
+        for(ItemStack stack : building.type.repairCost){
+            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count*damages.size()));
+        }
         building.damages.removeAll(damages);
         building.fire = building.fireIncreaseRate = building.fireDamage = 0;
         building.clearFires();
@@ -96,7 +103,9 @@ public class TaskRepairAll extends Task{
             return;
         }
         progress = (int) Math.round((1-damages.get(0).opacity)*time);
-        Core.game.removeResources(new ItemStack(building.type.repairCost[0].item, building.type.repairCost[0].count*damages.size()));
+        for(ItemStack stack : building.type.repairCost){
+            Core.game.removeResources(new ItemStack(stack.item, stack.count*damages.size()));
+        }
     }
     @Override
     public void onCancel(){
@@ -106,7 +115,7 @@ public class TaskRepairAll extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
             }
         }
     }

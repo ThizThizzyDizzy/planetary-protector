@@ -1,7 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Wreck extends Building{
     public int ingots;
@@ -15,11 +14,8 @@ public class Wreck extends Building{
         if(task!=null){
             return;
         }
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
-        drawMouseover();
+        drawRect(x, y, x+width, y+height, getTexture());
     }
-    @Override
-    public void draw(){}
     @Override
     public boolean onDamage(double x, double y){
         ingots = Math.max(0,ingots-10);
@@ -61,5 +57,9 @@ public class Wreck extends Building{
     protected void getBuildingDebugInfo(ArrayList<String> data) {
         data.add("Ingots: "+ingots);
         data.add("Progress: "+progress);
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return true;
     }
 }

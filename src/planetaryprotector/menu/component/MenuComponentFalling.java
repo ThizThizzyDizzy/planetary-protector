@@ -2,7 +2,6 @@ package planetaryprotector.menu.component;
 import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import org.lwjgl.opengl.Display;
-import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuComponentFalling extends MenuComponent{
     public double yVelocity;
@@ -13,7 +12,7 @@ public class MenuComponentFalling extends MenuComponent{
     }
     @Override
     public void render(){
-        if(!Core.game.baseGUI){
+        if(!Core.game.showUI){
             return;
         }
         removeRenderBound();
@@ -22,7 +21,7 @@ public class MenuComponentFalling extends MenuComponent{
                 return;
             }
         }
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/items/"+item.texture+".png"));
+        drawRect(x, y, x+width, y+height, item.getTexture());
     }
 
     @Override

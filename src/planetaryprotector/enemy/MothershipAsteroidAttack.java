@@ -2,8 +2,8 @@ package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import org.lwjgl.opengl.Display;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MothershipAsteroidAttack extends MenuComponent{
+import planetaryprotector.GameObject;
+public class MothershipAsteroidAttack extends GameObject{
     private final EnemyMothership ship;
     int type = 0;
     int types = 2;
@@ -15,7 +15,6 @@ public class MothershipAsteroidAttack extends MenuComponent{
     }
     int direction = 1;
     boolean out = false;
-    @Override
     public void tick(){
         time+=out?10:1;
         switch(type){
@@ -26,7 +25,6 @@ public class MothershipAsteroidAttack extends MenuComponent{
                         out = true;
                     }
                     if(radius<-Display.getWidth()*2){
-                        Core.game.componentsToRemove.add(this);
                         ship.asteroidAttack = null;
                     }
                     int c = 20;
@@ -52,7 +50,6 @@ public class MothershipAsteroidAttack extends MenuComponent{
                         out = true;
                     }
                     if(radius<-Display.getWidth()*2){
-                        Core.game.componentsToRemove.add(this);
                         ship.asteroidAttack = null;
                     }
                     int c = 20;

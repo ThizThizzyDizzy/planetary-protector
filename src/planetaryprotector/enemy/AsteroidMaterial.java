@@ -3,33 +3,23 @@ import planetaryprotector.menu.MenuGame;
 public enum AsteroidMaterial{
     STONE("stone", 250, 500),
     COAL("coal", 1000, 2000),
-    IRON("iron", 125, 250),
-    SHOOTING_STAR("star", -1, -1);
-    static{
-        SHOOTING_STAR.setSpeedMult(.5).forceDrop();
-        SHOOTING_STAR.images = new int[19*4];
-    }
+    IRON("iron", 125, 250);
     public static void resetTimers(){
         for(AsteroidMaterial material : values()){
             material.resetTimer();
         }
     }
-    public int[] images = new int[19];
+    public String[] images = new String[19];
     public int timer;
     public final String texture;
     public final int min;
     public final int max;
-    public double speedMult = 2;
     public boolean forceDrop = false;
     private AsteroidMaterial(String texture, int min, int max){
         this.texture = texture;
         this.min = min;
         this.max = max;
         resetTimer();
-    }
-    private AsteroidMaterial setSpeedMult(double mult){
-        speedMult = mult;
-        return this;
     }
     private AsteroidMaterial forceDrop(){
         forceDrop = true;

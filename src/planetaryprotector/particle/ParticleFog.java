@@ -2,7 +2,9 @@ package planetaryprotector.particle;
 import planetaryprotector.Core;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
+import simplelibrary.opengl.ImageStash;
 public class ParticleFog extends Particle{
     public static final double SIZE = 200;
     public ParticleFog(double x, double y, boolean air, double opacity){
@@ -19,39 +21,54 @@ public class ParticleFog extends Particle{
         if(dead){
             return;
         }
+        double lightness = 1;
+        double redTint = 0;
         switch(Core.game.phase){
             case 2:
-                GL11.glColor4d(.95, .95, .95, opacity*MenuOptionsGraphics.fogIntensity);
+                lightness = .95;
                 break;
             case 3:
-                GL11.glColor4d(.9, .9-.01, .9-.01, opacity*MenuOptionsGraphics.fogIntensity);
+                lightness = .9;
+                redTint = .01;
                 break;
             case 4:
                 if(Core.game.mothership!=null){
                     switch(Core.game.mothership.phase){
                         case 2:
-                            GL11.glColor4d(.7, .7-.01, .7-.01, opacity*MenuOptionsGraphics.fogIntensity);
+                            lightness = .7;
+                            redTint = .01;
                             break;
                         case 3:
-                            GL11.glColor4d(.65, .65-.01, .65-.01, opacity*MenuOptionsGraphics.fogIntensity);
+                            lightness = .65;
+                            redTint = .01;
                             break;
                         case 4:
-                            GL11.glColor4d(.6, .6-.01, .6-.01, opacity*MenuOptionsGraphics.fogIntensity);
+                            lightness = .6;
+                            redTint = .01;
                             break;
                         case 1:
                         default:
-                            GL11.glColor4d(.75, .75-.01, .75-.01, opacity*MenuOptionsGraphics.fogIntensity);
+                            lightness = .75;
+                            redTint = .01;
                             break;
                     }
                     break;
                 }
             default:
-                GL11.glColor4d(1, 1, 1, opacity*MenuOptionsGraphics.fogIntensity);
+                lightness = 1;
         }
+        if(MenuGame.theme==MenuGame.Theme.SPOOKY){
+            redTint+=.01;
+            lightness-=.125;
+        }
+        if(MenuGame.theme==MenuGame.Theme.SNOWY){
+            lightness = Math.sqrt(lightness);
+        }
+        GL11.glColor4d(lightness, lightness-redTint, lightness-redTint, opacity*MenuOptionsGraphics.fogIntensity);
         GL11.glPushMatrix();
         GL11.glTranslated(x+width/2, y+height/2, 0);
         GL11.glRotated(rotation, 0, 0, 1);
-        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
+        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
         GL11.glPopMatrix();
         GL11.glColor4d(1, 1, 1, 1);
     }

@@ -17,6 +17,8 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
     private int textHeight = 15;
     private double yOff;
     private double power;
+    private double summonThreshold = 500;
+    private int shootTimer = -1;
     public Observatory(double x, double y){
         super(x, y, 100, 100, BuildingType.OBSERVATORY);
     }
@@ -31,7 +33,9 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         collecting = Math.min(collecting, power/powerPerStarlight);
         starlight += collecting;
         power-=collecting*powerPerStarlight;
-        scan.clear();
+        synchronized(scan){
+            scan.clear();
+        }
         if(scanning>0){
             if(starlight<scanCost){
                 scanning = 1;
@@ -46,30 +50,15 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
                 scan();
             }
         }
+        if(shootTimer>=0)shootTimer++;
+        if(shootTimer>=20)shootTimer = -1;
     }
     @Override
     public void draw(){
         super.draw();
         GL11.glColor4d(1, 1, 1, 1);
-        drawCenteredText(x, y, x+width, y+15, "Power: "+Math.round(power));
-        if(scanning==1){
-            drawCenteredText(x, y+15, x+width, y+30, "Charging");
-        }
-        if(scanning==2){
-            drawCenteredText(x, y+15, x+width, y+30, "Scanning");
-        }
-        if(!scan.isEmpty()){
-            yOff = height-scan.size()*textHeight;
-            for(String str : scan){
-                text(str);
-            }
-        }
-        double laserSize = (size/starlightSpeed)*collecting;
-        if(starlight>0){
-            drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
-        }
-        if(collecting>0){
-            drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
+        double laserSize = Math.max((size/starlightSpeed)*collecting,shootTimer>10?20-shootTimer:shootTimer);
+        if(laserSize>0){
             double yDiff = -y-100;
             double dist = Math.abs(yDiff);
             GL11.glColor4d(.8, .8, 1, 1);//big outer one
@@ -87,6 +76,29 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
             drawRect(x+1, y+61, x+(width*(1-Core.game.getSunlight()))-1, y+69, 0);
             GL11.glColor4d(1, 1, 1, 1);
         }
+        MenuGame.theme.applyTextColor();
+        drawCenteredText(x, y, x+width, y+15, "Power: "+Math.round(power));
+        if(scanning==1){
+            drawCenteredText(x, y+15, x+width, y+30, "Charging");
+        }
+        if(scanning==2){
+            drawCenteredText(x, y+15, x+width, y+30, "Scanning");
+        }
+        if(!scan.isEmpty()){
+            yOff = height-scan.size()*textHeight;
+            synchronized(scan){
+                for(String str : scan){
+                    text(str);
+                }
+            }
+        }
+        if(starlight>0){
+            drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
+        }
+        if(collecting>0){
+            drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
+        }
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public int getMaxLevel(){
@@ -165,10 +177,6 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         return true;
     }
     @Override
-    public String getName(){
-        return "Observatory";
-    }
-    @Override
     public double getMaxPower(){
         return 1000;
     }
@@ -210,5 +218,22 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         data.add("Scanning: "+scanning);
         data.add("Collecting: "+collecting);
         data.add("power: "+power);
+    }
+    public boolean canSummonStar(){
+        return starlight>=summonThreshold&&Core.game.secretWaiting==-1;
+    }
+    public void summonStar(){
+        if(!canSummonStar())return;
+        starlight-=summonThreshold;
+        Core.game.secretWaiting = 0;
+        shootTimer = 0;
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return false;
+    }
+    @Override
+    public int getBuildingHeight(){
+        return 10;
     }
 }

@@ -8,7 +8,6 @@ import planetaryprotector.building.Skyscraper;
 import planetaryprotector.item.ItemStack;
 import java.util.ArrayList;
 import planetaryprotector.Core;
-import planetaryprotector.friendly.Worker;
 public class TaskDemolish extends Task{
     public TaskDemolish(Building building){
         super(building, TaskType.CONSTRUCT, 200);

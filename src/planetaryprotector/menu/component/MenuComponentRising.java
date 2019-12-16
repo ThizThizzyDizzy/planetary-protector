@@ -2,7 +2,6 @@ package planetaryprotector.menu.component;
 import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import org.lwjgl.opengl.GL11;
-import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuComponentRising extends MenuComponent{
     public final Item item;
@@ -19,11 +18,11 @@ public class MenuComponentRising extends MenuComponent{
                 return;
             }
         }
-        if(!Core.game.baseGUI){
+        if(!Core.game.showUI){
             return;
         }
         GL11.glColor4d(1, 1, 1, opacity);
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/items/"+item.texture+".png"));
+        drawRect(x, y, x+width, y+height, item.getTexture());
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override

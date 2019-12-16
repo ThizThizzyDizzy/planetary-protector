@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.component.GameObjectAnimated;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -29,6 +30,7 @@ public class Particle extends GameObjectAnimated{
     //FIRE
     public boolean fading;
     public Lightning lightning = null;
+    private ArrayList<double[]> snow = new ArrayList<>();
     public Particle(double x, double y, ParticleEffectType type){
         this(x, y, type, 1);
     }
@@ -61,125 +63,134 @@ public class Particle extends GameObjectAnimated{
         if(dead){
             return;
         }
-        if(type==ParticleEffectType.EXPLOSION){
-            //smoke
-            for(int j = 0; j<5; j++){
-                int radius = this.radius+5*j;
-                int c = 90*(MenuOptionsGraphics.particles+1);
-                for(int i = 0; i<c; i++){
-                    double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
-                    double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
-                    GL11.glColor4d(0, 0, 0, opacity);
-                    drawRect(X, Y, X+width, Y+height, ParticleEffectType.SMOKE.images[0]);
-                    GL11.glColor4d(1, 1, 1, 1);
-                }
-            }
-            //explosion
-            for(int j = 0; j<10; j++){
-                double radius = this.radius/10D+2*j;
-                int c = 22*(MenuOptionsGraphics.particles+1);
-                for(int i = 0; i<45; i++){
-                    double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
-                    double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
-                    GL11.glColor4d(1, opacity, 0, opacity);
-                    drawRect(X, Y, X+width, Y+height, images[0]);
-                    GL11.glColor4d(1, 1, 1, 1);
-                }
-            }
-            return;
-        }
-        if(type==ParticleEffectType.SMOKE){
-            GL11.glColor4d(0, 0, 0, opacity);
-            GL11.glPushMatrix();
-            GL11.glTranslated(x+width/2, y+height/2, 0);
-            GL11.glRotated(rotation, 0, 0, 1);
-            drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-            GL11.glPopMatrix();
-            GL11.glColor4d(1, 1, 1, 1);
-            return;
-        }
-        if(type==ParticleEffectType.CLOUD){
-            if(strength>lightningThreshold){
-                //add lightning
-                if(lightning==null&&Core.game.rand.nextDouble()*strength>lightningThreshold&&Core.game.rand.nextDouble()<lightningChance){
-                    lightning = new Lightning();
-                    double lastX = 0;
-                    double lastY = 0;
-                    double Y = 0;
-                    double X = 0;
-                    while(Y<400){
-                        Y = lastY+Core.game.rand.nextInt(40)+10;
-                        X = lastX+(Core.game.rand.nextDouble()-.5)*30;
-                        lightning.addLine(x+width/2+lastX, y+height/2+lastY, x+width/2+X, y+height/2+Y);
-                        if(Core.game.rand.nextBoolean()){
-                            double YY = lastY+Core.game.rand.nextInt(40)+10;
-                            double XX = lastX+(Core.game.rand.nextDouble()-.5)*30;
-                            lightning.addBranch(x+width/2+lastX, y+height/2+lastY, x+width/2+XX, y+height/2+YY);
-                        }
-                        lastX = X;
-                        lastY = Y;
+        switch(type){
+            case EXPLOSION:
+                //smoke
+                for(int j = 0; j<5; j++){
+                    int radius = this.radius+5*j;
+                    int c = 90*(MenuOptionsGraphics.particles+1);
+                    for(int i = 0; i<c; i++){
+                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
+                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
+                        GL11.glColor4d(0, 0, 0, opacity);
+                        drawRect(X, Y, X+width, Y+height, ImageStash.instance.getTexture(ParticleEffectType.SMOKE.images[0]));
+                        GL11.glColor4d(1, 1, 1, 1);
                     }
-                    drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+1, 0);
                 }
-            }
-            if(strength>rainThreshold){
-                //draw rain
-                GL11.glColor4d(0, 0, 1, .75*MenuOptionsGraphics.cloudIntensity);
-                for(int i = 0; i<strength; i++){
-                    double X = Core.game.rand.nextInt((int)width)-width/2;
-                    double Y = Core.game.rand.nextInt((int)(height+500))-height/2;
-                    drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+5, 0);
+                //explosion
+                for(int j = 0; j<10; j++){
+                    double radius = this.radius/10D+2*j;
+                    int c = 22*(MenuOptionsGraphics.particles+1);
+                    for(int i = 0; i<45; i++){
+                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
+                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
+                        GL11.glColor4d(1, opacity, 0, opacity);
+                        drawRect(X, Y, X+width, Y+height, ImageStash.instance.getTexture(images[0]));
+                        GL11.glColor4d(1, 1, 1, 1);
+                    }
                 }
-            }
-            if(lightning!=null){
-                //draw lightning
-                lightning.render();
-                if(lightning.dead){
-                    lightning = null;
+                return;
+            case SMOKE:
+                GL11.glColor4d(0, 0, 0, opacity);
+                GL11.glPushMatrix();
+                GL11.glTranslated(x+width/2, y+height/2, 0);
+                GL11.glRotated(rotation, 0, 0, 1);
+                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                GL11.glPopMatrix();
+                GL11.glColor4d(1, 1, 1, 1);
+                return;
+            case CLOUD:
+                if(strength>lightningThreshold){
+                    //add lightning
+                    if(lightning==null&&Core.game.rand.nextDouble()*strength>lightningThreshold&&Core.game.rand.nextDouble()<lightningChance){
+                        lightning = new Lightning();
+                        double lastX = 0;
+                        double lastY = 0;
+                        double Y = 0;
+                        double X = 0;
+                        while(Y<400){
+                            Y = lastY+Core.game.rand.nextInt(40)+10;
+                            X = lastX+(Core.game.rand.nextDouble()-.5)*30;
+                            lightning.addLine(x+width/2+lastX, y+height/2+lastY, x+width/2+X, y+height/2+Y);
+                            if(Core.game.rand.nextBoolean()){
+                                double YY = lastY+Core.game.rand.nextInt(40)+10;
+                                double XX = lastX+(Core.game.rand.nextDouble()-.5)*30;
+                                lightning.addBranch(x+width/2+lastX, y+height/2+lastY, x+width/2+XX, y+height/2+YY);
+                            }
+                            lastX = X;
+                            lastY = Y;
+                        }
+                        drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+1, 0);
+                    }
                 }
-            }
-            opacity = Math.log10(strength/(rainThreshold/4))*.75;
-            double lightness = 1-((strength-(rainThreshold*(3/4d)))/50);
-            GL11.glColor4d(lightness, lightness, lightness, opacity*MenuOptionsGraphics.cloudIntensity);
-            GL11.glPushMatrix();
-            GL11.glTranslated(x+width/2, y+height/2, 0);
-            GL11.glRotated(rotation, 0, 0, 1);
-            drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-            GL11.glPopMatrix();
-            GL11.glColor4d(1, 1, 1, 1);
-            return;
+                if(strength>rainThreshold){
+                    //draw rain
+                    if(MenuGame.theme==MenuGame.Theme.SNOWY){
+                        synchronized(snow){
+                            GL11.glColor4d(1, 1, 1, .875*MenuOptionsGraphics.cloudIntensity);
+                            for(double[] i : snow){
+                                drawRect(x+i[0]+width/2, y+i[1]+i[2]+height/2, x+i[0]+width/2+1, y+i[1]+i[2]+height/2+1, 0);
+                            }
+                        }
+                    }else{
+                        GL11.glColor4d(0, 0, 1, .75*MenuOptionsGraphics.cloudIntensity);
+                        for(int i = 0; i<strength; i++){
+                            double X = Core.game.rand.nextInt((int)width)-width/2;
+                            double Y = Core.game.rand.nextInt((int)(height+500))-height/2;
+                            drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+5, 0);
+                        }
+                    }
+                }
+                if(lightning!=null){
+                    //draw lightning
+                    lightning.render();
+                    if(lightning.dead){
+                        lightning = null;
+                    }
+                }
+                opacity = Math.log10(strength/(rainThreshold/4))*.75;
+                double lightness = 1-((strength-(rainThreshold*(3/4d)))/50);
+                if(MenuGame.theme==MenuGame.Theme.SNOWY)lightness = Math.sqrt(lightness);
+                GL11.glColor4d(lightness, lightness, lightness, opacity*MenuOptionsGraphics.cloudIntensity);
+                GL11.glPushMatrix();
+                GL11.glTranslated(x+width/2, y+height/2, 0);
+                GL11.glRotated(rotation, 0, 0, 1);
+                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                GL11.glPopMatrix();
+                GL11.glColor4d(1, 1, 1, 1);
+                return;
+            case FIRE:
+                synchronized(smoke){
+                    for(double[] i : smoke){
+                        double r = Math.max(0,Math.min(1,(10-i[4])/10));
+                        double g = Math.max(0,Math.min(1,(10-i[4])/20));
+                        GL11.glColor4d(r, g, 0, i[3]);
+                        GL11.glPushMatrix();
+                        GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
+                        GL11.glRotated(i[2], 0, 0, 1);
+                        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                        GL11.glPopMatrix();
+                    }
+                }
+                GL11.glColor4d(1, 1, 1, 1);
+                if(fading)return;
+                GL11.glColor4d(1, .5, 0, opacity);
+                GL11.glPushMatrix();
+                GL11.glTranslated(x+width/2, y+height/2, 0);
+                GL11.glRotated(rotation, 0, 0, 1);
+                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                GL11.glPopMatrix();
+                GL11.glColor4d(1, 1, 1, 1);
+                return;
+            default:
+                GL11.glColor4d(1, 1, 1, opacity);
+                GL11.glPushMatrix();
+                GL11.glTranslated(x+width/2, y+height/2, 0);
+                GL11.glRotated(rotation, 0, 0, 1);
+                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                GL11.glPopMatrix();
+                GL11.glColor4d(1, 1, 1, 1);
         }
-        if(type==ParticleEffectType.FIRE){
-            synchronized(smoke){
-                for(double[] i : smoke){
-                    double r = Math.max(0,Math.min(1,(10-i[4])/10));
-                    double g = Math.max(0,Math.min(1,(10-i[4])/20));
-                    GL11.glColor4d(r, g, 0, i[3]);
-                    GL11.glPushMatrix();
-                    GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
-                    GL11.glRotated(i[2], 0, 0, 1);
-                    drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-                    GL11.glPopMatrix();
-                }
-            }
-            GL11.glColor4d(1, 1, 1, 1);
-            if(fading)return;
-            GL11.glColor4d(1, .5, 0, opacity);
-            GL11.glPushMatrix();
-            GL11.glTranslated(x+width/2, y+height/2, 0);
-            GL11.glRotated(rotation, 0, 0, 1);
-            drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-            GL11.glPopMatrix();
-            GL11.glColor4d(1, 1, 1, 1);
-            return;
-        }
-        GL11.glColor4d(1, 1, 1, opacity);
-        GL11.glPushMatrix();
-        GL11.glTranslated(x+width/2, y+height/2, 0);
-        GL11.glRotated(rotation, 0, 0, 1);
-        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), images[0]);
-        GL11.glPopMatrix();
-        GL11.glColor4d(1, 1, 1, 1);
     }
     private int smokeTimer;
     private ArrayList<double[]> smoke = new ArrayList<>();
@@ -191,7 +202,7 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.EXPLOSION){
             opacity-=0.005*(11-size);
             radius+=5+0.5*((11-size));
-            Core.game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5));
+            Core.game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
                 synchronized(Core.game.buildings){
                     for(Building building : Core.game.buildings){
@@ -215,9 +226,27 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.CLOUD){
             strength+=rateOfChange;
             rotation+=rotSpeed;
-            x+=speed;
-            if(x>Display.getWidth()+speed){
+            if(x>Display.getWidth()){
                 dead = true;
+            }
+            x+=speed;
+            synchronized(snow){
+                for (Iterator<double[]> it = snow.iterator(); it.hasNext();) {
+                    double[] i = it.next();
+                    if(Core.game.rand.nextBoolean()){
+                        i[0]+=Core.game.rand.nextInt(3)-1;
+                    }
+                    i[0]-=speed*.1;
+                    i[2]++;
+                    if(i[2]>=500){
+                        it.remove();
+                    }
+                }
+            }
+            for(int i = 0; i<strength/100; i++){
+                double X = Core.game.rand.nextInt((int)width)-width/2;
+                double Y = Core.game.rand.nextInt((int)height)-height/2;
+                snow.add(new double[]{X,Y,0});
             }
         }
         if(type==ParticleEffectType.FIRE){
@@ -264,6 +293,43 @@ public class Particle extends GameObjectAnimated{
     public void offsetSubParticles(int i){
         for(double[] d : smoke){
             d[5]+=i;
+        }
+    }
+    public void push(double x, double y, PushCause cause){
+        if(type==ParticleEffectType.EXPLOSION)return;
+        if(type==ParticleEffectType.SMOKE){
+            if(x>1||y>1){
+                x/=Math.max(x,y);
+                y/=Math.max(x,y);
+            }
+        }
+        if(type==ParticleEffectType.FIRE){
+            if(cause==PushCause.ASTEROID)return;
+            synchronized(smoke){
+                for(double[] d : smoke){
+                    d[1]+=x;
+                    d[2]+=y;
+                }
+            }
+            return;
+        }
+        if(type==ParticleEffectType.CLOUD){
+            synchronized(snow){
+                for(double[] d : snow){
+                    d[0]-=x;
+                    d[1]-=y;
+                }
+            }
+        }
+        this.x+=x;
+        this.y+=y;
+    }
+    public void fade(double amount){
+        if(this instanceof ParticleFog){
+            ((ParticleFog)this).opacity-=amount/10;
+        }
+        if(type==ParticleEffectType.CLOUD){
+            strength-=amount;
         }
     }
     private static class Lightning{
@@ -363,5 +429,8 @@ public class Particle extends GameObjectAnimated{
      */
     public double getY(){
         return y+height/2;
+    }
+    public static enum PushCause{
+        ASTEROID,EXPLOSION,LASER, SHEILD_BLAST;
     }
 }

@@ -20,7 +20,7 @@ public class MenuRename extends Menu{
     }
     @Override
     public void renderBackground(){
-        super.renderBackground();
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         File file = new File(Main.getAppdataRoot()+"\\"+name.text);
         if(!file.exists()){
             rename.enabled = true;

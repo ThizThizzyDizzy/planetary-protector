@@ -6,14 +6,14 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.task.TaskSkyscraperAddFloor;
-import planetaryprotector.building.task.TaskType;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Iterator;
 import java.util.Random;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.building.task.TaskAnimated;
+import planetaryprotector.building.task.TaskType;
+import planetaryprotector.enemy.Enemy;
 import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
 public class Skyscraper extends Building implements BuildingDamagable, BuildingDemolishable{
     public static final int floorHeight = 10;
     public int floorCount = 0;
@@ -24,6 +24,7 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     public static final int maxHeight = 100;
     private boolean falled = false;
     public double pop = 0;
+    public int fallSpeed = 3;
     public Skyscraper(double x, double y) {
         super(x, y, 100, 100, BuildingType.SKYSCRAPER);
         floorCount = MenuGame.rand.nextInt(40)+10;
@@ -56,8 +57,8 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
             }
             right = !right;
             x += right?1:-1;
-            y+=2;
-            fallen+=2;
+            y+=fallSpeed;
+            fallen+=fallSpeed;
             synchronized(Core.game.workers){
                 for(Worker worker : Core.game.workers){
                     if(isClickWithinBounds(worker.x+(worker.width/2), worker.y+(worker.height/2), x, y-fallen, x+width, y+height-fallen)){
@@ -65,8 +66,8 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
                     }
                 }
             }
-            for(EnemyAlien alien : Core.game.aliens){
-                if(isClickWithinBounds(alien.x+(alien.width/2), alien.y+(alien.height/2), x, y-fallen, x+width, y+height-fallen)){
+            for(Enemy alien : Core.game.enemies){
+                if(alien instanceof EnemyAlien&&isClickWithinBounds(alien.x+(alien.width/2), alien.y+(alien.height/2), x, y-fallen, x+width, y+height-fallen)){
                     alien.dead = true;
                 }
             }
@@ -84,43 +85,38 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
             Core.game.replaceBuilding(this, new Wreck(x, y, floorCount*floorHeight));
         }
     }
-    public boolean isSelectedWorkerBehind = false;
     @Override
     public void renderBackground(){
-        drawRect(x, y-fallen, x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.EMPTY.texture+".png"));
+        drawRect(x, y-fallen, x+width, y+height-fallen, BuildingType.EMPTY.getTexture());
+    }
+    @Override
+    public void drawMouseover(){
+        GL11.glColor4d(0, 1, 1, mouseover);
+        drawRect(x, y-getBuildingHeight()-fallen, x+width, y+height-fallen, 0);
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public void draw(){
-        boolean seeThrough = isSelectedWorkerBehind||Core.game.hideSkyscrapers;
+        boolean seeThrough = Core.game.hideSkyscrapers;
         GL11.glColor4d(1, 1, 1, seeThrough?.05:1);
         double fallenPercent = fallen/(floorHeight*(floorCount+0D));
         if(falled){
-            drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.WRECK.texture+".png"));
+            drawRect(x, y, x+width, y+height, BuildingType.WRECK.getTexture());
             return;
         }
         for(int i = 0; i<floorCount; i++){
-            drawRectWithBounds(x, y-(floorHeight*i), x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
+            drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, getTexture());
             if(i==floorCount-1){
                 GL11.glColor4d(1, 1, 1, fallenPercent*(seeThrough?.05:1));
-                drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*(floorCount-1)), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.WRECK.texture+".png"));
-                GL11.glColor4d(1, 1, 1, 1);
-            }
-        }
-        if(task!=null&&task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
-            for(int i = floorCount; i<floorCount+((TaskSkyscraperAddFloor)task).floors; i++){
-                GL11.glColor4d(1, 1, 1, task.progress()*(seeThrough?.05:1));
-                drawRectWithBounds(x, y-(floorHeight*i), x+width, y-(floorHeight*i)+height, x, y-(floorHeight*(floorCount+((TaskSkyscraperAddFloor)task).floors)), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+".png"));
-                if(i==(floorCount+((TaskSkyscraperAddFloor)task).floors)-1){
-                    GL11.glColor4d(1, 1, 1, fallenPercent*task.progress*(seeThrough?.05:1));
-                    drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*((floorCount+((TaskSkyscraperAddFloor)task).floors)-1)), x+width, y+height-fallen, ImageStash.instance.getTexture("/textures/buildings/"+BuildingType.WRECK.texture+".png"));
-                }
+                drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, BuildingType.WRECK.getTexture());
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
         renderDamages();
-        GL11.glColor4d(0, 1, 1, mouseover);
-        drawRect(x, y-floorHeight*(floorCount-1), x+width, y+height-fallen, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        drawMouseover();
+        if(task!=null&&task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
+            ((TaskAnimated)task).anim.render();
+        }
     }
     @Override
     public boolean onDamage(double x, double y){
@@ -176,8 +172,6 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
         return 1;
     }
     @Override
-    protected void drawFire(){}
-    @Override
     protected double getRandX(Random rand){
         return rand.nextDouble()*width;
     }
@@ -189,14 +183,21 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     public String getName(){
         return floorCount+" Floor Skyscraper";
     }
-
     @Override
-    protected void getBuildingDebugInfo(ArrayList<String> data) {
+    protected void getBuildingDebugInfo(ArrayList<String> data){
         data.add("Floor Count: "+floorCount);
         data.add("Falling: "+falling);
         data.add("Right: "+right);
         data.add("Fallen: "+fallen);
         data.add("Falled: "+falled);
         data.add("Pop: "+pop);
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return false;
+    }
+    @Override
+    public int getBuildingHeight(){
+        return floorHeight*floorCount-fallen;
     }
 }

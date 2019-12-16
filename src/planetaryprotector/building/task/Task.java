@@ -11,6 +11,7 @@ public abstract class Task{
     public boolean finished = false;
     public boolean important = false;
     public boolean started = false;
+    public boolean cancelled = false;
     public Task(Building building, TaskType type, int time){
         this.building = building;
         this.type = type;
@@ -40,7 +41,7 @@ public abstract class Task{
     }
     public double progress(){
         if(finished){
-            return Double.POSITIVE_INFINITY;
+            return 1;
         }
         return (progress+0D)/time;
     }
@@ -63,6 +64,7 @@ public abstract class Task{
     protected abstract void finish();
     protected abstract void onCancel();
     public void cancel(){
+        cancelled = true;
         if(started)onCancel();
         building.task = null;
         synchronized(Core.game.workers){

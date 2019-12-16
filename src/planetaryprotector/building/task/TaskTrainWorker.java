@@ -6,6 +6,7 @@ import planetaryprotector.menu.MenuGame;
 import java.util.ArrayList;
 import planetaryprotector.Core;
 import planetaryprotector.building.Workshop;
+import planetaryprotector.research.ResearchEvent;
 public class TaskTrainWorker extends Task{
     private final Workshop workshop;
     public TaskTrainWorker(Workshop workshop){
@@ -45,6 +46,7 @@ public class TaskTrainWorker extends Task{
     }
     @Override
     public void finish(){
+        Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 30));
         Core.game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
     }
     @Override
@@ -62,7 +64,7 @@ public class TaskTrainWorker extends Task{
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
         }
     }
     @Override

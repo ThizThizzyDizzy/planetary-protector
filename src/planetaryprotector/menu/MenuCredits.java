@@ -1,6 +1,7 @@
 package planetaryprotector.menu;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 import planetaryprotector.Main;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
@@ -95,10 +96,11 @@ public class MenuCredits extends Menu{
         credits.add("by Bryan Dolan");
         credits.add("");
         credits.add("LWJGL");
-        credits.add("by the LWJGL Team");
         credits.add("");
         credits.add("JLayer");
         credits.add("by javazoom");
+        credits.add("");
+        credits.add("Java Discord RPC");
         credits.add("");
         credits.add("");
         credits.add("");
@@ -117,15 +119,17 @@ public class MenuCredits extends Menu{
     }
     @Override
     public void renderBackground(){
-        super.renderBackground();
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         back.x = Display.getWidth()/2-back.width/2;
         back.y = Display.getHeight()-80;
         drawRect(Display.getWidth()/4-100, 40, (Display.getWidth()-Display.getWidth()/4)-100+200, 200, ImageStash.instance.getTexture("/textures/logo.png"));
         yOffset = 240;
         totalTextHeight = 0;
+        if(MenuGame.theme==MenuGame.Theme.SNOWY)GL11.glColor4d(0, 0, 0, 1);
         for(String str : credits){
             text(str);
         }
+        GL11.glColor4d(1, 1, 1, 1);
         if(scroll>totalTextHeight){
             scroll = -(back.y-40-240);
         }

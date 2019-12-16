@@ -9,6 +9,7 @@ import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.BuildingDamage;
 import java.util.ArrayList;
 import planetaryprotector.Core;
+import planetaryprotector.research.ResearchEvent;
 public class TaskRepair extends Task{
     public BuildingDamage damage;
     private double initialFire;
@@ -80,6 +81,9 @@ public class TaskRepair extends Task{
     }
     @Override
     public void finish(){
+        for(ItemStack stack : building.type.repairCost){
+            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+        }
         building.damages.remove(damage);
         building.fire = building.fireIncreaseRate = building.fireDamage = 0;
         building.clearFires();
@@ -99,7 +103,7 @@ public class TaskRepair extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
             }
         }
     }

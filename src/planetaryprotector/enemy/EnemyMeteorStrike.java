@@ -9,7 +9,7 @@ import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-public class EnemyMeteorStrike extends MenuComponentEnemy{
+public class EnemyMeteorStrike extends Enemy{
     public int initialDelay = 20*10;
     public int meteorDelay = 0;
     public int meteors = 0;
@@ -18,22 +18,21 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
         super(0, 0, 50, 50,5);
         double[] location = getMeteorStrike();
         if(location==null){
-            location = MenuComponentEnemy.getBestStrike();
+            location = Enemy.getBestStrike();
             if(location==null){
-                location = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height/2};
+                location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
             }
-            if(MenuComponentEnemy.strength<2.5){
-                MenuComponentEnemy.strength+=.25;
+            if(Enemy.strength<2.5){
+                Enemy.strength+=.25;
             }
         }
         x=location[0];
         y=location[1];
         this.game = game;
-        meteors = (int)(MenuComponentEnemy.strength+1);
+        meteors = (int)(Enemy.strength+1);
     }
     @Override
     public void render(){
-        removeRenderBound();
         GL11.glColor4d(1, 1, 0, .25);
         drawRect(x-width/2, y-Display.getHeight(), x+width/2, y+height/2, 0);
         drawRect(x-width/2, y-height/2, x+width/2, y+height/2, 0);
@@ -42,14 +41,14 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
     @Override
     public void tick(){
         if(meteors<=0||dead){
-            game.componentsToRemove.add(this);
+            dead = true;
             return;
         }
         initialDelay--;
         if(initialDelay<=0){
             meteorDelay--;
             if(meteorDelay<=0&&meteors>0){
-                meteorDelay+=Math.max(5, 20-MenuComponentEnemy.strength);
+                meteorDelay+=Math.max(5, 20-Enemy.strength);
                 meteors--;
                 game.addAsteroid(new Asteroid(x-width/2, y-height/2, AsteroidMaterial.STONE, 1));
             }
@@ -79,7 +78,7 @@ public class EnemyMeteorStrike extends MenuComponentEnemy{
                     double X = d[0];
                     double Y = d[1];
                     if(Y<0)continue;
-                    for(MenuComponentEnemy enemy: Core.game.enemies){
+                    for(Enemy enemy: Core.game.enemies){
                         if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50) continue FOR;
                     }
                     if(shieldGen.isEmpty()){

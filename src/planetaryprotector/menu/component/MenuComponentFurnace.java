@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.Core;
+import planetaryprotector.research.ResearchEvent;
 public class MenuComponentFurnace extends MenuComponentButton{
     public int coal;
     public int ironOre;
@@ -27,7 +28,7 @@ public class MenuComponentFurnace extends MenuComponentButton{
             MenuGame.drawRegularPolygon(x+5, y+5, 5, 25, 0);
             GL11.glColor4d(1, 1, 1, 1);
         }
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/pot "+level+".png"));
+        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/furnace "+level+".png"));
         if(isMouseOver&&level<maxLevel){
             GL11.glColor4d(0, 1, 0, .25);
             double percent = total/Math.pow(20, level+1);
@@ -69,8 +70,10 @@ public class MenuComponentFurnace extends MenuComponentButton{
     private void addIron(){
         ironOre-=Math.pow(10, level);
         coal-=Math.pow(10, level);
-        for(int i = 0; i<Math.pow(10, level); i++)
+        for(int i = 0; i<Math.pow(10, level); i++){
             game.addResources(Item.ironIngot);
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.GAIN_RESOURCE, Item.ironIngot, 1));
+        }
         total+=Math.pow(10, level);
         game.componentsToAdd.add(new MenuComponentRising(Display.getWidth()-60, Display.getHeight()-25, Item.ironIngot));
     }

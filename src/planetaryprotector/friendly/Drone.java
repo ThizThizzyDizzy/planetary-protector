@@ -6,7 +6,7 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
-import planetaryprotector.enemy.MenuComponentEnemy;
+import planetaryprotector.enemy.Enemy;
 import planetaryprotector.building.Silo;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
@@ -104,12 +104,12 @@ public class Drone extends GameObject{
         y+=yDiff;
     }
     double[] laserFiring = null;
-    MenuComponentEnemy en = null;
+    Enemy en = null;
     private void findEnemy(){
         double dist = Double.POSITIVE_INFINITY;
         MenuGame game = Core.game;
         en = null;
-        for(MenuComponentEnemy enemy : game.enemies){
+        for(Enemy enemy : game.enemies){
             if(!(enemy instanceof EnemyMeteorStrike)){
                 dist = Math.min(dist,Core.distance(this, enemy));
                 en = enemy;
@@ -124,7 +124,7 @@ public class Drone extends GameObject{
         double dist = Double.POSITIVE_INFINITY;
         MenuGame game = Core.game;
         en = null;
-        for(MenuComponentEnemy enemy : game.enemies){
+        for(Enemy enemy : game.enemies){
             if(!(enemy instanceof EnemyMeteorStrike)){
                 dist = Math.min(dist,Core.distance(this, enemy));
                 en = enemy;
@@ -145,7 +145,6 @@ public class Drone extends GameObject{
     }
     @Override
     public void render(){
-        removeRenderBound();
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(0, 0, 0, 0, 0);
         if(laserFiring!=null){

@@ -9,7 +9,8 @@ import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
-public class TaskConstruct extends Task{
+import planetaryprotector.research.ResearchEvent;
+public class TaskConstruct extends TaskAnimated{
     public final Building target;
     public TaskConstruct(Building building, Building target){
         super(building, TaskType.CONSTRUCT, 1);
@@ -66,12 +67,15 @@ public class TaskConstruct extends Task{
                 while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
                     item = Item.items.get(MenuGame.rand.nextInt(Item.items.size()));
                 }
-                Core.game.addItem(new DroppedItem(itemX, itemY, item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, item));
             }
         }
     }
     @Override
     public void finish(){
+        for(ItemStack stack : target.type.costs[0]){
+            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+        }
         if(target.type==BuildingType.SKYSCRAPER){
             Skyscraper sky = (Skyscraper) target;
             sky.floorCount = 10;
@@ -95,7 +99,7 @@ public class TaskConstruct extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
             }
         }
         Core.game.replaceBuilding(building, new Wreck(building.x, building.y, ingots));
@@ -103,5 +107,22 @@ public class TaskConstruct extends Task{
     @Override
     public ItemStack[] getTooltip(){
         return target.type.costs[0];
+    }
+    @Override
+    public int[] getAnimation(){
+        return target.type.getAnimation();
+    }
+    @Override
+    public int getHeight(){
+        return target.getBuildingHeight()+100;
+    }
+    @Override
+    public boolean isInBackground(){
+        switch(target.type){
+            case MINE:
+            case SILO:
+                return true;
+        }
+        return false;
     }
 }

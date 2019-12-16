@@ -6,7 +6,8 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.building.Building;
 import java.util.ArrayList;
 import planetaryprotector.building.Building.Upgrade;
-public class TaskSpecialUpgrade extends Task{
+import planetaryprotector.research.ResearchEvent;
+public class TaskSpecialUpgrade extends TaskAnimated{
     private final Upgrade upgrade;
     public TaskSpecialUpgrade(Building building, Upgrade upgrade){
         super(building, TaskType.CONSTRUCT, 1);
@@ -53,6 +54,9 @@ public class TaskSpecialUpgrade extends Task{
     }
     @Override
     public void finish(){
+        for(ItemStack stack : upgrade.costs){
+            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+        }
         if(!building.buyUpgrade(upgrade))onCancel();
     }
     @Override
@@ -67,12 +71,24 @@ public class TaskSpecialUpgrade extends Task{
                 double itemY = building.y+MenuGame.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item, Core.game));
+                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
             }
         }
     }
     @Override
     public ItemStack[] getTooltip(){
         return upgrade.costs;
+    }
+    @Override
+    public int[] getAnimation(){
+        return upgrade.getAnimation(building.type, building.getUpgrades(upgrade)+1);
+    }
+    @Override
+    public int getHeight(){
+        return building.getBuildingHeight()+100;
+    }
+    @Override
+    public boolean isInBackground(){
+        return false;
     }
 }

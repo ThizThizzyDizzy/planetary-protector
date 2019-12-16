@@ -4,8 +4,8 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class CoalGenerator extends Building implements BuildingPowerProducer, BuildingStarlightConsumer, BuildingDamagable, BuildingDemolishable{
     public int coal = 0;
@@ -15,6 +15,12 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     public boolean autoFuel = false;
     private double starlight = 0;
     private static final double STARLIGHT_THRESHOLD = 0.01;
+    private int frame = 0;
+    static final int frames = 8;
+    private int speed = 0;//0-100
+    private static final int acceleration = 2;
+    private double delay = 0;
+    private int spinTimer = 0;
     public CoalGenerator(double x, double y) {
         super(x, y, 100, 100, BuildingType.COAL_GENERATOR);
     }
@@ -28,6 +34,19 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
             power+=4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0);
             if(starlight>STARLIGHT_THRESHOLD)starlight-=STARLIGHT_THRESHOLD;
             burning-=Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE));
+            speed+=acceleration;
+        }else{
+            speed-=acceleration;
+        }
+        speed = Math.max(0, Math.min(100, speed));
+        if(speed>0){
+            delay = 100d/frames/speed;
+            spinTimer++;
+            while(spinTimer>=delay){
+                spinTimer-=delay;
+                frame++;
+                if(frame>=frames)frame = 0;
+            }
         }
         if(coal==0&&autoFuel&&burning<=0){
             if(Core.game.hasResources(new ItemStack(Item.coal))){
@@ -42,15 +61,23 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     }
     @Override
     public void draw(){
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/buildings/"+type.texture+" "+((int)((x%2)+1))+".png"));
+        drawRect(x, y, x+width, y+height, getTexture(), getVariant()/(double)getVariants(), frame/(double)frames, (getVariant()+1)/(double)getVariants(), (frame+1)/(double)frames);
+        for(Upgrade upgrade : type.upgrades){
+            int count = getUpgrades(upgrade);
+            if(count==0)continue;
+            drawRect(x, y, x+width, y+height, upgrade.getTexture(type, count), getVariant()/(double)getVariants(), frame/(double)frames, (getVariant()+1)/(double)getVariants(), (frame+1)/(double)frames);
+        }
         renderDamages();
-        drawMouseover();
-        drawCenteredText(x, y, x+width, y+18, "Power: "+(int)power);
+    }
+    @Override
+    public void drawForeground(){
         GL11.glColor4d(1,0,0,1);
         drawRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
-        GL11.glColor4d(1,1,1,1);
+        MenuGame.theme.applyTextColor();
+        drawCenteredText(x, y, x+width, y+18, "Power: "+(int)power);
         if(coal>0)drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public int getMaxLevel(){
@@ -75,10 +102,6 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     @Override
     protected double getIgnitionChance(){
         return .75;
-    }
-    @Override
-    public String getName(){
-        return "Level "+(getLevel())+" Coal Generator";
     }
     @Override
     public void upgrade(){
@@ -129,5 +152,13 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
         data.add("Burning: "+burning);
         data.add("Auto-fuel: "+(autoFuel?"Enabled":"Disabled"));
         data.add("Power Production: "+(burning<=0?0:4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0)));
+    }
+    @Override
+    public int getVariants(){
+        return 2;
+    }
+    @Override
+    public boolean isBackgroundStructure(){
+        return false;
     }
 }

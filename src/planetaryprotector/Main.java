@@ -20,13 +20,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 public class Main{
-    private static String requiredSimpleLibraryVersion = "10.2";
-    private static int simplelibrarySize = 560;
+    private static String requiredSimpleLibraryVersion = "10.2.1";
+    private static int simplelibrarySize = 561;
     private static int simplelibraryExtendedSize = 628;
     /**
      * Set to "" for latest, otherwise exact version #
      */
-    private static String requiredSimpleLibraryExtendedVersion = null;
+    private static String requiredSimpleLibraryExtendedVersion = "2.0";
     private static String versionListURL = "https://www.dropbox.com/s/capgobag47srs17/versions.txt?dl=1";
     public static final String applicationName = "Planetary Protector";
     public static final String discordAppID = "592509210277838848";
@@ -34,7 +34,7 @@ public class Main{
     public static final boolean jLayer = true;
     public static final boolean webcam = false;
     public static final boolean textToSpeech = false;
-    public static final boolean intellitype = true;
+    public static final boolean intellitype = false;
     public static final boolean audioTagger = false;
     private static int downloadSize = 0;
     //Download details

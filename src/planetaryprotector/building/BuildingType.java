@@ -1,24 +1,25 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.building.task.TaskAnimated;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.ImageStash;
 public enum BuildingType{
-    SKYSCRAPER("Skyscraper"),
-    MINE("Mine"),
-    SHIELD_GENERATOR("Shield Generator"),
+    BASE("Base"),
     EMPTY("Empty Plot"),
     WRECK("Wreck"),
-    BUNKER("Bunker"),
-    SILO("Silo"),
-    BASE("Base"),
-    WORKSHOP("Workshop"),
-    OBSERVATORY("Observatory"),
+    SKYSCRAPER("Skyscraper"),
+    MINE("Mine"),
     SOLAR_GENERATOR("Solar Generator"),
     COAL_GENERATOR("Coal Generator"),
-    POWER_STORAGE("Battery");
-//    LABORATORY("Laboratory");
+    POWER_STORAGE("Power Storage"),
+    SHIELD_GENERATOR("Shield Generator"),
+    WORKSHOP("Workshop"),
+    LABORATORY("Laboratory"),
+    SILO("Silo"),
+    OBSERVATORY("Observatory");
 //    INFUSION_ALTAR("Infusion Altar");
     static{
         //<editor-fold defaultstate="collapsed" desc="SKYSCRAPER">
@@ -126,19 +127,6 @@ public enum BuildingType{
         //<editor-fold defaultstate="collapsed" desc="EMPTY">
         EMPTY.repairCost = new ItemStack[]{
             new ItemStack(Item.stone, 10)
-        };
-//</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="BUNKER">
-        BUNKER.repairCost = new ItemStack[]{
-            new ItemStack(Item.ironIngot, 25)
-        };
-        BUNKER.costs = new ItemStack[][]{
-            new ItemStack[]{
-                new ItemStack(Item.ironIngot, 50)
-            }
-        };
-        BUNKER.constructionTime = new int[]{
-            3000
         };
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="SILO">
@@ -414,18 +402,18 @@ public enum BuildingType{
         };
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="LABORATORY">
-//        LABORATORY.repairCost = new ItemStack[]{
-//            new ItemStack(Item.ironIngot, 100)
-//        };
-//        LABORATORY.costs = new ItemStack[][]{
-//            new ItemStack[]{
-//                new ItemStack(Item.ironIngot, 100),
-//                new ItemStack(Item.stone, 50)
-//            }
-//        };
-//        LABORATORY.constructionTime = new int[]{
-//            6000
-//        };
+        LABORATORY.repairCost = new ItemStack[]{
+            new ItemStack(Item.ironIngot, 100)
+        };
+        LABORATORY.costs = new ItemStack[][]{
+            new ItemStack[]{
+                new ItemStack(Item.ironIngot, 100),
+                new ItemStack(Item.stone, 50)
+            }
+        };
+        LABORATORY.constructionTime = new int[]{
+            6000
+        };
 //</editor-fold>
         BASE.repairCost = new ItemStack[]{
             new ItemStack(Item.ironIngot, 10)
@@ -447,6 +435,83 @@ public enum BuildingType{
         return costs[Math.min(costs.length-1, level)];
     }
     public int getTexture(){
-        return ImageStash.instance.getTexture("/textures/buildings/"+texture+".png");
+        return ImageStash.instance.getTexture(getTextureS());
+    }
+    public int getDamageTexture(){
+        return ImageStash.instance.getTexture(getDamageTextureS());
+    }
+    public int getTexture(String path){
+        return ImageStash.instance.getTexture(getTextureS(path));
+    }
+    public String getTextureS(){
+        return "/textures/buildings/"+texture+"/"+MenuGame.theme.tex()+".png";
+    }
+    public String getDamageTextureS(){
+        return "/textures/buildings/"+texture+"/damage.png";
+    }
+    public String getTextureS(String path){
+        return "/textures/buildings/"+texture+"/"+path+".png";
+    }
+    public boolean isConstructable(){
+        switch(this){
+            case EMPTY:
+            case WRECK:
+            case BASE:
+                return false;
+            default:
+                return true;
+        }
+    }
+    public boolean isConstructable(MenuGame game){
+        switch(this){
+            case SILO:
+                return game.phase>=3;
+            case OBSERVATORY:
+                return game.observatory;
+            case EMPTY:
+            case WRECK:
+            case BASE:
+                return false;
+            default:
+                return true;
+        }
+    }
+    public Building createNewBuilding(double x, double y){
+        switch(this){
+            case BASE:
+                return new Base(x, y);
+            case COAL_GENERATOR:
+                return new CoalGenerator(x, y);
+            case EMPTY:
+                return new Plot(x, y);
+            case LABORATORY:
+                return new Laboratory(x, y);
+            case MINE:
+                return new Mine(x, y);
+            case OBSERVATORY:
+                return new Observatory(x, y);
+            case POWER_STORAGE:
+                return new PowerStorage(x, y);
+            case SHIELD_GENERATOR:
+                return new ShieldGenerator(x, y);
+            case SILO:
+                return new Silo(x, y);
+            case SKYSCRAPER:
+                return new Skyscraper(x, y);
+            case SOLAR_GENERATOR:
+                return new SolarGenerator(x, y);
+            case WORKSHOP:
+                return new Workshop(x, y);
+            case WRECK:
+                return new Wreck(x, y, 0);
+            default:
+                throw new IllegalBuildingException(this);
+        }
+    }
+    public int[] getAnimation(){
+        return TaskAnimated.getAnimation(getAnimationS());
+    }
+    public String getAnimationS(){
+        return "/textures/tasks/construct/"+texture+"/"+MenuGame.theme.tex();
     }
 }

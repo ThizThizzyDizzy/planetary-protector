@@ -28,18 +28,13 @@ public class MenuNewGame extends Menu{
         switch((int)selectedLevel.getValue()){
             default:
             case 1:
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+                drawRect(0, 0, Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
                 break;
             case 2:
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/caveBackground.png"));
+                drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/backgroud/cave.png"));
                 break;
         }
-        File file = new File(Main.getAppdataRoot()+"\\saves\\"+name.text);
-        if(!file.exists()){
-            create.enabled = true;
-        }else{
-            create.enabled = false;
-        }
+        create.enabled = !fileExists();
         back.x = Display.getWidth()/2-200;
         back.y = Display.getHeight()-80;
         create.x = back.x;
@@ -47,12 +42,21 @@ public class MenuNewGame extends Menu{
         name.x = create.x;
         name.y = create.y-240;
     }
+    private boolean fileExists(){
+        String text = name.text.trim();
+        if(text.isEmpty())return true;
+        File file = new File(Main.getAppdataRoot()+"\\saves\\"+text+".dat");
+        return file.exists();
+    }
     @Override
     public void buttonClicked(MenuComponentButton button){
         if(button==back){
             back();
         }
         if(button==create){
+            if(fileExists()){
+                return;
+            }
             create(name.text);
         }
     }
@@ -68,12 +72,12 @@ public class MenuNewGame extends Menu{
                 if(g==null){
                     gui.open(new MenuLoad(gui, null));
                 }else{
-                    gui.open(new MenuLoad(gui, null, g));
+                    Core.game = g;
+                    gui.open(g);
                 }
                 break;
             case 2:
-                gui.open(planetaryprotector2.menu.MenuGame.load(gui));
-                break;
+                throw new UnsupportedOperationException("LEVEL 2 PLEEZ");
         }
     }
 }

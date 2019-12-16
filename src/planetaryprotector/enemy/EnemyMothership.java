@@ -10,7 +10,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.BuildingPowerConsumer;
 import simplelibrary.opengl.ImageStash;
-public class EnemyMothership extends MenuComponentEnemy{
+public class EnemyMothership extends Enemy{
     public int initialDelay = 20*10;
     public double laserPower = 15;
     public double laserSize = 75;
@@ -25,13 +25,16 @@ public class EnemyMothership extends MenuComponentEnemy{
     public static final int maxHealth = 300000;
     private final MenuGame game;
     public boolean leaving = false;
+    public boolean dying = false;
     public EnemyMothership(){
+        this(Core.game);
+    }
+    public EnemyMothership(MenuGame game){
         super(Display.getWidth()/2, 100, 250, 175, maxHealth);
-        game = Core.game;
+        this.game = game;
     }
     @Override
     public void render(){
-        removeRenderBound();
         GL11.glColor4d(1, 0, 1, 1);
         drawRect(0, 0, 0, 0, 0);
         if(powerLaserFiring!=null){
@@ -41,17 +44,17 @@ public class EnemyMothership extends MenuComponentEnemy{
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(0, 0, 1, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), powerLaserSize/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(.125, .5, 1, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (powerLaserSize*(2/3D))/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(.25, 1, 1, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (powerLaserSize*(1/3D))/2D,10,0);
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
@@ -109,16 +112,14 @@ public class EnemyMothership extends MenuComponentEnemy{
             laserTimers = new int[0];
             landingPartyTimers = new int[0];
             if(asteroidLaser!=null){
-                game.componentsToRemove.add(asteroidLaser);
                 asteroidLaser = null;
             }
             if(asteroidAttack!=null){
-                game.componentsToRemove.add(asteroidAttack);
                 asteroidAttack = null;
             }
-            dead = true;
+            dying = true;
         }
-        if(dead){
+        if(dying){
             if(explosions>0){
                 explosionTimer--;
                 if(explosionTimer<=10){
@@ -136,8 +137,7 @@ public class EnemyMothership extends MenuComponentEnemy{
         if(leaving){
             initialDelay++;
             if(initialDelay>20*10){
-                game.componentsToRemove.add(this);
-                game.mothership = null;
+                dead = true;
             }
         }
         double hp = health/(double)maxHealth;
@@ -183,7 +183,7 @@ public class EnemyMothership extends MenuComponentEnemy{
                     repairTime = 5;
                 }
                 if(asteroidLaser==null){
-                    asteroidLaser = game.add(new MothershipAsteroidLaser());
+                    asteroidLaser = new MothershipAsteroidLaser();
                 }else{
                     if(asteroidLaserDelay>0){
                         asteroidLaserDelay--;
@@ -200,6 +200,8 @@ public class EnemyMothership extends MenuComponentEnemy{
                     asteroidAttack.tick();
                 }
         }
+        if(asteroidAttack!=null)asteroidAttack.tick();
+        if(asteroidLaser!=null)asteroidLaser.tick();
         if(repairTime>-1){
             repairTimer--;
             if(repairTimer<0){
@@ -214,20 +216,20 @@ public class EnemyMothership extends MenuComponentEnemy{
             i--;
             if(i<0){
                 i+=20*60*5;
-                game.enemies.add(game.add(new EnemyLaser(game)));
+                game.enemies.add(new EnemyLaser(game));
             }
         }
         for(int i : landingPartyTimers){
             i--;
             if(i<0){
                 i+=20*60*10;
-                game.enemies.add(game.add(new EnemyLandingParty(game)));
+                game.enemies.add(new EnemyLandingParty(game));
             }
         }
         if(EnemyMeteorStrike.getMeteorStrike()!=null){
             EnemyMeteorStrike strike = new EnemyMeteorStrike(game);
             strike.initialDelay = 20;
-            game.enemies.add(game.add(strike));
+            game.enemies.add(strike);
         }
     }
     int repairTime = -1;
@@ -328,7 +330,7 @@ public class EnemyMothership extends MenuComponentEnemy{
             laserSizing = 1;
         }
         game.damage(laserFiring[0], laserFiring[1], (int)laserPower);
-        game.pushParticles(laserFiring[0], laserFiring[1], laserSize*1.5, laserSize/2);
+        game.pushParticles(laserFiring[0], laserFiring[1], laserSize*1.5, laserSize/2, Particle.PushCause.LASER);
     }
     private void firePowerLaser(){
         powerLaserSize+=powerLaserSizing;
@@ -341,12 +343,11 @@ public class EnemyMothership extends MenuComponentEnemy{
         game.damage(powerLaserFiring.x+powerLaserFiring.width/2,powerLaserFiring.y+powerLaserFiring.height/2, (int)powerLaserDamage);
     }
     private void startAsteroidAttack(){
-        asteroidAttack = game.add(new MothershipAsteroidAttack(this));
+        asteroidAttack = new MothershipAsteroidAttack(this);
     }
     public void shieldBlast(){
         health -= 5000;
         if(asteroidAttack!=null){
-            game.componentsToRemove.add(asteroidAttack);
             asteroidAttack = null;
         }
         randomLaserTimer+=100;

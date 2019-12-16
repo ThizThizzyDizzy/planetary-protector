@@ -9,25 +9,22 @@ import planetaryprotector.building.Mine;
 import planetaryprotector.building.ShieldGenerator;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.CoalGenerator;
-import planetaryprotector.building.Bunker;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.Plot;
 import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.Silo;
-import planetaryprotector.building.Base;
 import java.util.ArrayList;
-import org.lwjgl.opengl.Display;
 import simplelibrary.opengl.gui.GUI;
 public class MenuExampleGame extends MenuGame{
     int timer = 0;
     public MenuExampleGame(GUI gui){
-        super(gui, null, new Base(Display.getWidth()/2-50, Display.getHeight()/2-50), new ArrayList<>(), 3);
+        super(gui, new ArrayList<>(), 3);
         doNotDisturb = true;
     }
     @Override
     public void tick(){
         timer--;
-        for(ItemStack stack : base.resources){
+        for(ItemStack stack : resources){
             stack.count = 1000000;
         }
         if(workers.size()<10){
@@ -35,7 +32,7 @@ public class MenuExampleGame extends MenuGame{
         }
         if(timer<=0){
             timer+=5;
-            Building b = Building.generateRandomBuilding(base, buildings);
+            Building b = Building.generateRandomBuilding(buildings);
             if(b!=null) buildings.add(b);
         }
         for(Worker w : workers){
@@ -59,7 +56,6 @@ public class MenuExampleGame extends MenuGame{
                     }
                     if(building instanceof Plot){
                         ArrayList<Building> targets = new ArrayList<>();
-                        targets.add(new Bunker(building.x, building.y));
                         targets.add(new CoalGenerator(building.x, building.y));
                         targets.add(new Mine(building.x, building.y));
                         targets.add(new ShieldGenerator(building.x, building.y));

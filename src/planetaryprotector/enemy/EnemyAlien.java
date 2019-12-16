@@ -11,7 +11,7 @@ import planetaryprotector.building.BuildingDamage;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
-public class EnemyAlien extends MenuComponentEnemy{
+public class EnemyAlien extends Enemy{
     public static final double speed = Worker.workerSpeed*(2/3D);
     private final MenuGame game;
     public EnemyAlien(double x,double y){
@@ -20,9 +20,10 @@ public class EnemyAlien extends MenuComponentEnemy{
     }
     @Override
     public void render(){
-        removeRenderBound();
         GL11.glColor4d(1, 1, 1, 1);
-        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/him.png"));//"/textures/enemies/alien.png"));
+        int x = (int)this.x;
+        int y = (int)this.y;
+        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/alien.png"));
     }
     @Override
     public void tick(){
@@ -30,13 +31,12 @@ public class EnemyAlien extends MenuComponentEnemy{
             dead = true;
         }
         if(dead){
-            game.componentsToRemove.add(this);
             return;
         }
         Building b = null;
         double dist = Double.POSITIVE_INFINITY;
         for(Building building : game.buildings){
-            if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY||(building instanceof Skyscraper&&((Skyscraper)building).falling))continue;
+            if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY||(building instanceof Skyscraper&&((Skyscraper)building).falling)||building.shield!=null)continue;
             double d = Core.distance(this, building);
             if(d<dist){
                 dist = d;
@@ -46,37 +46,34 @@ public class EnemyAlien extends MenuComponentEnemy{
         if(b==null){
             return;
         }
-        boolean there = true;
-        if(x<b.x){
-            x+=speed;
-            there = false;
-        }
-        if(x>b.x+b.width){
-            x-=speed;
-            there = false;
-        }
-        if(y<b.y){
-            y+=speed;
-            there = false;
-        }
-        if(y>b.y+b.width){
-            y-=speed;
-            there = false;
-        }
+        boolean there = Core.distance(this, b)<b.width;
+        if(!there)move(new double[]{b.x+b.width/2,b.y+b.height/2});
         if(there){
             timer--;
             if(timer<0){
                 timer+=4;//0;
-                b.damages.add(new BuildingDamage(b, x-b.x, y-b.y));
+                b.damage(x-b.x, y-b.y);
                 for(int i = 0; i<MenuOptionsGraphics.particles; i++){
                     game.addParticleEffect(new Particle(x-25, y-25, ParticleEffectType.SMOKE, 0));
                 }
-                if(b.damages.size()>10){
-                    game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1));
-                    dead = true;
-                }
+                dead = true;
             }
         }
     }
     int timer = 20*5;
+    private void move(double[] location){
+        double[] loc = new double[]{location[0]-width/2, location[1]-height/2};
+        double xDiff = loc[0]-x;
+        double yDiff = loc[1]-y;
+        double dist = Core.distance(0, 0, xDiff, yDiff);
+        if(dist<=speed){
+            x = loc[0];
+            y = loc[1];
+            return;
+        }
+        xDiff/=dist;
+        yDiff/=dist;
+        x+=xDiff*speed;
+        y+=yDiff*speed;
+    }
 }

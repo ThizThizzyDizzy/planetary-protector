@@ -9,17 +9,16 @@ import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
-import planetaryprotector2.menu.MenuPrologue;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.task.MenuComponentTaskAnimation;
+import planetaryprotector.building.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
+import planetaryprotector.friendly.ShootingStar;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -32,10 +31,10 @@ public class MenuEpilogue extends MenuGame{
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
     public MenuEpilogue(GUI gui){
-        super(gui, null, new Base(Display.getWidth(), Display.getHeight()), new ArrayList<>());
+        super(gui, new ArrayList<>());
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
-            Building building = Building.generateRandomBuilding(base, buildings);
+            Building building = Building.generateRandomBuilding(buildings);
             if(building==null){
                 continue;
             }
@@ -79,7 +78,7 @@ public class MenuEpilogue extends MenuGame{
         if(i>2&&Sounds.songTimer()>=1726){
             offset = (Sounds.songTimer()-1726)/97.5D;
             if(offset>=2){
-                gui.open(new MenuPrologue(gui));
+                gui.open(new MenuEpilogue2(gui));
             }
         }
         if(offset>=Display.getHeight())return;
@@ -116,7 +115,6 @@ public class MenuEpilogue extends MenuGame{
             ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
             Building start = list.get(0);
             Building end = buildingsToReplace.remove(start);
-            components.remove(start);
             buildings.remove(start);
             buildings.add(end);
         }
@@ -131,17 +129,17 @@ public class MenuEpilogue extends MenuGame{
     }
     @Override
     public void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         synchronized(buildings){
             for(Building building : buildings){
                 building.renderBackground();
             }
         }
         for(Point p : w){
-            drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/him.png"));
+            drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/worker.png"));
         }
-        for(MenuComponentTaskAnimation anim : taskAnimations){
-            anim.render();
+        for(TaskAnimation anim : taskAnimations){
+            if(anim.task.isInBackground())anim.render();
         }
         ArrayList<Particle> groundParticles = new ArrayList<>();
         synchronized(particles){
@@ -160,25 +158,25 @@ public class MenuEpilogue extends MenuGame{
         synchronized(workers){
             mainLayer.addAll(workers);
         }
-        Collections.sort(mainLayer, new Comparator<GameObject>(){
-            @Override
-            public int compare(GameObject o1, GameObject o2){
-                int y1 = (int)o1.y;
-                int height1 = (int)o1.height;
-                int y2 = (int)o2.y;
-                int height2 = (int)o2.height;
-                if(o1 instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)o1;
-                    y1 -= sky.fallen;
-                }
-                if(o2 instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)o2;
-                    y2 -= sky.fallen;
-                }
-                y1 += height1/2;
-                y2 += height2/2;
-                return y1-y2;
+        for(TaskAnimation anim : taskAnimations){
+            if(!anim.task.isInBackground())mainLayer.add(anim);
+        }
+        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
+            int y1 = (int)o1.y;
+            int height1 = (int)o1.height;
+            int y2 = (int)o2.y;
+            int height2 = (int)o2.height;
+            if(o1 instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper)o1;
+                y1 -= sky.fallen;
             }
+            if(o2 instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper)o2;
+                y2 -= sky.fallen;
+            }
+            y1 += height1/2;
+            y2 += height2/2;
+            return y1-y2;
         });
         for(GameObject o : mainLayer){
             o.render();
@@ -201,14 +199,19 @@ public class MenuEpilogue extends MenuGame{
                 asteroid.render();
             }
         }
+        synchronized(shootingStars){
+            for(ShootingStar star : shootingStars){
+                star.render();
+            }
+        }
         drawDayNightCycle();
     }
     @Override
     public void render(int millisSinceLastTick){
         GL11.glTranslated(0, -Display.getHeight()*offset, 0);
         renderWorld(millisSinceLastTick);
-        drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/gui/dirtBackground.png"));
-        drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/gui/stoneBackground.png"));
+        drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+MenuGame.theme.tex()+".png"));
+        drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
         if(blackScreenOpacity>0&&i<10){
             blackScreenOpacity-=.01;
         }
@@ -274,5 +277,9 @@ public class MenuEpilogue extends MenuGame{
                 y = Y;
             }
         }
+    }
+    @Override
+    public boolean canLose() {
+        return false;
     }
 }

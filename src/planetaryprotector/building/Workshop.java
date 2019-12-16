@@ -21,10 +21,13 @@ public class Workshop extends Building implements BuildingDamagable, BuildingDem
         return .4;
     }
     @Override
-    public String getName(){
-        return "Workshop";
-    }
-
-    @Override
     protected void getBuildingDebugInfo(ArrayList<String> data){}
+    @Override
+    public boolean isBackgroundStructure(){
+        return false;
+    }
+    @Override
+    public int getBuildingHeight(){
+        return 20;
+    }
 }

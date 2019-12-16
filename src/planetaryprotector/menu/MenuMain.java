@@ -3,7 +3,6 @@ import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.Core;
 import planetaryprotector.Main;
 import planetaryprotector.VersionManager;
-import planetaryprotector2.menu.MenuPrologue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +20,10 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.Queue;
+import simplelibrary.Sys;
 import simplelibrary.config2.Config;
+import simplelibrary.error.ErrorCategory;
+import simplelibrary.error.ErrorLevel;
 import simplelibrary.font.FontManager;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
@@ -41,30 +43,7 @@ public class MenuMain extends Menu{
 //    private MenuExampleGame example;
     boolean sampleGame = false;
     private HashMap<MenuComponentButton, String> badVersions = new HashMap<>();
-    private static Queue<String> news = new Queue<>();
-    private double yOffset = 500;
-    private double textHeight = 20;
-    private static String newsURL = "https://www.dropbox.com/s/tw811ktunymlwsn/news.txt?dl=1";
-    static{
-        File newsFile = downloadFile(newsURL, new File(Main.getAppdataRoot()+"\\news.txt"));
-        if(newsFile!=null){
-            try{
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(newsFile)))) {
-                    String line = reader.readLine();
-                    while(line!=null){
-                        news.enqueue(line);
-                        line = reader.readLine();
-                    }
-                }
-            }catch(IOException ex){
-                Logger.getLogger(MenuMain.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
     private double blackOpacity = 1;
-    public MenuMain(GUI gui){
-        this(gui, true);
-    }
     public MenuMain(GUI gui, boolean blackScreen){
         super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-80, 200, 40, "Exit", true));
@@ -81,20 +60,25 @@ public class MenuMain extends Menu{
         }
         String[] filepaths = file.list();
         for(int i = 0; i<filepaths.length; i++){
-            Config cfg = Config.newConfig(Main.getAppdataRoot()+"\\saves\\"+filepaths[i]);
-            cfg.load();
-            String ver;
-            if(!VersionManager.isCompatible(ver = cfg.get("version", "<1.5.3"))){
-                MenuComponentButton b = new MenuComponentButton(0, 0, 400, 40, filepaths[i].replace(".dat", ""), true);
-                badVersions.put(b,ver);
-                saveList.add(b);
-            }else{
-                saveList.add(new MenuComponentButton(0, 0, 400, 40, filepaths[i].replace(".dat", ""), true));
+            MenuComponentButton b = new MenuComponentButton(0, 0, 400, 40, filepaths[i].replace(".dat", ""), true);
+            Config cfg;
+            try(FileInputStream s = new FileInputStream(new File(Main.getAppdataRoot()+"\\saves\\"+filepaths[i]))){
+                cfg = Config.newConfig(s);
+                cfg.load();
+                String ver;
+                if(!VersionManager.isCompatible(ver = cfg.get("version", "<1.5.3"))){
+                    badVersions.put(b,ver);
+                }
+            }catch(IOException ex){
+                Sys.error(ErrorLevel.severe, "Failed to load save version!", ex, ErrorCategory.fileIO);
+                badVersions.put(b, "???");
+                continue;
             }
+            saveList.add(b);
         }
 //        example = new MenuExampleGame(gui);
 //        Core.game = example;
-        blackOpacity = blackScreen?1:0;
+        blackOpacity = blackScreen?1.2:0;
     }
     @Override
     public void onGUIOpened() {
@@ -102,63 +86,6 @@ public class MenuMain extends Menu{
         Core.discordLargeImageKey = "city";
         Core.discordLargeImageText = Core.discordDetails = "Main Menu";
         Core.discordEndTimestamp = 0;
-    }
-    private static File downloadFile(String link, File destinationFile){
-        if(link==null){
-            return destinationFile;
-        }
-        destinationFile.getParentFile().mkdirs();
-        try {
-            URL url = new URL(link);
-            int fileSize;
-            URLConnection connection = url.openConnection();
-            connection.setDefaultUseCaches(false);
-            if ((connection instanceof HttpURLConnection)) {
-                ((HttpURLConnection)connection).setRequestMethod("HEAD");
-                int code = ((HttpURLConnection)connection).getResponseCode();
-                if (code / 100 == 3) {
-                    return null;
-                }
-            }
-            fileSize = connection.getContentLength();
-            byte[] buffer = new byte[65535];
-            int unsuccessfulAttempts = 0;
-            int maxUnsuccessfulAttempts = 3;
-            boolean downloadFile = true;
-            while (downloadFile) {
-                downloadFile = false;
-                URLConnection urlconnection = url.openConnection();
-                if ((urlconnection instanceof HttpURLConnection)) {
-                    urlconnection.setRequestProperty("Cache-Control", "no-cache");
-                    urlconnection.connect();
-                }
-                String targetFile = destinationFile.getName();
-                FileOutputStream fos;
-                int downloadedFileSize;
-                try (InputStream inputstream=Main.getRemoteInputStream(targetFile, urlconnection)) {
-                    fos=new FileOutputStream(destinationFile);
-                    downloadedFileSize=0;
-                    int read;
-                    while ((read = inputstream.read(buffer)) != -1) {
-                        fos.write(buffer, 0, read);
-                        downloadedFileSize += read;
-                    }
-                }
-                fos.close();
-                if (((urlconnection instanceof HttpURLConnection)) && 
-                    ((downloadedFileSize != fileSize) && (fileSize > 0))){
-                    unsuccessfulAttempts++;
-                    if (unsuccessfulAttempts < maxUnsuccessfulAttempts){
-                        downloadFile = true;
-                    }else{
-                        throw new Exception("failed to download "+targetFile);
-                    }
-                }
-            }
-            return destinationFile;
-        }catch (Exception ex){
-            return null;
-        }
     }
     @Override
     public void render(int millisSinceLastTick){
@@ -179,10 +106,6 @@ public class MenuMain extends Menu{
                 drawText(Mouse.getX()+2, Display.getHeight()-Mouse.getY()+2, Display.getWidth()-2, Display.getHeight()-Mouse.getY()+48, badVersions.get(c));
                 GL11.glColor4d(1,1,1,1);
             }
-        }
-        yOffset = newSave.y;
-        for(String str : news){
-            text(str);
         }
         GL11.glColor4d(0, 0, 0, blackOpacity);
         drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
@@ -215,15 +138,15 @@ public class MenuMain extends Menu{
     @Override
     public void renderBackground(){
         if(saveList.getSelectedIndex()==-1){
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+            drawRect(0, 0, Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         }else{
             switch(getLevel(((MenuComponentButton)saveList.components.get(saveList.getSelectedIndex())).label)){
                 default:
                 case 0:
-                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/menuBackground.png"));
+                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
                     break;
                 case 1:
-                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/gui/caveBackground.png"));
+                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/background/cave.png"));
                     break;
             }
         }
@@ -285,26 +208,13 @@ public class MenuMain extends Menu{
         String name = save.label+".dat";
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+name);
         file.delete();
-        gui.open(new MenuMain(gui));
+        gui.open(new MenuMain(gui, false));
     }
     private void rename(MenuComponentButton save){
         gui.open(new MenuRename(gui, save));
     }
     private void play(MenuComponentButton save){
         loadGame(save.label);
-    }
-    private void text(String str){
-        if(str==null)return;
-        do{
-            str = textWithBackground(0, yOffset, newSave.x, yOffset+textHeight, str);
-            yOffset+=textHeight;
-        }while(!str.isEmpty());
-    }
-    private String textWithBackground(double left, double top, double right, double bottom, String str) {
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, Math.min(simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left,newSave.x), bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
-        return drawTextWithWrap(left,top,right,bottom, str);
     }
     private void loadGame(String name){
         loadGame(name, getLevel(name));
@@ -316,26 +226,27 @@ public class MenuMain extends Menu{
             if(g==null){
                 gui.open(new MenuLoad(gui, null));
             }else{
-                gui.open(new MenuLoad(gui, null, g));
+                Core.game = g;
+                gui.open(g);
             }
             return;
         }
         if(level==1){
-            planetaryprotector2.menu.MenuGame g = planetaryprotector2.menu.MenuGame.load(gui);
-            if(g==null){
-                gui.open(new MenuPrologue(gui));
-            }else{
-                gui.open(planetaryprotector2.menu.MenuGame.load(gui));
-            }
+            throw new UnsupportedOperationException("LEVEL 2 PLEEZ");
         }
     }
+    private HashMap<String, Integer> levels = new HashMap<>();
     private int getLevel(String name){
-        File file = new File(Main.getAppdataRoot()+"\\saves\\"+name+".dat");
-        if(!file.exists()){
-            return 0;
+        if(!levels.containsKey(name)){
+            File file = new File(Main.getAppdataRoot()+"\\saves\\"+name+".dat");
+            if(!file.exists()){
+                return 0;
+            }
+            Config config = Config.newConfig(file);
+            config.load();
+            int level = config.get("level", 0);
+            levels.put(name, level);
         }
-        Config config = Config.newConfig(file);
-        config.load();
-        return config.get("level", 0);
+        return levels.get(name);
     }
 }

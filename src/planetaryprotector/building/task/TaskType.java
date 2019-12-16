@@ -6,7 +6,6 @@ public enum TaskType{
     UPGRADE("upgrade"),
     TRAIN_WORKER("trainWorker"),
     REPAIR("repair");
-    public int[] images = new int[100];
     public final String textureRoot;
     private TaskType(String textureRoot){
         this.textureRoot = textureRoot;

@@ -51,7 +51,7 @@ public class TaskWreckClean extends TaskAnimated{
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
             wreck.ingots--;
         }
     }
@@ -63,7 +63,7 @@ public class TaskWreckClean extends TaskAnimated{
             double itemY = building.y+MenuGame.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot, Core.game));
+            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
             wreck.ingots--;
         }
     }
@@ -76,5 +76,19 @@ public class TaskWreckClean extends TaskAnimated{
     @Override
     public ItemStack[] getTooltip(){
         return new ItemStack[0];
+    }
+    @Override
+    protected void onCancel(){}
+    @Override
+    public int[] getAnimation(){
+        return getAnimation("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+MenuGame.theme.tex());
+    }
+    @Override
+    public int getHeight(){
+        return 100;
+    }
+    @Override
+    public boolean isInBackground(){
+        return true;
     }
 }

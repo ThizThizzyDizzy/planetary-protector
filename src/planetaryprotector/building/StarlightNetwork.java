@@ -1,7 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
@@ -84,21 +83,18 @@ public class StarlightNetwork{
                 }
             }
         }
-        Collections.sort(supply, new Comparator<Building>(){//starlight storage CAN send starlight to itself, this will give the illusion of discharge rate decreasing as its charge decreases, and never hitting zero.
-            @Override
-            public int compare(Building o1, Building o2){
-                boolean r1 = ((BuildingStarlightProducer)o1).isStarlightRenewable();
-                boolean r2 = ((BuildingStarlightProducer)o2).isStarlightRenewable();
-                boolean s1 = o1 instanceof BuildingStarlightStorage;
-                boolean s2 = o2 instanceof BuildingStarlightStorage;
-                int i1 = 0;
-                int i2 = 0;
-                if(r1)i1 = 1;
-                if(r2)i2 = 1;
-                if(s1)i1 = -1;
-                if(s2)i2 = -1;
-                return i2-i1;
-            }
+        Collections.sort(supply, (Building o1, Building o2) -> {//starlight storage CAN send starlight to itself, this will give the illusion of discharge rate decreasing as its charge decreases, and never hitting zero.
+            boolean r1 = ((BuildingStarlightProducer)o1).isStarlightRenewable();
+            boolean r2 = ((BuildingStarlightProducer)o2).isStarlightRenewable();
+            boolean s1 = o1 instanceof BuildingStarlightStorage;
+            boolean s2 = o2 instanceof BuildingStarlightStorage;
+            int i1 = 0;
+            int i2 = 0;
+            if(r1)i1 = 1;
+            if(r2)i2 = 1;
+            if(s1)i1 = -1;
+            if(s2)i2 = -1;
+            return i2-i1;
         });
     }
     private void distributeStarlight(double starlight){
@@ -125,7 +121,7 @@ public class StarlightNetwork{
         for(Building b : demand){
             if(Core.debugMode){
                 GL11.glColor4d(.8, 0, 0, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 25, 0);
+                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(0, .5, 1, 1);
@@ -135,7 +131,7 @@ public class StarlightNetwork{
         for(Building b : supply){
             if(Core.debugMode){
                 GL11.glColor4d(0, .3, .9, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 25, 0);
+                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(0, .5, 1, 1);

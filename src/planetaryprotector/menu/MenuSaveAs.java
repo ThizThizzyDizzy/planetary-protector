@@ -19,7 +19,7 @@ public class MenuSaveAs extends Menu{
     }
     @Override
     public void renderBackground(){
-        super.renderBackground();
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
         save.enabled = !name.text.isEmpty();
         cancel.x = Display.getWidth()/2-200;
         cancel.y = Display.getHeight()-80;

@@ -5,12 +5,12 @@ public enum ParticleEffectType{
     CLOUD("smoke", 1),
     FOG("fog", 1),
     FIRE("smoke", 1);
-    public final int[] images;
+    public final String[] images;
     public final String texture;
     public final int frames;
     private ParticleEffectType(String texture, int frames) {
         this.texture = texture;
         this.frames = frames;
-        images = new int[frames];
+        images = new String[frames];
     }
 }

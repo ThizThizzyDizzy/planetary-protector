@@ -10,19 +10,18 @@ import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
-public class EnemyLandingParty extends MenuComponentEnemy{
+public class EnemyLandingParty extends Enemy{
     public int initialDelay = 20*10;
     public double laserPower = 1.25;
     public double laserTime = 20*30;
     public double laserSize = 20;
     public double laserSizing = 1/3D;
     private final MenuGame game;
-    public boolean dead = false;
     public EnemyLandingParty(MenuGame game){
         super(0, 0, 50, 50, 250);
         double[] location = getFurthestCorner();
         if(location==null){
-            location = new double[]{game.base.x+game.base.width/2,game.base.y+game.base.height/2};
+            location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
         }
         x=location[0];
         y=location[1];
@@ -34,7 +33,6 @@ public class EnemyLandingParty extends MenuComponentEnemy{
     }
     @Override
     public void render(){
-        removeRenderBound();
         if(laserFiring!=null){
             double xDiff = laserFiring[0]-x;
             double yDiff = laserFiring[1]-y;
@@ -68,7 +66,6 @@ public class EnemyLandingParty extends MenuComponentEnemy{
         }
         if(dead){
             increase = true;
-            game.componentsToRemove.add(this);
             game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<10){
                 strength+=.5;
@@ -101,7 +98,7 @@ public class EnemyLandingParty extends MenuComponentEnemy{
                 if(increase&&strength<10){
                     strength+=.5;
                 }
-                game.componentsToRemove.add(this);
+                dead = true;
             }
             return;
         }
@@ -148,7 +145,7 @@ public class EnemyLandingParty extends MenuComponentEnemy{
         }
         laserTime--;
         laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
-        gen.setShieldSize(gen.getShieldSize()-laserPower*75);
+        gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
     public static double[] getFurthestCorner(){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
@@ -183,9 +180,9 @@ public class EnemyLandingParty extends MenuComponentEnemy{
     private void land(){
         landed = true;
         for(EnemyAlien alien : crew){
-            if(game.aliens.contains(alien)) break;  
+            if(game.enemies.contains(alien)) break;  
             if(alien.dead) continue;
-            game.aliens.add(game.add(alien));
+            game.enemies.add(alien);
             break;
         }
     }

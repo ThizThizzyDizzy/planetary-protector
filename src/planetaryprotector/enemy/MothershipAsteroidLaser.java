@@ -1,8 +1,8 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
  import org.lwjgl.opengl.Display;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MothershipAsteroidLaser extends MenuComponent{
+import planetaryprotector.GameObject;
+public class MothershipAsteroidLaser extends GameObject{
     int time = 0;
     double[] target = new double[]{0,0};
     int speed = 1;
@@ -11,7 +11,6 @@ public class MothershipAsteroidLaser extends MenuComponent{
         super(-150, Display.getHeight()/2, 0, 0);
         target = new double[]{x,y};
     }
-    @Override
     public void tick(){
         double oldx = x;
         double oldy = y;
@@ -28,7 +27,7 @@ public class MothershipAsteroidLaser extends MenuComponent{
             y-=speed;
         }
         if(oldx==x&&oldy==y){
-            target = MenuComponentEnemy.getBestStrike();
+            target = Enemy.getBestStrike();
             if(target==null){
                 target = new double[]{x,y};
             }

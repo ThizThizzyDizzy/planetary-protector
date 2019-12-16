@@ -4,17 +4,17 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyLandingParty;
 import planetaryprotector.enemy.EnemyAlien;
-import planetaryprotector.enemy.MenuComponentEnemy;
+import planetaryprotector.enemy.Enemy;
 import planetaryprotector.building.Silo;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
 public class Missile extends Drone{
-    MenuComponentEnemy target;
+    Enemy target;
     double speed = 0;
     double accel = .0981;
     int power = 2500;
     int time = 0;
-    public Missile(Silo silo, MenuComponentEnemy target){
+    public Missile(Silo silo, Enemy target){
         super(silo, 0);
         this.silo = silo;
         this.target = target;
