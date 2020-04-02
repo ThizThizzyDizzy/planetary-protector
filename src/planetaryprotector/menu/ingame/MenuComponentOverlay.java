@@ -4,10 +4,10 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public abstract class MenuComponentOverlay extends MenuComponent{
-    protected final MenuGame game;
-    public MenuComponentOverlay(MenuGame game){
+    protected final MenuGame menu;
+    public MenuComponentOverlay(MenuGame menu){
         super(0, 0, Display.getWidth(), Display.getHeight());
-        this.game = game;
+        this.menu = menu;
     }
     @Override
     public void renderBackground(){
@@ -16,10 +16,11 @@ public abstract class MenuComponentOverlay extends MenuComponent{
         GL11.glColor4d(1, 1, 1, 1);
     }
     public void close(){
-        game.closeOverlay();
+        menu.game.paused = false;
+        menu.overlay = null;
     }
-    public void open(MenuComponentOverlay parent){
+    public void open(MenuComponentOverlay overlay){
         close();
-        game.overlay = game.add(new MenuExpedition(game));
+        menu.overlay = overlay;
     }
 }

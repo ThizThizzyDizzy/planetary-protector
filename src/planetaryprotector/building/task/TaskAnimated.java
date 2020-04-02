@@ -1,6 +1,5 @@
 package planetaryprotector.building.task;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.building.Building;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.texture.TexturePackManager;
@@ -15,7 +14,7 @@ public abstract class TaskAnimated extends Task{
     @Override
     public void start(){
         super.start();
-        Core.game.startAnim(this);
+        game.startAnim(this);
     }
     public abstract int[] getAnimation();
     public static final int[] getAnimation(String animFolder){

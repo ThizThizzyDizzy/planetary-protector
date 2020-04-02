@@ -1,16 +1,17 @@
 package planetaryprotector;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.HashMap;
 import simplelibrary.config2.Config;
 public class Expedition{
     public final int requiredWorkers;
+    private final Game game;
     public int workers;
     public int time = 0;
     public int totalTime = 0;
     public int civilians = 0;
-    public int civilianCooldown = MenuGame.rand.nextInt(20*60*4);
-    public int dieCooldown = MenuGame.rand.nextInt(20*60*20);
+    public int civilianCooldown = Game.rand.nextInt(20*60*4);
+    public int dieCooldown = Game.rand.nextInt(20*60*20);
     public boolean returning = false;
     public boolean done = false;
     public boolean returned = false;
@@ -19,11 +20,12 @@ public class Expedition{
     public HashMap<Integer, Integer> civilianPromotionGraph = new HashMap<>();
     public HashMap<Integer, Boolean> returningGraph = new HashMap<>();
     public boolean recalled = false;
-    public Expedition(int workers){
+    public Expedition(Game game, int workers){
         requiredWorkers = workers;
         civilianGraph.put(0, 0);
         workerGraph.put(0, workers);
         lastWorkers = workers;
+        this.game = game;
     }
     public ArrayList<String> getText(){
         ArrayList<String> text = new ArrayList<>();
@@ -96,7 +98,7 @@ public class Expedition{
     int lastCivilians = 0;
     int lastWorkers = 0;
     public void tick(){
-        for(int i = 0; i<(Core.game.cheats?80*60:4*60); i++){
+        for(int i = 0; i<(game.cheats?80*60:4*60); i++){
             if(done){
                 return;
             }
@@ -122,14 +124,14 @@ public class Expedition{
             }
             civilianCooldown--;
             if(civilianCooldown<=0){
-                civilianCooldown = MenuGame.rand.nextInt(20*60*4);
-                double newCivilians = Math.min(50, Math.max(-100, MenuGame.rand.nextGaussian()));
+                civilianCooldown = Game.rand.nextInt(20*60*4);
+                double newCivilians = Math.min(50, Math.max(-100, Game.rand.nextGaussian()));
                 if(newCivilians<0){
                     newCivilians*=-2;
                 }
                 while(newCivilians>0){
                     newCivilians--;
-                    if(MenuGame.rand.nextInt(50)>0){
+                    if(Game.rand.nextInt(50)>0){
                         civilians++;
                     }else{
                         workers++;
@@ -138,11 +140,11 @@ public class Expedition{
             }
             dieCooldown--;
             if(dieCooldown<=0){
-                dieCooldown = MenuGame.rand.nextInt(20*60*15);
-                double dead = MenuGame.rand.nextGaussian()*(civilians+workers)/25;
+                dieCooldown = Game.rand.nextInt(20*60*15);
+                double dead = Game.rand.nextGaussian()*(civilians+workers)/25;
                 while(dead>0){
                     dead--;
-                    if(MenuGame.rand.nextInt(civilians+workers)>workers){
+                    if(Game.rand.nextInt(civilians+workers)>workers){
                         civilians--;
                     }else{
                         workers--;
@@ -189,9 +191,9 @@ public class Expedition{
         cfg.set("returned", returned);
         return cfg;
     }
-    public static Expedition load(Config cfg){
+    public static Expedition load(Config cfg, Game game){
         if(cfg==null) return null;
-        Expedition e = new Expedition(cfg.get("Required Workers", 1));
+        Expedition e = new Expedition(game, cfg.get("Required Workers", 1));
         e.workers = cfg.get("Workers", 1);
         e.time = cfg.get("Time", 0);
         e.totalTime = cfg.get("Total time", 0);

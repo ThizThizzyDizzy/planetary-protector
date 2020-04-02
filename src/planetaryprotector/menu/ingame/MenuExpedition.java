@@ -24,11 +24,9 @@ public class MenuExpedition extends MenuComponentOverlay{
     @Override
     public void renderBackground(){
         super.renderBackground();
-        synchronized(game.workers){
-            add.enabled = game.workers.size()>workers+1;
-        }
+        add.enabled = menu.game.workers.size()>workers+1;
         remove.enabled = send.enabled = workers>0;
-        if(game.pendingExpedition!=null){
+        if(menu.game.pendingExpedition!=null){
             send.enabled = false;
         }
         textOffset = 0;
@@ -37,15 +35,13 @@ public class MenuExpedition extends MenuComponentOverlay{
     @Override
     public void render(){
         rects.clear();
-        for(Expedition e : game.finishedExpeditions){
+        for(Expedition e : menu.game.finishedExpeditions){
             drawText(e);
         }
-        for(Expedition e : game.activeExpeditions){
+        for(Expedition e : menu.game.activeExpeditions){
             drawTextRight(e);
         }
-        synchronized(game.workers){
-            drawCenteredText(0, remove.y+remove.height+25, Display.getWidth(), back.y-25, workers+"/"+game.workers.size());
-        }
+        drawCenteredText(0, remove.y+remove.height+25, Display.getWidth(), back.y-25, workers+"/"+menu.game.workers.size());
     }
     Expedition close = null;
     @Override
@@ -69,29 +65,28 @@ public class MenuExpedition extends MenuComponentOverlay{
     public void tick(){
         super.tick();
         if(close==null)return;
-        open(new MenuExpeditionGraph(game, close));
+        open(new MenuExpeditionGraph(menu, close));
     }
     @Override
     public void buttonClicked(MenuComponentButton button) {
         if(button==back){
-            for(Expedition e : game.finishedExpeditions){
+            for(Expedition e : menu.game.finishedExpeditions){
                 if(!e.returned){
                     continue;
                 }
                 for(int i = 0; i<e.workers; i++){
-                    game.addWorker();
+                    menu.game.addWorker();
                 }
-                game.addCivilians(e.civilians);
+                menu.game.addCivilians(e.civilians);
             }
-            game.finishedExpeditions.clear();
-            game.componentsToRemove.add(this);
-            game.overlay = null;
+            menu.game.finishedExpeditions.clear();
+            close();
         }
         if(button==remove){
             workers--;
         }
         if(button==send){
-            game.expedition(workers);
+            menu.game.expedition(workers);
         }
         if(button==add){
             workers++;

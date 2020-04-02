@@ -5,8 +5,8 @@ import planetaryprotector.menu.MenuGame;
 public abstract class MenuComponentOverlayBuilding extends MenuComponentOverlay{
     private final Building building;
     private final BuildingType type;
-    public MenuComponentOverlayBuilding(MenuGame game, Building building){
-        super(game);
+    public MenuComponentOverlayBuilding(MenuGame menu, Building building){
+        super(menu);
         this.building = building;
         type = building.type;
     }

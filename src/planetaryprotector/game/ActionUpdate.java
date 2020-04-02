@@ -1,4 +1,4 @@
-package planetaryprotector.menu;
+package planetaryprotector.game;
 public interface ActionUpdate{
     public boolean getEnabled();
 }

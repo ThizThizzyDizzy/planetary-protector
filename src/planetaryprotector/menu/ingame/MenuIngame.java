@@ -1,6 +1,7 @@
 package planetaryprotector.menu.ingame;
 import planetaryprotector.Controls;
 import org.lwjgl.opengl.Display;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuMain;
 import planetaryprotector.menu.MenuSaveAs;
@@ -13,8 +14,8 @@ public class MenuIngame extends MenuComponentOverlay{
     private final MenuComponentButton exit;
     private final MenuComponentButton exitSave;
     private final MenuComponentButton exitNosave;
-    public MenuIngame(MenuGame game){
-        super(game);
+    public MenuIngame(MenuGame menu){
+        super(menu);
         controls = add(new MenuComponentButton(Display.getWidth()/2-400, 240, 800, 80, "Controls", true));
         back = add(new MenuComponentButton(Display.getWidth()/2-400, 80, 800, 80, "Back to game", true));
         saveAs = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-320, 800, 80, "Save As...", true));
@@ -37,13 +38,13 @@ public class MenuIngame extends MenuComponentOverlay{
             close();
         }
         if(button==save){
-            game.save();
+            menu.game.save();
         }
         if(button==saveAs){
-            gui.open(new MenuSaveAs(gui, game));
+            gui.open(new MenuSaveAs(gui, menu.game));
         }
         if(button==controls){
-            open(new MenuControls(game));
+            open(new MenuControls(menu));
         }
         if(button==exit){
             exit.enabled = false;
@@ -51,7 +52,7 @@ public class MenuIngame extends MenuComponentOverlay{
             exitNosave.enabled = true;
         }
         if(button==exitSave){
-            game.save();
+            menu.game.save();
             gui.open(new MenuMain(gui, true));
         }
         if(button==exitNosave){

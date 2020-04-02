@@ -2,19 +2,21 @@ package planetaryprotector.particle;
 import planetaryprotector.Core;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.enemy.Enemy;
+import planetaryprotector.enemy.EnemyMothership;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
 public class ParticleFog extends Particle{
     public static final double SIZE = 200;
-    public ParticleFog(double x, double y, boolean air, double opacity){
-        super(x, y, ParticleEffectType.FOG);
-        x+=(Core.game.rand.nextDouble()-.5)*SIZE/10;
-        y+=(Core.game.rand.nextDouble()-.5)*SIZE/10;
+    public ParticleFog(Game game, double x, double y, boolean air, double opacity){
+        super(game, x, y, ParticleEffectType.FOG);
+        x+=(game.rand.nextDouble()-.5)*SIZE/10;
+        y+=(game.rand.nextDouble()-.5)*SIZE/10;
         width = height = SIZE;
         this.air = air;
         this.opacity = opacity;
-        rotSpeed = Core.game.rand.nextDouble()*10-5;
+        rotSpeed = game.rand.nextDouble()*10-5;
     }
     @Override
     public void render(){
@@ -23,7 +25,7 @@ public class ParticleFog extends Particle{
         }
         double lightness = 1;
         double redTint = 0;
-        switch(Core.game.phase){
+        switch(game.phase){
             case 2:
                 lightness = .95;
                 break;
@@ -32,8 +34,14 @@ public class ParticleFog extends Particle{
                 redTint = .01;
                 break;
             case 4:
-                if(Core.game.mothership!=null){
-                    switch(Core.game.mothership.phase){
+                int mothershipPhase = 0;
+                for(Enemy e : game.enemies){
+                    if(e instanceof EnemyMothership){
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
+                    }
+                }
+                if(mothershipPhase>=0){
+                    switch(mothershipPhase){
                         case 2:
                             lightness = .7;
                             redTint = .01;
@@ -57,11 +65,11 @@ public class ParticleFog extends Particle{
             default:
                 lightness = 1;
         }
-        if(MenuGame.theme==MenuGame.Theme.SPOOKY){
+        if(Game.theme==Game.Theme.SPOOKY){
             redTint+=.01;
             lightness-=.125;
         }
-        if(MenuGame.theme==MenuGame.Theme.SNOWY){
+        if(Game.theme==Game.Theme.SNOWY){
             lightness = Math.sqrt(lightness);
         }
         GL11.glColor4d(lightness, lightness-redTint, lightness-redTint, opacity*MenuOptionsGraphics.fogIntensity);

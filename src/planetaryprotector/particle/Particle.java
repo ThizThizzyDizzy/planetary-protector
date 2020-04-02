@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -31,26 +31,26 @@ public class Particle extends GameObjectAnimated{
     public boolean fading;
     public Lightning lightning = null;
     private ArrayList<double[]> snow = new ArrayList<>();
-    public Particle(double x, double y, ParticleEffectType type){
-        this(x, y, type, 1);
+    public Particle(Game game, double x, double y, ParticleEffectType type){
+        this(game, x, y, type, 1);
     }
-    public Particle(double x, double y, ParticleEffectType type, int size){
-        this(x, y, type, size, false);
+    public Particle(Game game, double x, double y, ParticleEffectType type, int size){
+        this(game, x, y, type, size, false);
     }
-    public Particle(double x, double y, ParticleEffectType type, int size, boolean air){
-        super(x, y, 50, 50, type.images);
+    public Particle(Game game, double x, double y, ParticleEffectType type, int size, boolean air){
+        super(game, x, y, 50, 50, type.images);
         this.type = type;
         this.size = size;
         this.air = air;
         if(type==ParticleEffectType.CLOUD){
-            rotation = Core.game.rand.nextInt(360);
-            strength = Core.game.rand.nextInt(25);
-            rateOfChange = (Core.game.rand.nextDouble()-.25)/100;
+            rotation = game.rand.nextInt(360);
+            strength = game.rand.nextInt(25);
+            rateOfChange = (game.rand.nextDouble()-.25)/100;
             this.air = true;
         }
     }
-    public Particle(double x, double y, double cloudStrength, double cloudRateOfChange, double speed){
-        this(x, y, ParticleEffectType.CLOUD);
+    public Particle(Game game, double x, double y, double cloudStrength, double cloudRateOfChange, double speed){
+        this(game, x, y, ParticleEffectType.CLOUD);
         strength = cloudStrength;
         rateOfChange = cloudRateOfChange;
         this.speed = speed;
@@ -102,19 +102,19 @@ public class Particle extends GameObjectAnimated{
             case CLOUD:
                 if(strength>lightningThreshold){
                     //add lightning
-                    if(lightning==null&&Core.game.rand.nextDouble()*strength>lightningThreshold&&Core.game.rand.nextDouble()<lightningChance){
+                    if(lightning==null&&game.rand.nextDouble()*strength>lightningThreshold&&game.rand.nextDouble()<lightningChance){
                         lightning = new Lightning();
                         double lastX = 0;
                         double lastY = 0;
                         double Y = 0;
                         double X = 0;
                         while(Y<400){
-                            Y = lastY+Core.game.rand.nextInt(40)+10;
-                            X = lastX+(Core.game.rand.nextDouble()-.5)*30;
+                            Y = lastY+game.rand.nextInt(40)+10;
+                            X = lastX+(game.rand.nextDouble()-.5)*30;
                             lightning.addLine(x+width/2+lastX, y+height/2+lastY, x+width/2+X, y+height/2+Y);
-                            if(Core.game.rand.nextBoolean()){
-                                double YY = lastY+Core.game.rand.nextInt(40)+10;
-                                double XX = lastX+(Core.game.rand.nextDouble()-.5)*30;
+                            if(game.rand.nextBoolean()){
+                                double YY = lastY+game.rand.nextInt(40)+10;
+                                double XX = lastX+(game.rand.nextDouble()-.5)*30;
                                 lightning.addBranch(x+width/2+lastX, y+height/2+lastY, x+width/2+XX, y+height/2+YY);
                             }
                             lastX = X;
@@ -125,18 +125,19 @@ public class Particle extends GameObjectAnimated{
                 }
                 if(strength>rainThreshold){
                     //draw rain
-                    if(MenuGame.theme==MenuGame.Theme.SNOWY){
-                        synchronized(snow){
-                            GL11.glColor4d(1, 1, 1, .875*MenuOptionsGraphics.cloudIntensity);
-                            for(double[] i : snow){
-                                drawRect(x+i[0]+width/2, y+i[1]+i[2]+height/2, x+i[0]+width/2+1, y+i[1]+i[2]+height/2+1, 0);
-                            }
+                    if(Game.theme==Game.Theme.SNOWY){
+                        GL11.glColor4d(1, 1, 1, .875*MenuOptionsGraphics.cloudIntensity);
+                        ImageStash.instance.bindTexture(0);
+                        GL11.glBegin(GL11.GL_POINTS);
+                        for(double[] i : snow){
+                            GL11.glVertex2d(x+i[0]+width/2, y+i[1]+i[2]+height/2);
                         }
+                        GL11.glEnd();
                     }else{
                         GL11.glColor4d(0, 0, 1, .75*MenuOptionsGraphics.cloudIntensity);
                         for(int i = 0; i<strength; i++){
-                            double X = Core.game.rand.nextInt((int)width)-width/2;
-                            double Y = Core.game.rand.nextInt((int)(height+500))-height/2;
+                            double X = game.rand.nextInt((int)width)-width/2;
+                            double Y = game.rand.nextInt((int)(height+500))-height/2;
                             drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+5, 0);
                         }
                     }
@@ -150,7 +151,7 @@ public class Particle extends GameObjectAnimated{
                 }
                 opacity = Math.log10(strength/(rainThreshold/4))*.75;
                 double lightness = 1-((strength-(rainThreshold*(3/4d)))/50);
-                if(MenuGame.theme==MenuGame.Theme.SNOWY)lightness = Math.sqrt(lightness);
+                if(Game.theme==Game.Theme.SNOWY)lightness = Math.sqrt(lightness);
                 GL11.glColor4d(lightness, lightness, lightness, opacity*MenuOptionsGraphics.cloudIntensity);
                 GL11.glPushMatrix();
                 GL11.glTranslated(x+width/2, y+height/2, 0);
@@ -160,17 +161,15 @@ public class Particle extends GameObjectAnimated{
                 GL11.glColor4d(1, 1, 1, 1);
                 return;
             case FIRE:
-                synchronized(smoke){
-                    for(double[] i : smoke){
-                        double r = Math.max(0,Math.min(1,(10-i[4])/10));
-                        double g = Math.max(0,Math.min(1,(10-i[4])/20));
-                        GL11.glColor4d(r, g, 0, i[3]);
-                        GL11.glPushMatrix();
-                        GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
-                        GL11.glRotated(i[2], 0, 0, 1);
-                        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                        GL11.glPopMatrix();
-                    }
+                for(double[] i : smoke){
+                    double r = Math.max(0,Math.min(1,(10-i[4])/10));
+                    double g = Math.max(0,Math.min(1,(10-i[4])/20));
+                    GL11.glColor4d(r, g, 0, i[3]);
+                    GL11.glPushMatrix();
+                    GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
+                    GL11.glRotated(i[2], 0, 0, 1);
+                    drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
+                    GL11.glPopMatrix();
                 }
                 GL11.glColor4d(1, 1, 1, 1);
                 if(fading)return;
@@ -202,18 +201,14 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.EXPLOSION){
             opacity-=0.005*(11-size);
             radius+=5+0.5*((11-size));
-            Core.game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
+            game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
-                synchronized(Core.game.buildings){
-                    for(Building building : Core.game.buildings){
-                        if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
-                            continue;
-                        }
-                        if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
-                            synchronized(building.damages){
-                                building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
-                            }
-                        }
+                for(Building building : game.buildings){
+                    if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
+                        continue;
+                    }
+                    if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
+                        building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
                     }
                 }
             }
@@ -230,22 +225,20 @@ public class Particle extends GameObjectAnimated{
                 dead = true;
             }
             x+=speed;
-            synchronized(snow){
-                for (Iterator<double[]> it = snow.iterator(); it.hasNext();) {
-                    double[] i = it.next();
-                    if(Core.game.rand.nextBoolean()){
-                        i[0]+=Core.game.rand.nextInt(3)-1;
-                    }
-                    i[0]-=speed*.1;
-                    i[2]++;
-                    if(i[2]>=500){
-                        it.remove();
-                    }
+            for (Iterator<double[]> it = snow.iterator(); it.hasNext();) {
+                double[] i = it.next();
+                if(game.rand.nextBoolean()){
+                    i[0]+=game.rand.nextInt(3)-1;
+                }
+                i[0]-=speed*.1;
+                i[2]++;
+                if(i[2]>=500){
+                    it.remove();
                 }
             }
             for(int i = 0; i<strength/100; i++){
-                double X = Core.game.rand.nextInt((int)width)-width/2;
-                double Y = Core.game.rand.nextInt((int)height)-height/2;
+                double X = game.rand.nextInt((int)width)-width/2;
+                double Y = game.rand.nextInt((int)height)-height/2;
                 snow.add(new double[]{X,Y,0});
             }
         }
@@ -266,21 +259,17 @@ public class Particle extends GameObjectAnimated{
             }
             if(smokeTimer>=delay&&!fading){
                 smokeTimer = 0;
-                synchronized(smoke){
-                    smoke.add(new double[]{0,0,0,0,0,0});
-                }
+                smoke.add(new double[]{0,0,0,0,0,0});
             }
-            synchronized(smoke){
-                for(Iterator<double[]> it = smoke.iterator(); it.hasNext();){
-                    double[] i = it.next();
-                    i[4]++;
-                    i[0] = i[4]*3;
-                    i[1] = -Math.sqrt(i[4])*10;
-                    i[2] = i[4]*10;
-                    i[3] = 1-(i[4]/200);
-                    if(i[3]<=0){
-                        it.remove();
-                    }
+            for(Iterator<double[]> it = smoke.iterator(); it.hasNext();){
+                double[] i = it.next();
+                i[4]++;
+                i[0] = i[4]*3;
+                i[1] = -Math.sqrt(i[4])*10;
+                i[2] = i[4]*10;
+                i[3] = 1-(i[4]/200);
+                if(i[3]<=0){
+                    it.remove();
                 }
             }
         }
@@ -305,20 +294,16 @@ public class Particle extends GameObjectAnimated{
         }
         if(type==ParticleEffectType.FIRE){
             if(cause==PushCause.ASTEROID)return;
-            synchronized(smoke){
-                for(double[] d : smoke){
-                    d[1]+=x;
-                    d[2]+=y;
-                }
+            for(double[] d : smoke){
+                d[1]+=x;
+                d[2]+=y;
             }
             return;
         }
         if(type==ParticleEffectType.CLOUD){
-            synchronized(snow){
-                for(double[] d : snow){
-                    d[0]-=x;
-                    d[1]-=y;
-                }
+            for(double[] d : snow){
+                d[0]-=x;
+                d[1]-=y;
             }
         }
         this.x+=x;

@@ -2,11 +2,12 @@ package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
+import planetaryprotector.game.Action;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class CoalGenerator extends Building implements BuildingPowerProducer, BuildingStarlightConsumer, BuildingDamagable, BuildingDemolishable{
     public int coal = 0;
     public double burning = 0;//how much time is left on current coal burning
@@ -21,11 +22,11 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     private static final int acceleration = 2;
     private double delay = 0;
     private int spinTimer = 0;
-    public CoalGenerator(double x, double y) {
-        super(x, y, 100, 100, BuildingType.COAL_GENERATOR);
+    public CoalGenerator(Game game, double x, double y) {
+        super(game, x, y, 100, 100, BuildingType.COAL_GENERATOR);
     }
-    public CoalGenerator(double x, double y, int level, ArrayList<Upgrade> upgrades){
-        super(x, y, 100, 100, BuildingType.COAL_GENERATOR, level, upgrades);
+    public CoalGenerator(Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(game, x, y, 100, 100, BuildingType.COAL_GENERATOR, level, upgrades);
     }
     @Override
     public void update(){
@@ -49,8 +50,8 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
             }
         }
         if(coal==0&&autoFuel&&burning<=0){
-            if(Core.game.hasResources(new ItemStack(Item.coal))){
-                Core.game.removeResources(new ItemStack(Item.coal));
+            if(game.hasResources(new ItemStack(Item.coal))){
+                game.removeResources(new ItemStack(Item.coal));
                 coal++;
             }
         }
@@ -71,12 +72,12 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     }
     @Override
     public void drawForeground(){
-        GL11.glColor4d(1,0,0,1);
+        super.drawForeground();
+        GL11.glColor4d(1,.1,0,1);
         drawRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
-        MenuGame.theme.applyTextColor();
-        drawCenteredText(x, y, x+width, y+18, "Power: "+(int)power);
-        if(coal>0)drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        Game.theme.applyTextColor();
+        if(coal>0)drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());//TODO level markings
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -89,8 +90,8 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
         cfg.set("autofuel", autoFuel);
         return cfg;
     }
-    public static CoalGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
-        CoalGenerator generator = new CoalGenerator(x, y, level, upgrades);
+    public static CoalGenerator loadSpecific(Config cfg, Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        CoalGenerator generator = new CoalGenerator(game, x, y, level, upgrades);
         generator.power = cfg.get("power", 0d);
         generator.autoFuel = cfg.get("autofuel", false);
         return generator;
@@ -160,5 +161,35 @@ public class CoalGenerator extends Building implements BuildingPowerProducer, Bu
     @Override
     public boolean isBackgroundStructure(){
         return false;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Add Coal", (e) -> {
+            game.removeResources(new ItemStack(Item.coal));
+            coal++;
+        }, () -> {
+            return game.hasResources(new ItemStack(Item.coal));
+        }));
+        actions.add(new Action((autoFuel?"Disable":"Enable")+" Auto-fueling", (e) -> {
+            autoFuel = !autoFuel;
+        }, () -> {
+            return true;
+        }));
+    }
+    @Override
+    public double getDisplayPower(){
+        return 0;
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return 0;
+    }
+    @Override
+    public double getDisplayStarlight(){
+        return getStarlight();
+    }
+    @Override
+    public double getDisplayMaxStarlight(){
+        return getMaxStarlight();
     }
 }

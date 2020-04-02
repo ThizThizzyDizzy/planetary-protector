@@ -1,8 +1,7 @@
     package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class SolarGenerator extends Building implements BuildingPowerProducer, BuildingDamagable, BuildingDemolishable{
@@ -11,11 +10,11 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     private int speed = 0;//0-100
     private double delay = 0;
     private int spinTimer = 0;
-    public SolarGenerator(double x, double y) {
-        super(x, y, 100, 100, BuildingType.SOLAR_GENERATOR);
+    public SolarGenerator(Game game, double x, double y) {
+        super(game, x, y, 100, 100, BuildingType.SOLAR_GENERATOR);
     }
-    public SolarGenerator(double x, double y, int level, ArrayList<Upgrade> upgrades){
-        super(x, y, 100, 100, BuildingType.SOLAR_GENERATOR, level, upgrades);
+    public SolarGenerator(Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(game, x, y, 100, 100, BuildingType.SOLAR_GENERATOR, level, upgrades);
     }
     @Override
     public void update(){
@@ -42,8 +41,11 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
             drawRect(x, y-10, x+width, y+height, upgrade.getTexture(type, count), 0, frame/(double)frames, 1, (frame+1)/(double)frames);
         }
         renderDamages();
-        drawMouseover();
-        MenuGame.theme.applyTextColor();
+    }
+    @Override
+    public void drawForeground(){
+        super.drawForeground();
+        Game.theme.applyTextColor();
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
         GL11.glColor4d(1, 1, 1, 1);
     }
@@ -55,8 +57,8 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     public Config save(Config cfg) {
         return cfg;
     }
-    public static SolarGenerator loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
-        return new SolarGenerator(x, y, level, upgrades);
+    public static SolarGenerator loadSpecific(Config cfg, Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        return new SolarGenerator(game, x, y, level, upgrades);
     }
     @Override
     protected double getFireDestroyThreshold(){
@@ -68,7 +70,7 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     }
     @Override
     public double getProduction(){
-        double sunlight = Math.min(1,Core.game.getSunlight()*Math.pow(1.38,getUpgrades(Upgrade.PHOTOVOLTAIC_SENSITIVITY)));
+        double sunlight = Math.min(1,game.getSunlight()*Math.pow(1.38,getUpgrades(Upgrade.PHOTOVOLTAIC_SENSITIVITY)));
         if(hasUpgrade(Upgrade.STARLIGHT_GENERATION))sunlight = (1+sunlight)/2;
         return getMaxProduction()*sunlight;
     }
@@ -94,5 +96,13 @@ public class SolarGenerator extends Building implements BuildingPowerProducer, B
     @Override
     public boolean isBackgroundStructure(){
         return false;
+    }
+    @Override
+    public double getDisplayPower(){
+        return 0;
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return 0;
     }
 }

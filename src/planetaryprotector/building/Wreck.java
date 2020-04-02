@@ -1,12 +1,16 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
+import planetaryprotector.building.task.TaskWreckClean;
+import planetaryprotector.game.Action;
+import planetaryprotector.game.Game;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Wreck extends Building{
     public int ingots;
     int progress;
-    public Wreck(double x, double y, int ingots){
-        super(x, y, 100, 100, BuildingType.WRECK);
+    public Wreck(Game game, double x, double y, int ingots){
+        super(game, x, y, 100, 100, BuildingType.WRECK);
         this.ingots = ingots;
     }
     @Override
@@ -40,8 +44,8 @@ public class Wreck extends Building{
         cfg.set("prrogress", progress);
         return cfg;
     }
-    public static Wreck loadSpecific(Config cfg, double x, double y){
-        Wreck wreck = new Wreck(x, y, cfg.get("ingots", 1));
+    public static Wreck loadSpecific(Config cfg, Game game, double x, double y){
+        Wreck wreck = new Wreck(game, x, y, cfg.get("ingots", 1));
         wreck.progress = cfg.get("progress", wreck.progress);
         return wreck;
     }
@@ -61,5 +65,9 @@ public class Wreck extends Building{
     @Override
     public boolean isBackgroundStructure(){
         return true;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Clean up", new TaskWreckClean(this)));
     }
 }

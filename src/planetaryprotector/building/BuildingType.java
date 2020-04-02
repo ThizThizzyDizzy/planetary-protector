@@ -4,7 +4,7 @@ import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.building.task.TaskAnimated;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.opengl.ImageStash;
 public enum BuildingType{
     BASE("Base"),
@@ -444,7 +444,7 @@ public enum BuildingType{
         return ImageStash.instance.getTexture(getTextureS(path));
     }
     public String getTextureS(){
-        return "/textures/buildings/"+texture+"/"+MenuGame.theme.tex()+".png";
+        return "/textures/buildings/"+texture+"/"+Game.theme.tex()+".png";
     }
     public String getDamageTextureS(){
         return "/textures/buildings/"+texture+"/damage.png";
@@ -462,7 +462,7 @@ public enum BuildingType{
                 return true;
         }
     }
-    public boolean isConstructable(MenuGame game){
+    public boolean isConstructable(Game game){
         switch(this){
             case SILO:
                 return game.phase>=3;
@@ -476,34 +476,34 @@ public enum BuildingType{
                 return true;
         }
     }
-    public Building createNewBuilding(double x, double y){
+    public Building createNewBuilding(Game game, double x, double y){
         switch(this){
             case BASE:
-                return new Base(x, y);
+                return new Base(game, x, y);
             case COAL_GENERATOR:
-                return new CoalGenerator(x, y);
+                return new CoalGenerator(game, x, y);
             case EMPTY:
-                return new Plot(x, y);
+                return new Plot(game, x, y);
             case LABORATORY:
-                return new Laboratory(x, y);
+                return new Laboratory(game, x, y);
             case MINE:
-                return new Mine(x, y);
+                return new Mine(game, x, y);
             case OBSERVATORY:
-                return new Observatory(x, y);
+                return new Observatory(game, x, y);
             case POWER_STORAGE:
-                return new PowerStorage(x, y);
+                return new PowerStorage(game, x, y);
             case SHIELD_GENERATOR:
-                return new ShieldGenerator(x, y);
+                return new ShieldGenerator(game, x, y);
             case SILO:
-                return new Silo(x, y);
+                return new Silo(game, x, y);
             case SKYSCRAPER:
-                return new Skyscraper(x, y);
+                return new Skyscraper(game, x, y);
             case SOLAR_GENERATOR:
-                return new SolarGenerator(x, y);
+                return new SolarGenerator(game, x, y);
             case WORKSHOP:
-                return new Workshop(x, y);
+                return new Workshop(game, x, y);
             case WRECK:
-                return new Wreck(x, y, 0);
+                return new Wreck(game, x, y, 0);
             default:
                 throw new IllegalBuildingException(this);
         }
@@ -512,6 +512,6 @@ public enum BuildingType{
         return TaskAnimated.getAnimation(getAnimationS());
     }
     public String getAnimationS(){
-        return "/textures/tasks/construct/"+texture+"/"+MenuGame.theme.tex();
+        return "/textures/tasks/construct/"+texture+"/"+Game.theme.tex();
     }
 }

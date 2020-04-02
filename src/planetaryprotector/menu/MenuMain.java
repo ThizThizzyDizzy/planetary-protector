@@ -1,25 +1,16 @@
 package planetaryprotector.menu;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.Core;
 import planetaryprotector.Main;
 import planetaryprotector.VersionManager;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import simplelibrary.Queue;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorCategory;
@@ -40,27 +31,25 @@ public class MenuMain extends Menu{
     private final MenuComponentButton credits;
     private final MenuComponentButton options;
     private final MenuComponentList saveList;
-//    private MenuExampleGame example;
-    boolean sampleGame = false;
     private HashMap<MenuComponentButton, String> badVersions = new HashMap<>();
     private double blackOpacity = 1;
     public MenuMain(GUI gui, boolean blackScreen){
         super(gui, null);
-        back = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-80, 200, 40, "Exit", true));
-        newSave = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 400, 40, "New Game", true));
-        play = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-160, 200, 40, "Play", false));
-        rename = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-160, 200, 40, "Rename", true));
-        delete = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 200, 40, "Delete", true));
-        credits = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 200, 40, "Credits", true));
-        options = add(new MenuComponentButton(0, Display.getHeight()-80, 200, 40, "Options", true));
-        saveList = add(new MenuComponentList(Display.getWidth()/2-200, 120+500, 420, Display.getHeight()-360-500));
+        back = add(new MenuComponentButton(Display.getWidth()/4-200, Display.getHeight()-80, 300, 60, "Exit", true));
+        newSave = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 500, 60, "New Game", true));
+        play = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-160, 300, 60, "Play", false));
+        rename = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-160, 300, 60, "Rename", true));
+        delete = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 300, 60, "Delete", true));
+        credits = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 300, 60, "Credits", true));
+        options = add(new MenuComponentButton(0, Display.getHeight()-80, 300, 60, "Options", true));
+        saveList = add(new MenuComponentList(Display.getWidth()/2-200, 120+500, newSave.width, Display.getHeight()-360-500, 50));
         File file = new File(Main.getAppdataRoot()+"\\saves");
         if(!file.exists()){
             file.mkdirs();
         }
         String[] filepaths = file.list();
         for(int i = 0; i<filepaths.length; i++){
-            MenuComponentButton b = new MenuComponentButton(0, 0, 400, 40, filepaths[i].replace(".dat", ""), true);
+            MenuComponentButton b = new MenuComponentButton(0, 0, 500, 60, filepaths[i].replace(".dat", ""), true);
             Config cfg;
             try(FileInputStream s = new FileInputStream(new File(Main.getAppdataRoot()+"\\saves\\"+filepaths[i]))){
                 cfg = Config.newConfig(s);
@@ -76,8 +65,6 @@ public class MenuMain extends Menu{
             }
             saveList.add(b);
         }
-//        example = new MenuExampleGame(gui);
-//        Core.game = example;
         blackOpacity = blackScreen?1.2:0;
     }
     @Override
@@ -138,21 +125,9 @@ public class MenuMain extends Menu{
     @Override
     public void renderBackground(){
         if(saveList.getSelectedIndex()==-1){
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+            drawRect(0, 0, Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         }else{
-            switch(getLevel(((MenuComponentButton)saveList.components.get(saveList.getSelectedIndex())).label)){
-                default:
-                case 0:
-                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
-                    break;
-                case 1:
-                    drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/background/cave.png"));
-                    break;
-            }
-        }
-        if(sampleGame){
-//            example.renderBackground();
-//            example.render(0);
+            drawRect(0, 0, Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(getLevel(((MenuComponentButton)saveList.components.get(saveList.getSelectedIndex())).label)));
         }
         if(saveList.getSelectedIndex()>-1){
             play.enabled=true;
@@ -172,16 +147,16 @@ public class MenuMain extends Menu{
                 b.enabled = saveList.components.get(saveList.getSelectedIndex()) != b;
             }
         }
-        back.x = Display.getWidth()/4-100;
-        back.y = Display.getHeight()-80;
-        delete.x = (Display.getWidth()-Display.getWidth()/4)-100;
+        back.x = Display.getWidth()/4-back.width/2;
+        back.y = Display.getHeight()-60-back.height/2;
+        delete.x = (Display.getWidth()-Display.getWidth()/4)-delete.width/2;
         delete.y = back.y;
         play.x = back.x;
         play.y = back.y-80;
         rename.x = delete.x;
         rename.y = delete.y-80;
-        newSave.x = Display.getWidth()/2-200;
-        newSave.y = 40+200;
+        newSave.x = Display.getWidth()/2-newSave.width/2;
+        newSave.y = 240;
         saveList.x = newSave.x;
         saveList.y = newSave.y+80;
         saveList.height = (play.y-80)-(newSave.y+80);
@@ -194,9 +169,6 @@ public class MenuMain extends Menu{
     public void tick(){
         super.tick();
         blackOpacity-=.05;
-        if(sampleGame){
-//            example.tick();
-        }
     }
     private void exit(){
         Core.helper.running = false;
@@ -217,34 +189,19 @@ public class MenuMain extends Menu{
         loadGame(save.label);
     }
     private void loadGame(String name){
-        loadGame(name, getLevel(name));
-    }
-    private void loadGame(String name, int level){
-        Core.save = name;
-        if(level==0){
-            MenuGame g = MenuGame.load(gui);
-            if(g==null){
-                gui.open(new MenuLoad(gui, null));
-            }else{
-                Core.game = g;
-                gui.open(g);
-            }
-            return;
-        }
-        if(level==1){
-            throw new UnsupportedOperationException("LEVEL 2 PLEEZ");
-        }
+        Core.loadGame(name, getLevel(name));
     }
     private HashMap<String, Integer> levels = new HashMap<>();
     private int getLevel(String name){
         if(!levels.containsKey(name)){
             File file = new File(Main.getAppdataRoot()+"\\saves\\"+name+".dat");
             if(!file.exists()){
-                return 0;
+                return 1;
             }
             Config config = Config.newConfig(file);
             config.load();
-            int level = config.get("level", 0);
+            int level = config.get("level", 1);
+            if(level==0)level = 1;
             levels.put(name, level);
         }
         return levels.get(name);

@@ -1,7 +1,7 @@
 package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.Plot;
 import java.util.ArrayList;
@@ -47,23 +47,23 @@ public class TaskWreckClean extends TaskAnimated{
     public void work(){
         progress++;
         if(wreck.ingots>0){
-            double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-            double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+            double itemX = building.x+Game.rand.nextInt(79)+11;
+            double itemY = building.y+Game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
+            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
             wreck.ingots--;
         }
     }
     @Override
     public void finish(){
-        Core.game.replaceBuilding(building, new Plot(building.x, building.y));
+        game.replaceBuilding(building, new Plot(game, building.x, building.y));
         while(wreck.ingots>0){
-            double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-            double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+            double itemX = building.x+Game.rand.nextInt(79)+11;
+            double itemY = building.y+Game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
+            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
             wreck.ingots--;
         }
     }
@@ -81,7 +81,7 @@ public class TaskWreckClean extends TaskAnimated{
     protected void onCancel(){}
     @Override
     public int[] getAnimation(){
-        return getAnimation("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+MenuGame.theme.tex());
+        return getAnimation("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+Game.theme.tex());
     }
     @Override
     public int getHeight(){

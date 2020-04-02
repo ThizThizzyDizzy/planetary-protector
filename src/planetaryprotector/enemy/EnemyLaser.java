@@ -1,7 +1,7 @@
 package planetaryprotector.enemy;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.particle.Particle;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.ShieldGenerator;
 import planetaryprotector.building.Building;
@@ -14,17 +14,15 @@ public class EnemyLaser extends Enemy{
     public double laserTime = 20*10;
     public double laserSize = 20;
     public double laserSizing = 1/3D;
-    private final MenuGame game;
-    public EnemyLaser(MenuGame game){
-        super(0, 0, 50, 50, 100);
-        double[] location = getBestStrike();
+    public EnemyLaser(Game game){
+        super(game, 0, 0, 50, 50, 100);
+        double[] location = getBestStrike(game);
         if(location==null){
             location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
         }
         x=location[0];
         y=location[1];
         laserPower*=strength;
-        this.game = game;
     }
     @Override
     public void render(){
@@ -35,17 +33,17 @@ public class EnemyLaser extends Enemy{
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 0, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, .5, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 1, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
@@ -62,7 +60,7 @@ public class EnemyLaser extends Enemy{
         }
         if(dead){
             increase = true;
-            game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
+            game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<7.5){
                 strength+=.375;
             }

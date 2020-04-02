@@ -16,8 +16,8 @@ public class MenuResearch extends MenuComponentOverlayBuilding{
     private static final int textSize = 40;
     public static final int researchSize = 150;
     final MenuComponentSelectedResearch selected;
-    public MenuResearch(MenuGame game, Laboratory laboratory){
-        super(game, laboratory);
+    public MenuResearch(MenuGame menu, Laboratory laboratory){
+        super(menu, laboratory);
         this.laboratory = laboratory;
         undiscovered = add(new MenuComponentMulticolumnList(spacing, spacing+textSize, Display.getWidth()/2-spacing*2, (Display.getHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
         available = add(new MenuComponentMulticolumnList(spacing, undiscovered.y+undiscovered.height+textSize, Display.getWidth()/2-spacing*2, (Display.getHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
@@ -67,7 +67,7 @@ public class MenuResearch extends MenuComponentOverlayBuilding{
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
         if(key==Controls.menu&&pressed&&!repeat){
-            game.closeOverlay();
+            close();
         }
     }
 }

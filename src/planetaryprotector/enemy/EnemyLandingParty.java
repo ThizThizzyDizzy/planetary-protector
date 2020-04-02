@@ -1,7 +1,7 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.ShieldGenerator;
 import planetaryprotector.building.Building;
@@ -16,19 +16,17 @@ public class EnemyLandingParty extends Enemy{
     public double laserTime = 20*30;
     public double laserSize = 20;
     public double laserSizing = 1/3D;
-    private final MenuGame game;
-    public EnemyLandingParty(MenuGame game){
-        super(0, 0, 50, 50, 250);
-        double[] location = getFurthestCorner();
+    public EnemyLandingParty(Game game){
+        super(game, 0, 0, 50, 50, 250);
+        double[] location = getFurthestCorner(game);
         if(location==null){
             location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
         }
         x=location[0];
         y=location[1];
         laserPower*=strength;
-        this.game = game;
         for(int i = 0; i<strength-7; i++){
-            crew.add(new EnemyAlien(x, y));
+            crew.add(new EnemyAlien(game, x, y));
         }
     }
     @Override
@@ -40,17 +38,17 @@ public class EnemyLandingParty extends Enemy{
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 0, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, .5, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 1, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
@@ -66,7 +64,7 @@ public class EnemyLandingParty extends Enemy{
         }
         if(dead){
             increase = true;
-            game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
+            game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<10){
                 strength+=.5;
             }
@@ -147,9 +145,9 @@ public class EnemyLandingParty extends Enemy{
         laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
         gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
-    public static double[] getFurthestCorner(){
+    public static double[] getFurthestCorner(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
-        for(Building building : Core.game.buildings){
+        for(Building building : game.buildings){
             if(building.type==BuildingType.SHIELD_GENERATOR){
                 shieldGen.add((ShieldGenerator) building);
             }

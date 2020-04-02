@@ -1,9 +1,10 @@
 package planetaryprotector.building.task;
-import planetaryprotector.Core;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.building.Building;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.game.Game;
 public abstract class Task{
+    public final Game game;
     public final Building building;
     public final TaskType type;
     public int time;
@@ -16,25 +17,22 @@ public abstract class Task{
         this.building = building;
         this.type = type;
         this.time = time;
+        this.game = building.game;
     }
     public int getWorkers(){
         int workers = 0;
-        synchronized(Core.game.workers){
-            for(Worker worker : Core.game.workers){
-                if(worker.task==this){
-                    workers++;
-                }
+        for(Worker worker : game.workers){
+            if(worker.task==this){
+                workers++;
             }
         }
         return workers;
     }
     public int getPendingWorkers(){
         int workers = 0;
-        synchronized(Core.game.workers){
-            for(Worker worker : Core.game.workers){
-                if(worker.targetTask==this||worker.task==this){
-                    workers++;
-                }
+        for(Worker worker : game.workers){
+            if(worker.targetTask==this||worker.task==this){
+                workers++;
             }
         }
         return workers;
@@ -50,7 +48,7 @@ public abstract class Task{
     protected abstract void begin();
     public void start(){
         if(started)return;
-        building.task = this;
+        building.setTask(this);
         begin();
         started = true;
     }
@@ -66,12 +64,10 @@ public abstract class Task{
     public void cancel(){
         cancelled = true;
         if(started)onCancel();
-        building.task = null;
-        synchronized(Core.game.workers){
-            for(Worker worker : Core.game.workers){
-                if(worker.targetTask==this||worker.task==this){
-                    worker.targetTask = worker.task = null;
-                }
+        building.setTask(null);
+        for(Worker worker : game.workers){
+            if(worker.targetTask==this||worker.task==this){
+                worker.targetTask = worker.task = null;
             }
         }
     }

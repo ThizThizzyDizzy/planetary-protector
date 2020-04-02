@@ -8,10 +8,13 @@ import planetaryprotector.friendly.Drone;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.friendly.Missile;
 import planetaryprotector.particle.Particle;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.enemy.EnemyMothership;
+import planetaryprotector.game.Action;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
 public class Silo extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
     public int drones = 0;
@@ -22,21 +25,22 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     private int missilePowerCost = 2500;
     private int dronePowerCost = 5000;
     private int power = 0;
-    public Silo(double x, double y){
-        this(x, y, 1, new ArrayList<>());
+    public Silo(Game game, double x, double y){
+        this(game, x, y, 1, new ArrayList<>());
     }
-    public Silo(Silo silo, int level, ArrayList<Upgrade> upgrades){
-        this(silo.x, silo.y, level, upgrades);
+    public Silo(Game game, Silo silo, int level, ArrayList<Upgrade> upgrades){
+        this(game, silo.x, silo.y, level, upgrades);
         drones = silo.drones;
         missiles = silo.missiles;
         power = silo.power;
     }
-    public Silo(double x, double y, int level, ArrayList<Upgrade> upgrades){
-        super(x, y, 100, 100, BuildingType.SILO, level, upgrades);
+    public Silo(Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(game, x, y, 100, 100, BuildingType.SILO, level, upgrades);
     }
     @Override
     public void drawForeground(){
-        MenuGame.theme.applyTextColor();
+        super.drawForeground();
+        Game.theme.applyTextColor();
         if(drones>0){
             drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
         }
@@ -56,7 +60,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
         if(droneList.size()<drones){
             if(power>=20*600*5){
                 power-=20*600*5;
-                droneList.add(Core.game.addDrone(new Drone(this, 20*60*5)));
+                droneList.add(game.addDrone(new Drone(this, 20*60*5)));
             }
         }
     }
@@ -75,7 +79,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
                     return false;
                 }
         }
-        return Core.game.hasResources(missileCost)&&power>=missilePowerCost;
+        return game.hasResources(missileCost)&&power>=missilePowerCost;
     }
     public boolean canBuildDrone(){
         switch(getLevel()){
@@ -88,50 +92,53 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
                     return false;
                 }
         }
-        return Core.game.hasResources(droneCost)&&power>=dronePowerCost&&getLevel()>=2;
+        return game.hasResources(droneCost)&&power>=dronePowerCost&&getLevel()>=2;
     }
     public boolean canLaunchMissile(){
         return missiles>0;
     }
     public void buildMissile(){
         if(!canBuildMissile()) return;
-        Core.game.removeResources(new ItemStack(missileCost));
+        game.removeResources(new ItemStack(missileCost));
         power-=missilePowerCost;
         missiles++;
     }
     public void buildDrone(){
         if(!canBuildDrone()) return;
-        Core.game.removeResources(new ItemStack(droneCost));
+        game.removeResources(new ItemStack(droneCost));
         power-=dronePowerCost;
         drones++;
     }
     public void launchMissile(){
         if(!canLaunchMissile()) return;
         Enemy target = null;
-        if(Core.game.mothership!=null) target = Core.game.mothership;
         if(target==null){
             DO:do{
-                synchronized(Core.game.enemies){
-                    for(Enemy enemy : Core.game.enemies){
-                        if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyAlien) continue;
-                        if(target!=null) break DO;
+                for(Enemy enemy : game.enemies){
+                    if(enemy instanceof EnemyMothership){
                         target = enemy;
+                        break DO;
                     }
-                    for(Enemy enemy : Core.game.enemies){
-                        if(enemy instanceof EnemyMeteorStrike) continue;
-                        if(target!=null) break DO;
-                        target = enemy;
-                    }
+                }
+                for(Enemy enemy : game.enemies){
+                    if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyAlien) continue;
+                    target = enemy;
+                    break DO;
+                }
+                for(Enemy enemy : game.enemies){
+                    if(enemy instanceof EnemyMeteorStrike) continue;
+                    target = enemy;
+                    break DO;
                 }
             }while(false);
         }
         if(target==null)return;
         missiles--;
-        droneList.add(Core.game.addDrone(new Missile(this, target)));
+        droneList.add(game.addDrone(new Missile(this, target)));
     }
     @Override
     public boolean onDamage(double x, double y){
-        if(damages.size()>=5&&MenuGame.rand.nextBoolean()){
+        if(damages.size()>=5&&Game.rand.nextBoolean()){
             explosionInHangar();
         }
         return super.onDamage(x, y);
@@ -149,8 +156,8 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
         cfg.set("y", y);
         return cfg;
     }
-    public static Silo loadSpecific(Config config, double x, double y, int level, ArrayList<Upgrade> upgrades) {
-        Silo silo = new Silo(x, y, level, upgrades);
+    public static Silo loadSpecific(Config config, Game game, double x, double y, int level, ArrayList<Upgrade> upgrades) {
+        Silo silo = new Silo(game, x, y, level, upgrades);
         silo.power = config.get("energy", 0);
         silo.drones = config.get("drones", 0);
         silo.missiles = config.get("missiles", 0);
@@ -158,9 +165,9 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     }
     public void explosionInHangar(){
         for(int i = 0; i<missiles; i++){
-            damages.add(new BuildingDamage(this, MenuGame.rand.nextInt((int) width), MenuGame.rand.nextInt((int) height)));
+            damages.add(new BuildingDamage(this, Game.rand.nextInt((int) width), Game.rand.nextInt((int) height)));
         }
-        Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
+        game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
     }
     public ItemStack[] missileCost(){
         return new ItemStack[]{new ItemStack(missileCost)};
@@ -208,5 +215,33 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     @Override
     public boolean isBackgroundStructure(){
         return true;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Build Missile", (e) -> {
+            buildMissile();
+        },() -> {
+            return canBuildMissile();
+        }, missileCost()));
+        if(getLevel()>1){
+            actions.add(new Action("Build Drone", (e) -> {
+                buildDrone();
+            }, () -> {
+                return canBuildDrone();
+            }, droneCost()));
+        }
+        actions.add(new Action("Fire Missiles", (e) -> {
+            launchMissile();
+        }, () -> {
+            return canLaunchMissile();
+        }));
+    }
+    @Override
+    public double getDisplayPower(){
+        return getPower();
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return getMaxPower();
     }
 }

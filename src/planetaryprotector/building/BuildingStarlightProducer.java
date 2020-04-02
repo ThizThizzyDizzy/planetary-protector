@@ -1,5 +1,5 @@
 package planetaryprotector.building;
-public interface BuildingStarlightProducer extends StarlightNetworkSection{
+public interface BuildingStarlightProducer extends BuildingStarlightUser{
     public double getStarlightProduction();
     /**
      * Called when starlight is used. use this to burn coal, etc.

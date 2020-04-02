@@ -2,7 +2,7 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
 import planetaryprotector.Core;
@@ -54,27 +54,27 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
     }
     @Override
     public void finish(){
-        Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 10*floors));
+        game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 10*floors));
         skyscraper.floorCount+=floors;
     }
     @Override
     public boolean canPerform(){
         if(skyscraper.floorCount+floors>Skyscraper.maxHeight)return false;
-        return !skyscraper.falling&&building.task==null&&building.damages.isEmpty()&&Core.game.hasResources(new ItemStack(Item.ironIngot, 10*floors));
+        return !skyscraper.falling&&building.task==null&&building.damages.isEmpty()&&game.hasResources(new ItemStack(Item.ironIngot, 10*floors));
     }
     @Override
     public void begin(){
-        Core.game.removeResources(new ItemStack(Item.ironIngot, 10*floors));
+        game.removeResources(new ItemStack(Item.ironIngot, 10*floors));
     }
     @Override
     public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*floors; i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
     }
@@ -85,8 +85,8 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
 
     @Override
     public int[] getAnimation() {
-        if(floors==10)return getAnimation("/textures/tasks/construct/skyscraper/"+MenuGame.theme.tex());
-        return getAnimation("/textures/tasks/skyscraper/add "+floors+"/"+MenuGame.theme.tex());
+        if(floors==10)return getAnimation("/textures/tasks/construct/skyscraper/"+Game.theme.tex());
+        return getAnimation("/textures/tasks/skyscraper/add "+floors+"/"+Game.theme.tex());
     }
     @Override
     public int getHeight(){

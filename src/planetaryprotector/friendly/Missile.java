@@ -32,7 +32,7 @@ public class Missile extends Drone{
         }
         if(MenuOptionsGraphics.particles>0&&!caboom){
             if(MenuOptionsGraphics.particles==1&&time%2==0||MenuOptionsGraphics.particles==2){
-                Core.game.addParticleEffect(new Particle(x, y+(accel<0?0:height), ParticleEffectType.SMOKE));
+                game.addParticleEffect(new Particle(game, x, y+(accel<0?0:height), ParticleEffectType.SMOKE));
             }
         }
         if(y>target.y&&accel<0&&!caboom){
@@ -40,7 +40,7 @@ public class Missile extends Drone{
             y = target.y;
             target.health-=power+speed;
             dead = true;
-            Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, Math.min(9, power/1000), target instanceof EnemyAlien?false:(target instanceof EnemyLandingParty?((EnemyLandingParty)target).landed:false)));
+            game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, Math.min(9, power/1000), target instanceof EnemyAlien?false:(target instanceof EnemyLandingParty?((EnemyLandingParty)target).landed:false)));
         }
     }
     @Override

@@ -16,12 +16,12 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
     private final MenuComponentButton back;
     private final MenuComponentButton recall;
     private final Expedition e;
-    public MenuExpeditionGraph(MenuGame game, Expedition e){
-        super(game);
+    public MenuExpeditionGraph(MenuGame menu, Expedition e){
+        super(menu);
         back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-80, 800, 80, "Back", true));
         recall = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, e.recalled?"Cancel Recall":"Recall", !e.returned));
         this.e = e;
-        game.paused = e.returned;
+        menu.game.paused = e.returned;
     }
     @Override
     public void render(){
@@ -38,7 +38,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
     @Override
     public void buttonClicked(MenuComponentButton button) {
         if(button==back){
-            open(new MenuExpedition(game));
+            open(new MenuExpedition(menu));
         }
         if(button==recall){
             e.recalled = !e.recalled;

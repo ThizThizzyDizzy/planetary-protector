@@ -1,5 +1,6 @@
 package planetaryprotector.menu.component;
 import planetaryprotector.GameObject;
+import planetaryprotector.game.Game;
 import simplelibrary.opengl.ImageStash;
     public class GameObjectAnimated extends GameObject{
     public String[] images;
@@ -7,8 +8,8 @@ import simplelibrary.opengl.ImageStash;
     public int delay = 3;
     public int timeWaited = 0;
     public boolean loop = false;
-    public GameObjectAnimated(double x, double y, double width, double height, String[] images){
-        super(x,y,width,height);
+    public GameObjectAnimated(Game game, double x, double y, double width, double height, String[] images){
+        super(game, x,y,width,height);
         this.images=images;
     }
     @Override

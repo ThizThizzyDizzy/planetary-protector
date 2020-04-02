@@ -1,6 +1,6 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.GameObject;
 public class MothershipAsteroidAttack extends GameObject{
@@ -8,10 +8,10 @@ public class MothershipAsteroidAttack extends GameObject{
     int type = 0;
     int types = 2;
     int time = 0;
-    public MothershipAsteroidAttack(EnemyMothership ship) {
-        super(0, 0, Display.getWidth(), Display.getHeight());
+    public MothershipAsteroidAttack(EnemyMothership ship){
+        super(ship.game, 0, 0, Display.getWidth(), Display.getHeight());
         this.ship = ship;
-        type = MenuGame.rand.nextInt(types);
+        type = Game.rand.nextInt(types);
     }
     int direction = 1;
     boolean out = false;
@@ -35,9 +35,9 @@ public class MothershipAsteroidAttack extends GameObject{
                         }
                         double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
                         double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
-                        Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
+                        Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
-                        Core.game.addAsteroid(a);
+                        game.addAsteroid(a);
                     }
                 }
             case 1:
@@ -60,9 +60,9 @@ public class MothershipAsteroidAttack extends GameObject{
                         }
                         double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
                         double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
-                        Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
+                        Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
-                        Core.game.addAsteroid(a);
+                        game.addAsteroid(a);
                     }
                 }
         }

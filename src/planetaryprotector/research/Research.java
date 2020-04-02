@@ -6,7 +6,7 @@ import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 public enum Research{
@@ -170,7 +170,7 @@ public enum Research{
             discoveryStages.get(discovery).event(event);
         }
     }
-    public void tick(MenuGame game){
+    public void tick(Game game){
         if(isDiscovered()){
         }else{
             discoveryStages.get(discovery).tick(game);
@@ -233,9 +233,9 @@ public enum Research{
         }
         return getDiscoveryStage().progress;
     }
-    public void complete(){
+    public void complete(Game game){
         completed = true;
-        Core.game.notify("Completed Research: "+title, 20*30);
+        game.notify("Completed Research: "+title, 20*30);
     }
     public void cheatDiscover(){
         discovery++;

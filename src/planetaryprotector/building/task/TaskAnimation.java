@@ -2,16 +2,14 @@ package planetaryprotector.building.task;
 import planetaryprotector.GameObject;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 public class TaskAnimation extends GameObject{
     public final int[] images;
     public int frame = 0;
-    private final MenuGame game;
     public final TaskAnimated task;
-    public TaskAnimation(MenuGame game, TaskAnimated task){
-        super(task.building.x,task.building.y-(task.getHeight()-100)-(task.building.type==BuildingType.SKYSCRAPER?(((Skyscraper)task.building).floorCount*Skyscraper.floorHeight):0),task.building.width,task.getHeight());
+    public TaskAnimation(Game game, TaskAnimated task){
+        super(game, task.building.x,task.building.y-(task.getHeight()-100)-(task.building.type==BuildingType.SKYSCRAPER?(((Skyscraper)task.building).floorCount*Skyscraper.floorHeight):0),task.building.width,task.getHeight());
         images = task.getAnimation();
-        this.game = game;
         this.task = task;
     }
     @Override

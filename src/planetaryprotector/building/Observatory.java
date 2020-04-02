@@ -1,7 +1,10 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
+import planetaryprotector.game.Action;
+import planetaryprotector.game.Game;
+import planetaryprotector.item.Item;
+import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
 public class Observatory extends Building implements BuildingPowerConsumer, BuildingStarlightProducer, BuildingDamagable, BuildingDemolishable{
@@ -19,8 +22,8 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
     private double power;
     private double summonThreshold = 500;
     private int shootTimer = -1;
-    public Observatory(double x, double y){
-        super(x, y, 100, 100, BuildingType.OBSERVATORY);
+    public Observatory(Game game, double x, double y){
+        super(game, x, y, 100, 100, BuildingType.OBSERVATORY);
     }
     @Override
     public void update(){
@@ -28,14 +31,12 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         if(starlight<maxStarlight){
             collecting = Math.min(1, maxStarlight-starlight);
         }
-        double star = 1-Core.game.getSunlight();
+        double star = 1-game.getSunlight();
         collecting = Math.min(collecting, star*starlightSpeed);
         collecting = Math.min(collecting, power/powerPerStarlight);
         starlight += collecting;
         power-=collecting*powerPerStarlight;
-        synchronized(scan){
-            scan.clear();
-        }
+        scan.clear();
         if(scanning>0){
             if(starlight<scanCost){
                 scanning = 1;
@@ -64,32 +65,29 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
             GL11.glColor4d(.8, .8, 1, 1);//big outer one
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
-                MenuGame.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, laserSize/2D,10,0);
+                Game.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, laserSize/2D,10,0);
             }
             GL11.glColor4d(.5, .5, 1, 1);
             drawRect(x, y+60, x+width, y+70, 0);
             GL11.glColor4d(.9, .9, 1, 1);//small inner one
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
-                MenuGame.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, (laserSize*(1/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, (laserSize*(1/3D))/2D,10,0);
             }
-            drawRect(x+1, y+61, x+(width*(1-Core.game.getSunlight()))-1, y+69, 0);
+//            drawRect(x+1, y+61, x+(width*(1-game.getSunlight()))-1, y+69, 0);
             GL11.glColor4d(1, 1, 1, 1);
         }
-        MenuGame.theme.applyTextColor();
-        drawCenteredText(x, y, x+width, y+15, "Power: "+Math.round(power));
+        Game.theme.applyTextColor();
         if(scanning==1){
-            drawCenteredText(x, y+15, x+width, y+30, "Charging");
+            drawCenteredText(x, y, x+width, y+15, "Charging");
         }
         if(scanning==2){
-            drawCenteredText(x, y+15, x+width, y+30, "Scanning");
+            drawCenteredText(x, y, x+width, y+15, "Scanning");
         }
         if(!scan.isEmpty()){
             yOff = height-scan.size()*textHeight;
-            synchronized(scan){
-                for(String str : scan){
-                    text(str);
-                }
+            for(String str : scan){
+                text(str);
             }
         }
         if(starlight>0){
@@ -111,8 +109,8 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         cfg.set("collecting", collecting);
         return cfg;
     }
-    public static Observatory loadSpecific(Config cfg, double x, double y) {
-        Observatory observatory = new Observatory(x, y);
+    public static Observatory loadSpecific(Config cfg, Game game, double x, double y) {
+        Observatory observatory = new Observatory(game, x, y);
         observatory.power = cfg.get("power", observatory.power);
         observatory.starlight = cfg.get("starlight", observatory.starlight);
         observatory.scanning = cfg.get("scanning", observatory.scanning);
@@ -131,7 +129,6 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         }
     }
     private void scan(){
-        MenuGame game = Core.game;
         if(game.meteorShower){
             scan.add("Shower ends:");
         }else{
@@ -220,12 +217,12 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
         data.add("power: "+power);
     }
     public boolean canSummonStar(){
-        return starlight>=summonThreshold&&Core.game.secretWaiting==-1;
+        return starlight>=summonThreshold&&game.secretWaiting==-1;
     }
     public void summonStar(){
         if(!canSummonStar())return;
         starlight-=summonThreshold;
-        Core.game.secretWaiting = 0;
+        game.secretWaiting = 0;
         shootTimer = 0;
     }
     @Override
@@ -235,5 +232,43 @@ public class Observatory extends Building implements BuildingPowerConsumer, Buil
     @Override
     public int getBuildingHeight(){
         return 10;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Add Star", (e) -> {
+            if(game.hasResources(new ItemStack(Item.star))){
+                if(addStar()){
+                    game.removeResources(new ItemStack(Item.star));
+                }
+            }
+        }, () -> {
+            return game.hasResources(new ItemStack(Item.star))&&canAddStar();
+        }));
+        actions.add(new Action("Toggle Scan", (e) -> {
+            toggleScan();
+        }, () -> {
+            return true;
+        }));
+        actions.add(new Action("Summon Shooting Star", (e) -> {
+            summonStar();
+        }, () -> {
+            return canSummonStar();
+        }));
+    }
+    @Override
+    public double getDisplayPower(){
+        return getPower();
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return getMaxPower();
+    }
+    @Override
+    public double getDisplayStarlight(){
+        return 1-game.getSunlight();
+    }
+    @Override
+    public double getDisplayMaxStarlight(){
+        return 1;
     }
 }

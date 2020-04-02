@@ -1,7 +1,10 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
-import planetaryprotector.Core;
+import planetaryprotector.game.Action;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.game.Game;
+import planetaryprotector.menu.MenuGame;
+import planetaryprotector.menu.ingame.MenuResearch;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
 import simplelibrary.config2.Config;
@@ -11,8 +14,8 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
     public double starlight;
     private final double powerSpeed = 1;
     private final double starlightSpeed = .01;
-    public Laboratory(double x, double y){
-        super(x, y, 100, 100, BuildingType.LABORATORY);
+    public Laboratory(Game game, double x, double y){
+        super(game, x, y, 100, 100, BuildingType.LABORATORY);
     }
     @Override
     public void update(){
@@ -31,10 +34,10 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
             }
             for(ItemStack s : targetResearch.itemCosts){
                 if(s.count>0){
-                    if(Core.game.hasResources(new ItemStack(s.item))){
+                    if(game.hasResources(new ItemStack(s.item))){
                         s.count--;
-                        Core.game.removeResources(new ItemStack(s.item));
-                        Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, s.item, 1));
+                        game.removeResources(new ItemStack(s.item));
+                        game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, s.item, 1));
                         break;
                     }
                 }
@@ -52,7 +55,7 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
             double actualPercent = 1-(targetResearch.time/(double)targetResearch.totalTime);
             if(actualPercent<maxPercent&&targetResearch.time>0)targetResearch.time--;
             if(targetResearch.time<=0||maxPercent>=1){
-                targetResearch.complete();
+                targetResearch.complete(game);
                 setTargetResearch(null);
             }
         }else setTargetResearch(null);
@@ -66,9 +69,9 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
         cfg.set("target", targetResearch==null?"null":targetResearch.name());
         return cfg;
     }
-    public static Laboratory loadSpecific(Config cfg, double x, double y){
+    public static Laboratory loadSpecific(Config cfg, Game game, double x, double y){
         String target = cfg.get("target", "null");
-        Laboratory lab = new Laboratory(x, y);
+        Laboratory lab = new Laboratory(game, x, y);
         if(!target.equals("null"))lab.targetResearch = Research.valueOf(target);
         return lab;
     }
@@ -120,7 +123,7 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
     }
     public void setTargetResearch(Research research){
         targetResearch = research;
-        Core.game.refreshNetworks();
+        game.refreshNetworks();
     }
     @Override
     public boolean isBackgroundStructure(){
@@ -129,5 +132,29 @@ public class Laboratory extends Building implements BuildingDamagable, BuildingD
     @Override
     public int getBuildingHeight(){
         return 10;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Research", (e) -> {
+            menu.openOverlay(new MenuResearch(menu, this));
+        }, () -> {
+            return true;
+        }));
+    }
+    @Override
+    public double getDisplayPower(){
+        return getPower();
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return getMaxPower();
+    }
+    @Override
+    public double getDisplayStarlight(){
+        return getStarlight();
+    }
+    @Override
+    public double getDisplayMaxStarlight(){
+        return getMaxStarlight();
     }
 }

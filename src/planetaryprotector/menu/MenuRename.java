@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import planetaryprotector.game.Game;
 import planetaryprotector.Main;
 import java.io.File;
 import org.lwjgl.opengl.Display;
@@ -20,7 +21,7 @@ public class MenuRename extends Menu{
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         File file = new File(Main.getAppdataRoot()+"\\"+name.text);
         if(!file.exists()){
             rename.enabled = true;

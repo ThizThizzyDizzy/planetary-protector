@@ -28,8 +28,8 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
     private final MenuComponentCheckbox meteorDischarge;
     private final MenuComponentSlider rechargeRate;
     private final MenuComponentSlider dischargeRate;
-    public MenuPowerStorageConfiguration(MenuGame game, PowerStorage powerStorage){
-        super(game, powerStorage);
+    public MenuPowerStorageConfiguration(MenuGame menu, PowerStorage powerStorage){
+        super(menu, powerStorage);
         automaticControl = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.automaticControl));
         daylightThreshold = add(new MenuComponentSlider(0, 0, 50*textHeight/8, textHeight, 0, 100, powerStorage.daylightThreshold, true));
         daylightControl = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.daylightControl));
@@ -118,7 +118,7 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
         if(key==Controls.menu&&pressed&&!repeat){
-            game.closeOverlay();
+            close();
         }
     }
     private int text(String text){

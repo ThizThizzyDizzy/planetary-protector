@@ -1,19 +1,21 @@
 package planetaryprotector.building;
-import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.task.Task;
 import java.util.ArrayList;
 import java.util.Collections;
-import static planetaryprotector.menu.MenuGame.rand;
+import static planetaryprotector.game.Game.rand;
 import java.util.Random;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.building.task.TaskAnimated;
+import planetaryprotector.game.Action;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.menu.MenuGame;
+import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.research.Research;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
@@ -31,11 +33,13 @@ public abstract class Building extends GameObject{
     private int level = 0;
     protected final ArrayList<Upgrade> upgrades = new ArrayList<>();
     public ShieldGenerator shield = null;//the shield generator that is currently projecting a shield on this building
-    public Building(double x, double y, double width, double height, BuildingType type){
-        this(x, y, width, height, type, 1, new ArrayList<>());
+    private static final int barHeight = 5;
+    private double barOffset = 0;
+    public Building(Game game, double x, double y, double width, double height, BuildingType type){
+        this(game, x, y, width, height, type, 1, new ArrayList<>());
     }
-    public Building(double x, double y, double width, double height, BuildingType type, int level, ArrayList<Upgrade> upgrades){
-        super(x, y, width, height);
+    public Building(Game game, double x, double y, double width, double height, BuildingType type, int level, ArrayList<Upgrade> upgrades){
+        super(game, x, y, width, height);
         this.type = type;
         this.level = level;
         this.upgrades.clear();
@@ -44,32 +48,26 @@ public abstract class Building extends GameObject{
     public final void tick(){
         fire+=fireIncreaseRate;
         if(fire-fireDamage*getFireDestroyThreshold()*.1>=getFireDestroyThreshold()*.1){
-            synchronized(damages){
-                damages.add(new BuildingDamage(this,0,0));
-            }
-            synchronized(fires){
-                fires.add(new Particle(getRandX(Core.game.rand), getRandY(Core.game.rand), ParticleEffectType.FIRE));
-            }
+            damages.add(new BuildingDamage(this,0,0));
+            fires.add(new Particle(game, getRandX(game.rand), getRandY(game.rand), ParticleEffectType.FIRE));
             ignite();
             fireDamage++;
         }
-        synchronized(fires){
-            for(Particle particle : fires){
-                particle.tick();
-            }
+        for(Particle particle : fires){
+            particle.tick();
         }
         update();
     }
     public void update(){
         if(damages.size()>=10){
-            Core.game.addParticleEffect(new Particle(x+rand.nextInt(100), y+rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
+            game.addParticleEffect(new Particle(game, x+rand.nextInt(100), y+rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
             int ingots = 0;
             try{
                 for(int i = 0; i<getLevel(); i++){
                     ingots += type.costs[i][0].count;
                 }
             }catch(ArrayIndexOutOfBoundsException ex){}
-            Core.game.replaceBuilding(this, new Wreck(x, y, ingots));
+            game.replaceBuilding(this, new Wreck(game, x, y, ingots));
         }
     }
     public void renderBackground(){
@@ -83,11 +81,43 @@ public abstract class Building extends GameObject{
         }
         renderDamages();
     }
-    public void drawForeground(){}
-    public void drawMouseover(){
-        GL11.glColor4d(0, 1, 1, mouseover);
-        drawRect(x, y-getBuildingHeight(), x+width, y+height, 0);
+    public void drawForeground(){
+        barOffset = barHeight-getBuildingHeight();
+        if((this instanceof BuildingPowerUser)&&((BuildingPowerUser)this).isPowerActive()){
+            drawBar(((BuildingPowerUser)this).getDisplayPower()/((BuildingPowerUser)this).getDisplayMaxPower(), 0, .25, 1);
+        }
+        if(game.observatory&&(this instanceof BuildingStarlightUser)&&((BuildingStarlightUser)this).isStarlightActive()){
+            drawBar(((BuildingStarlightUser)this).getDisplayStarlight()/((BuildingStarlightUser)this).getDisplayMaxStarlight(), .625, .875, 1);
+        }
+        barOffset = height;
+        if(this instanceof BuildingDamagable){
+            switch(MenuOptionsGraphics.health){
+                case 0://none
+                    break;
+                case 1://when damaged
+                    if(damages.isEmpty()&&fires.isEmpty())break;
+                case 2:
+                    double percent = getHealthPercent();
+                    drawBar(percent, 1-percent, percent, 0);
+            }
+        }
+    }
+    protected void drawBar(double percent, double r, double g, double b){
+        if(Double.isNaN(percent))return;
+        GL11.glColor4d(0, 0, 0, 1);
+        drawRect(x,y+barOffset-barHeight,x+width, y+barOffset, 0);
+        if(percent>0){
+            GL11.glColor4d(r, g, b, 1);
+            drawRect(x+1,y+barOffset-barHeight+1,x+width*percent-1, y+barOffset-1, 0);
+        }
         GL11.glColor4d(1, 1, 1, 1);
+        barOffset += barHeight;
+    }
+    public double getHealthPercent(){
+        return 1-(damages.size()/10d);
+    }
+    public void drawOverlay(){
+        drawRect(x, y-getBuildingHeight(), x+width, y+height, 0);
     }
     public void draw(){
         if(!isBackgroundStructure()){
@@ -103,29 +133,29 @@ public abstract class Building extends GameObject{
     public void renderDamages(){
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, 0);
-        synchronized(damages){
-            for(BuildingDamage damage : damages){
-                damage.render();
-            }
+        for(BuildingDamage damage : damages){
+            damage.render();
         }
         GL11.glPopMatrix();
     }
     @Override
     public void render(){
         draw();
-        drawMouseover();
+        GL11.glColor4d(1, 0, 0, (game.damageReportTimer/game.damageReportTime)*damages.size()/10d);
+        drawOverlay();
+        GL11.glColor4d(0, 1, 1, mouseover);
+        drawOverlay();
+        GL11.glColor4d(1, 1, 1, 1);
         if(shield!=null){
             GL11.glColor4d(.75, .875, 1, shield.getProjectedShieldStrength()/10d);
-            drawRect(x, y-getBuildingHeight(), x+width, y+height, 0);
+            drawOverlay();
             GL11.glColor4d(1, 1, 1, 1);
         }
         drawForeground();
         GL11.glPushMatrix();
         GL11.glTranslated(x, y, 0);
-        synchronized(fires){
-            for(Particle fire : fires){
-                fire.render();
-            }
+        for(Particle fire : fires){
+            fire.render();
         }
         GL11.glPopMatrix();
     }
@@ -134,9 +164,9 @@ public abstract class Building extends GameObject{
     }
     public void upgrade(){
         level++;
-        Core.game.refreshNetworks();
+        game.refreshNetworks();
     }
-    public static Building generateRandomBuilding(ArrayList<Building> buildings){
+    public static Building generateRandomBuilding(Game game, ArrayList<Building> buildings){
         int buildingX;
         int buildingY;
         int i = 0;
@@ -145,8 +175,8 @@ public abstract class Building extends GameObject{
             if(i>1000){
                 return null;
             }
-            buildingX = MenuGame.rand.nextInt(Display.getWidth()-100);
-            buildingY = MenuGame.rand.nextInt(Display.getHeight()-100);
+            buildingX = Game.rand.nextInt(Display.getWidth()-100);
+            buildingY = Game.rand.nextInt(Display.getHeight()-100);
             for(Building building : buildings){
                 double Y = building.y;
                 if(building instanceof Skyscraper){
@@ -161,9 +191,9 @@ public abstract class Building extends GameObject{
             }
             break;
         }
-        return new Skyscraper(buildingX, buildingY);
+        return new Skyscraper(game, buildingX, buildingY);
     }
-    public static Building load(Config cfg){
+    public static Building load(Config cfg, Game game){
         Building b = null;
         double x = cfg.get("x", 0d);
         double y = cfg.get("y", 0d);
@@ -174,43 +204,43 @@ public abstract class Building extends GameObject{
         }
         switch(BuildingType.valueOf(cfg.get("type", "EMPTY"))){
             case WORKSHOP:
-                b = Workshop.loadSpecific(cfg,x,y);
+                b = Workshop.loadSpecific(cfg,game,x,y);
                 break;
             case OBSERVATORY:
-                b = Observatory.loadSpecific(cfg,x,y);
+                b = Observatory.loadSpecific(cfg,game,x,y);
                 break;
             case BASE:
-                b = Base.loadSpecific(cfg,x,y);
+                b = Base.loadSpecific(cfg,game,x,y);
                 break;
             case SILO:
-                b = Silo.loadSpecific(cfg,x,y,level,upgrades);
+                b = Silo.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case EMPTY:
-                b = Plot.loadSpecific(cfg,x,y);
+                b = Plot.loadSpecific(cfg,game,x,y);
                 break;
             case MINE:
-                b = Mine.loadSpecific(cfg,x,y,level,upgrades);
+                b = Mine.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case SHIELD_GENERATOR:
-                b = ShieldGenerator.loadSpecific(cfg,x,y,level,upgrades);
+                b = ShieldGenerator.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case SKYSCRAPER:
-                b = Skyscraper.loadSpecific(cfg,x,y);
+                b = Skyscraper.loadSpecific(cfg,game,x,y);
                 break;
             case WRECK:
-                b = Wreck.loadSpecific(cfg,x,y);
+                b = Wreck.loadSpecific(cfg,game,x,y);
                 break;
             case COAL_GENERATOR:
-                b = CoalGenerator.loadSpecific(cfg,x,y,level,upgrades);
+                b = CoalGenerator.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case SOLAR_GENERATOR:
-                b = SolarGenerator.loadSpecific(cfg,x,y,level,upgrades);
+                b = SolarGenerator.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case POWER_STORAGE:
-                b = PowerStorage.loadSpecific(cfg,x,y,level,upgrades);
+                b = PowerStorage.loadSpecific(cfg,game,x,y,level,upgrades);
                 break;
             case LABORATORY:
-                b = Laboratory.loadSpecific(cfg,x,y);
+                b = Laboratory.loadSpecific(cfg,game,x,y);
                 break;
         }
         for(int i = 0; i<cfg.get("count", 0); i++){
@@ -220,7 +250,7 @@ public abstract class Building extends GameObject{
         b.fireDamage = cfg.get("fire damage", b.fireDamage);
         b.fireIncreaseRate = cfg.get("fire increase", b.fireIncreaseRate);
         for(int i = 0; i<cfg.get("fires", 0); i++){
-            b.fires.add(new Particle(cfg.get("fire "+i+" x", 0d), cfg.get("fire "+i+" y", 0d), ParticleEffectType.FIRE));
+            b.fires.add(new Particle(game, cfg.get("fire "+i+" x", 0d), cfg.get("fire "+i+" y", 0d), ParticleEffectType.FIRE));
         }
         return b;
     }
@@ -229,7 +259,7 @@ public abstract class Building extends GameObject{
             if(shield!=null){
                 if(shield.shieldHit())return true;
             }
-            if(Core.game.rand.nextDouble()<getIgnitionChance()){
+            if(game.rand.nextDouble()<getIgnitionChance()){
                 fireIncreaseRate += 0.0002;
                 ignite(x, y);
             }
@@ -244,9 +274,7 @@ public abstract class Building extends GameObject{
      * @return true if the damage was stopped, or false if the damage should hit the ground
      */
     public boolean onDamage(double x, double y){
-        synchronized(damages){
-            damages.add(new BuildingDamage(this, x-25, y-25));
-        }
+        damages.add(new BuildingDamage(this, x-25, y-25));
         return true;
     }
     public Config saveBuilding(Config cfg){
@@ -292,12 +320,10 @@ public abstract class Building extends GameObject{
         if(this instanceof Base){
             y-=25;
         }
-        synchronized(fires){
-            fires.add(new Particle(x-25, y-25, ParticleEffectType.FIRE));
-        }
+        fires.add(new Particle(game, x-25, y-25, ParticleEffectType.FIRE));
     }
     protected void ignite(){
-        ignite(x+getRandX(Core.game.rand),y+getRandY(Core.game.rand));
+        ignite(x+getRandX(game.rand),y+getRandY(game.rand));
     }
     protected int getTexture(){
         return type.getTexture();
@@ -318,15 +344,13 @@ public abstract class Building extends GameObject{
         return rand.nextDouble()*height;
     }
     public void clearFires(){
-        synchronized(fires){
-            for(Particle fire : fires){
-                fire.x+=x;
-                fire.y+=y;
-                fire.fading = true;
-                Core.game.addParticleEffect(fire);
-            }
-            fires.clear();
+        for(Particle fire : fires){
+            fire.x+=x;
+            fire.y+=y;
+            fire.fading = true;
+            game.addParticleEffect(fire);
         }
+        fires.clear();
     }
     public String getName(){
         if(getMaxLevel()>0)return "Level "+getLevel()+" "+type.name;
@@ -402,7 +426,7 @@ public abstract class Building extends GameObject{
     public boolean buyUpgrade(Upgrade upgrade){
         if(!canBuyUpgrade(upgrade))return false;
         upgrades.add(upgrade);
-        Core.game.refreshNetworks();
+        game.refreshNetworks();
         return true;
     }
     public void getDebugInfo(ArrayList<String> data){
@@ -451,12 +475,13 @@ public abstract class Building extends GameObject{
      * @param game the game that is being loaded
      * @param config the config to load from
      */
-    public void postLoad(MenuGame game, Config config){
+    public void postLoad(Game game, Config config){
         int index = config.get("shield", -1);
         if(index!=-1){
             shield = (ShieldGenerator) game.buildings.get(index);
         }
     }
+    public void getActions(MenuGame menu, ArrayList<Action> actions){}
     public static enum Upgrade{
         SUPERCHARGE(Research.SUPERCHARGE, "Supercharge", BuildingType.COAL_GENERATOR, 1200, 5, 4,8,12,16,20),
         ECOLOGICAL(Research.ECOLOGICAL, "Ecological", BuildingType.COAL_GENERATOR, 1200, 5, 4,8,12,16,20),
@@ -501,13 +526,13 @@ public abstract class Building extends GameObject{
             return ImageStash.instance.getTexture(getTextureS(type, count));
         }
         public String getTextureS(BuildingType type, int count){
-            return type.getTextureS(name().toLowerCase().replace("_", " ")+"/"+MenuGame.theme.tex()+"/"+count);
+            return type.getTextureS(name().toLowerCase().replace("_", " ")+"/"+Game.theme.tex()+"/"+count);
         }
         public int[] getAnimation(BuildingType type, int count){
             return TaskAnimated.getAnimation(getAnimationS(type, count));
         }
         public String getAnimationS(BuildingType type, int count){
-            return "/textures/tasks/upgrade/"+type.texture+"/"+name().toLowerCase().replace("_", " ")+"/"+MenuGame.theme.tex()+"/"+count;
+            return "/textures/tasks/upgrade/"+type.texture+"/"+name().toLowerCase().replace("_", " ")+"/"+Game.theme.tex()+"/"+count;
         }
         /**
          * @return A String interpretation of the upgrade slots
@@ -532,7 +557,11 @@ public abstract class Building extends GameObject{
         return 0;
     }
     public int getIndex(){
-        return Core.game.buildings.indexOf(this);
+        return game.buildings.indexOf(this);
     }
     public abstract boolean isBackgroundStructure();
+    public void setTask(Task task){
+        if(game.selectedBuilding==this)game.actionUpdateRequired = 2;
+        this.task = task;
+    }
 }

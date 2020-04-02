@@ -8,14 +8,15 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.item.Item;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.ZComponent;
 public class ShootingStar extends GameObject implements ZComponent{
     private final int particleResolution = MenuOptionsGraphics.particles+1;
     public int speed = 10;
     public int landing = 0;
     public int landTime = 48;
-    public ShootingStar(double x, double y){
-        super(x,y, 25, 25);
+    public ShootingStar(Game game, double x, double y){
+        super(game, x,y, 25, 25);
     }
     @Override
     public void render(){
@@ -39,7 +40,7 @@ public class ShootingStar extends GameObject implements ZComponent{
         landing++;
         if(landing>=landTime){
             dead = true;
-            Core.game.addItem(new DroppedItem(x+width/2, y+height/2, Item.star));
+            game.addItem(new DroppedItem(game, x+width/2, y+height/2, Item.star));
         }
         double fallProgress = landing/(double)landTime;
         double landX = x+width/2;
@@ -55,9 +56,9 @@ public class ShootingStar extends GameObject implements ZComponent{
         for(int i = 0; i<particleResolution; i++){
             X-=dX;
             Y-=dY;
-            Particle particle = new Particle(X, Y, ParticleEffectType.SMOKE, 1, true);
+            Particle particle = new Particle(game, X, Y, ParticleEffectType.SMOKE, 1, true);
             particle.width = particle.height = 25;
-            Core.game.addParticleEffect(particle);
+            game.addParticleEffect(particle);
         }
     }
     @Override

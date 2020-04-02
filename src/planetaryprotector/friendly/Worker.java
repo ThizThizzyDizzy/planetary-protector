@@ -1,7 +1,7 @@
 package planetaryprotector.friendly;
 import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.task.Task;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
@@ -25,9 +25,9 @@ public class Worker extends GameObject{
     public double[] selectedTarget;
     public Task task;
     public Task targetTask;
-    private final MenuGame game;
-    public Worker(double x, double y, MenuGame game){
-        super(x,y,10,10);
+    private final Game game;
+    public Worker(Game game, double x, double y){
+        super(game, x,y,10,10);
         this.game = game;
     }
     @Override
@@ -127,27 +127,22 @@ public class Worker extends GameObject{
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Go to Item">
         if(targetItem==null&&grabbedItem==null){
-            synchronized(game.droppedItems){
-                Collections.sort(game.droppedItems, (o1, o2) -> {
-                    if(o1.item.priority!=o2.item.priority){
-                        return o2.item.priority-o1.item.priority;
-                    }
-                    float x1 = (int)o1.x-(int)x, y1 = (int)o1.y-(int)y;
-                    float x2 = (int)o2.x-(int)x, y2 = (int)o2.y-(int)y;
-                    return (int)Math.sqrt(x1*x1+y1*y1)-(int)Math.sqrt(x2*x2+y2*y2);
-                });
-                ONE:for(DroppedItem item : game.droppedItems){
-                    synchronized(game.workers){
-                        for (Iterator<Worker> it = game.workers.iterator(); it.hasNext();) {
-                            Worker c = it.next();
-                            if(c.targetItem==item){
-                                continue ONE;
-                            }
-                        }
-                    }
-                    targetItem = item;
-                    break;
+            Collections.sort(game.droppedItems, (o1, o2) -> {
+                if(o1.item.priority!=o2.item.priority){
+                    return o2.item.priority-o1.item.priority;
                 }
+                float x1 = (int)o1.x-(int)x, y1 = (int)o1.y-(int)y;
+                float x2 = (int)o2.x-(int)x, y2 = (int)o2.y-(int)y;
+                return (int)Math.sqrt(x1*x1+y1*y1)-(int)Math.sqrt(x2*x2+y2*y2);
+            });
+            ONE:for(DroppedItem item : game.droppedItems){
+                for(Worker c : game.workers){
+                    if(c.targetItem==item){
+                        continue ONE;
+                    }
+                }
+                targetItem = item;
+                break;
             }
         }
 //</editor-fold>
@@ -170,11 +165,9 @@ public class Worker extends GameObject{
             targetItem = null;
             //<editor-fold defaultstate="collapsed" desc="Run">
             target = null;
-            synchronized(game.buildings){
-                for(Building building : game.buildings){
-                    if(building.type==BuildingType.SHIELD_GENERATOR){
-                        target = new double[]{building.x+building.width/2,building.y+building.height/2};
-                    }
+            for(Building building : game.buildings){
+                if(building.type==BuildingType.SHIELD_GENERATOR){
+                    target = new double[]{building.x+building.width/2,building.y+building.height/2};
                 }
             }
 //</editor-fold>
@@ -194,13 +187,11 @@ public class Worker extends GameObject{
             }
         }
 //</editor-fold>
-        synchronized(game.workers){
-            for(Iterator<Worker> it = game.workers.iterator(); it.hasNext();){
-                Worker c = it.next();
-                if(targetItem==c.grabbedItem){
-                    targetItem = null;
-                    target = null;
-                }
+        for(Iterator<Worker> it = game.workers.iterator(); it.hasNext();){
+            Worker c = it.next();
+            if(targetItem==c.grabbedItem){
+                targetItem = null;
+                target = null;
             }
         }
         if(y+width>Display.getHeight()){
@@ -234,7 +225,7 @@ public class Worker extends GameObject{
             y = base.getWorkerY();
         }
         task.finishTask();
-        task.building.task = null;
+        task.building.setTask(null);
         task = null;
     }
     public boolean isAvailable(){
@@ -270,9 +261,7 @@ public class Worker extends GameObject{
     private void dropItem(){
         if(grabbedItem==null)return;
         if(!grabbedItem.dead){
-            synchronized(game.droppedItems){
-                game.droppedItems.add(grabbedItem);
-            }
+            game.droppedItems.add(grabbedItem);
         }
         grabbedItem = null;
     }

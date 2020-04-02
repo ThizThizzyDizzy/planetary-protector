@@ -2,13 +2,12 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.BuildingDamage;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.research.ResearchEvent;
 public class TaskRepair extends Task{
     public BuildingDamage damage;
@@ -42,7 +41,7 @@ public class TaskRepair extends Task{
                 }
                 break;
         }
-        return building.task==null&&building.damages.size()>0&&Core.game.hasResources(building.type.repairCost);
+        return building.task==null&&damage!=null&&game.hasResources(building.type.repairCost);
     }
     @Override
     public String[] getDetails(){
@@ -82,7 +81,7 @@ public class TaskRepair extends Task{
     @Override
     public void finish(){
         for(ItemStack stack : building.type.repairCost){
-            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
         building.damages.remove(damage);
         building.fire = building.fireIncreaseRate = building.fireDamage = 0;
@@ -92,18 +91,18 @@ public class TaskRepair extends Task{
     public void begin(){
         building.fireIncreaseRate = 0;
         initialFire = building.fire;
-        progress = (int) Math.round((1-damage.opacity)*time);
-        Core.game.removeResources(building.type.repairCost);
+        if(damage!=null)progress = (int) Math.round((1-damage.opacity)*time);
+        game.removeResources(building.type.repairCost);
     }
     @Override
     public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*progress()-1; i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
     }

@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import org.lwjgl.LWJGLException;
+import planetaryprotector.enemy.Enemy;
+import planetaryprotector.enemy.EnemyMothership;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuLost;
 import planetaryprotector.menu.MenuMusicDownload;
 import simplelibrary.openal.Autoplayer;
@@ -108,51 +111,65 @@ public class Sounds{
      * @return a list of sound names that can be played as music at the current time (One will be randomly chosen)
      */
     private static void getPlayableMusic(ArrayList<String> playableMusic){
+        Game game = Core.getGame();
         if(Core.gui.menu instanceof MenuLost){
             playableMusic.add("SadMusic3");
             return;
         }
-        if(Core.game!=null&&Core.game.isDestroyed()){
-            if(Core.game!=null&&Core.game.phase>3){
-                playableMusic.add("SadMusic7");
+        if(game!=null){
+            if(game.isDestroyed()){
+                if(game.phase>3){
+                    playableMusic.add("SadMusic7");
+                }else{
+                    for(int i = 1; i<=28; i++){
+                        if(i==3)continue;
+                        playableMusic.add("SadMusic"+i);
+                    }
+                }
+            }else if(game.won){
+                for(int i = 1; i<=1; i++){
+                    playableMusic.add("VictoryMusic"+i);
+                }
+            }else if(game.secretWaiting>-1){
+                game.playSecret();
             }else{
-                for(int i = 1; i<=28; i++){
-                    if(i==3)continue;
-                    playableMusic.add("SadMusic"+i);
+                int mothershipPhase = 0;
+                for(Enemy e : game.enemies){
+                    if(e instanceof EnemyMothership){
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
+                    }
+                }
+                if(mothershipPhase>0){
+                    switch(mothershipPhase){
+                        case 1:
+                            playableMusic.add("Boss1Music1");
+                            playableMusic.add("Boss1Music2");
+                            break;
+                        case 2:
+                            playableMusic.add("Boss2Music1");
+                            playableMusic.add("Boss2Music2");
+                            break;
+                        case 3:
+                            playableMusic.add("Boss3Music1");
+                            playableMusic.add("Boss3Music2");
+                            break;
+                        case 4:
+                            playableMusic.add("Boss4Music1");
+                            playableMusic.add("Boss4Music2");
+                            break;
+                    }
+                }else{
+                    playableMusic.add("Music2");
+                    playableMusic.add("Music3");
+                    playableMusic.add("Music4");
+                    playableMusic.add("Music5");
                 }
             }
-        }else if(Core.game!=null&&Core.game.won){
-            for(int i = 1; i<=1; i++){
-                playableMusic.add("VictoryMusic"+i);
-            }
-        }else if(Core.game!=null&&Core.game.secretWaiting>-1){
-            Core.game.playSecret();
         }else{
-            if(Core.game!=null&&Core.game.mothership!=null){
-                switch(Core.game.mothership.phase){
-                    case 1:
-                        playableMusic.add("Boss1Music1");
-                        playableMusic.add("Boss1Music2");
-                        break;
-                    case 2:
-                        playableMusic.add("Boss2Music1");
-                        playableMusic.add("Boss2Music2");
-                        break;
-                    case 3:
-                        playableMusic.add("Boss3Music1");
-                        playableMusic.add("Boss3Music2");
-                        break;
-                    case 4:
-                        playableMusic.add("Boss4Music1");
-                        playableMusic.add("Boss4Music2");
-                        break;
-                }
-            }else{
-                playableMusic.add("Music2");
-                playableMusic.add("Music3");
-                playableMusic.add("Music4");
-                playableMusic.add("Music5");
-            }
+            playableMusic.add("Music2");
+            playableMusic.add("Music3");
+            playableMusic.add("Music4");
+            playableMusic.add("Music5");
         }
     }
     private static boolean running = false;

@@ -1,6 +1,6 @@
 package planetaryprotector.research;
 import java.util.ArrayList;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 public class DiscoveryStage{
     public final String image;
@@ -14,21 +14,17 @@ public class DiscoveryStage{
         return this;
     }
     public void event(ResearchEvent event){
-        synchronized(prerequisites){
-            for(DiscoveryPrerequisite prerequisite : prerequisites){
-                prerequisite.event(event);
-            }
+        for(DiscoveryPrerequisite prerequisite : prerequisites){
+            prerequisite.event(event);
         }
     }
-    public void tick(MenuGame game){
+    public void tick(Game game){
         double prog = 0;
-        synchronized(prerequisites){
-            for(DiscoveryPrerequisite prerequisite : prerequisites){
-                prerequisite.tick(game);
-                prog+=prerequisite.progress;
-            }
-            progress = prog/prerequisites.size();
+        for(DiscoveryPrerequisite prerequisite : prerequisites){
+            prerequisite.tick(game);
+            prog+=prerequisite.progress;
         }
+        progress = prog/prerequisites.size();
     }
     public Config save(Config config){
         config.set("progress", progress);
@@ -43,10 +39,10 @@ public class DiscoveryStage{
             prerequisites.get(i).load(config.get("prerequisite "+i, Config.newConfig()));
         }
     }
-    public String getProgressDescription(){
+    public String getProgressDescription(Game game){
         String desc = "";
         for(DiscoveryPrerequisite prerequisite : prerequisites){
-            desc+="\n"+prerequisite.getProgressDescription();
+            desc+="\n"+prerequisite.getProgressDescription(game);
         }
         return desc.trim();
     }

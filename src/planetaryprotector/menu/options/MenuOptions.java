@@ -1,7 +1,7 @@
 package planetaryprotector.menu.options;
 import planetaryprotector.Core;
 import org.lwjgl.opengl.Display;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuMain;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
@@ -38,7 +38,7 @@ public class MenuOptions extends Menu{
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         autosave = autosaveButton.getIndex()==0;
     }
 }

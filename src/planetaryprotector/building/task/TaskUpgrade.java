@@ -3,7 +3,7 @@ import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public boolean canPerform(){
-        return Core.game.hasResources(building.type.getCosts(building.getLevel()))&&building.task==null&&building.damages.isEmpty()&&building.canUpgrade();
+        return game.hasResources(building.type.getCosts(building.getLevel()))&&building.task==null&&building.damages.isEmpty()&&building.canUpgrade();
     }
     @Override
     public String[] getDetails(){
@@ -51,39 +51,39 @@ public class TaskUpgrade extends Task{
     public void work(){
         progress++;
         if(building.type==BuildingType.MINE){
-            if(MenuGame.rand.nextDouble()<=0.025){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+            if(Game.rand.nextDouble()<=0.025){
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 Item item = null;
                 while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
-                    item = Item.items.get(MenuGame.rand.nextInt(Item.items.size()));
+                    item = Item.items.get(Game.rand.nextInt(Item.items.size()));
                 }
-                Core.game.addItem(new DroppedItem(itemX, itemY, item));
+                game.addItem(new DroppedItem(game, itemX, itemY, item));
             }
         }
     }
     @Override
     public void finish(){
         for(ItemStack stack : building.type.getCosts(building.getLevel()+1)){
-            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
         building.upgrade();
     }
     @Override
     public void begin(){
-        Core.game.removeResources(building.type.getCosts(building.getLevel()+1));
+        game.removeResources(building.type.getCosts(building.getLevel()+1));
     }
     @Override
     public void onCancel() {
         for(ItemStack stack : building.type.getCosts(building.getLevel()+1)){
             for(int i = 0; i<stack.count; i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
     }

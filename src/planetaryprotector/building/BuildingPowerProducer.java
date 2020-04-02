@@ -1,5 +1,5 @@
 package planetaryprotector.building;
-public interface BuildingPowerProducer extends PowerNetworkSection{
+public interface BuildingPowerProducer extends BuildingPowerUser{
     public double getProduction();
     /**
      * Called when power is used. use this to burn coal, etc.

@@ -2,7 +2,7 @@ package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
@@ -13,10 +13,8 @@ import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;
 public class EnemyAlien extends Enemy{
     public static final double speed = Worker.workerSpeed*(2/3D);
-    private final MenuGame game;
-    public EnemyAlien(double x,double y){
-        super(x, y, 10, 10, 5);
-        game = Core.game;
+    public EnemyAlien(Game game, double x,double y){
+        super(game, x, y, 10, 10, 5);
     }
     @Override
     public void render(){
@@ -54,7 +52,7 @@ public class EnemyAlien extends Enemy{
                 timer+=4;//0;
                 b.damage(x-b.x, y-b.y);
                 for(int i = 0; i<MenuOptionsGraphics.particles; i++){
-                    game.addParticleEffect(new Particle(x-25, y-25, ParticleEffectType.SMOKE, 0));
+                    game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.SMOKE, 0));
                 }
                 dead = true;
             }

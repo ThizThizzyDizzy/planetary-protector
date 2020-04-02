@@ -2,7 +2,7 @@ package planetaryprotector.menu.options;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
@@ -28,7 +28,7 @@ public class MenuOptionsDiscord extends Menu{
     @Override
     public void renderBackground(){
         GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         rpc = rpcToggle.getIndex()==0;
     }
     @Override

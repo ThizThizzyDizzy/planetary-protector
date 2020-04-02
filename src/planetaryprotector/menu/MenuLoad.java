@@ -1,5 +1,5 @@
 package planetaryprotector.menu;
-import planetaryprotector.Core;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Mine;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.Wreck;
@@ -22,12 +22,14 @@ public class MenuLoad extends Menu{
     public ArrayList<Building> pendingBuildings = new ArrayList<>();
     private boolean baseMoving = true;
     private int nullBuildings;
-    private MenuGame game;
-    public MenuLoad(GUI gui, Menu parent){
+    public Game game;
+    private final String name;
+    public MenuLoad(GUI gui, String name, Menu parent){
         super(gui, parent);
-        base = new Base(MenuGame.rand.nextInt(Display.getWidth()-100), MenuGame.rand.nextInt(Display.getHeight()-100));
+        game = new Game(gui, name, 1);
+        base = new Base(game, Game.rand.nextInt(Display.getWidth()-100), Game.rand.nextInt(Display.getHeight()-100));
         buildings.add(base);
-        Core.game = new MenuGame(gui);
+        this.name = name;
     }
     @Override
     public void renderBackground(){}
@@ -99,7 +101,7 @@ public class MenuLoad extends Menu{
     public void tick() {
         if(!baseMoving){
             while(true){
-                Building building = Building.generateRandomBuilding(buildings);
+                Building building = Building.generateRandomBuilding(game, buildings);
                 if(!pendingBuildings.isEmpty()){
                     building = pendingBuildings.remove(0);
                 }
@@ -112,9 +114,8 @@ public class MenuLoad extends Menu{
                 }
                 buildings.add(building);
             }
-            if(game==null)game = new MenuGame(gui, buildings);
-            Core.game = game;
-            gui.open(Core.game);
+            game = new Game(gui, name, 1, buildings);
+            gui.open(new MenuGame(gui, game));
         }
     }
     private void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {

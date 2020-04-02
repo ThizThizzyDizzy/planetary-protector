@@ -2,7 +2,7 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import planetaryprotector.Core;
 import planetaryprotector.building.Workshop;
@@ -46,25 +46,25 @@ public class TaskTrainWorker extends Task{
     }
     @Override
     public void finish(){
-        Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 30));
-        Core.game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
+        game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 30));
+        game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
     }
     @Override
     public boolean canPerform(){
-        return Core.game.hasResources(new ItemStack(Item.ironIngot, 30))&&building.task==null&&building.damages.isEmpty();
+        return game.hasResources(new ItemStack(Item.ironIngot, 30))&&building.task==null&&building.damages.isEmpty();
     }
     @Override
     public void begin(){
-        Core.game.removeResources(new ItemStack(Item.ironIngot, 30));
+        game.removeResources(new ItemStack(Item.ironIngot, 30));
     }
     @Override
     public void onCancel(){
         for(int i = 0; i<30; i++){
-            double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-            double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+            double itemX = building.x+Game.rand.nextInt(79)+11;
+            double itemY = building.y+Game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
-            Core.game.addItem(new DroppedItem(itemX, itemY, Item.ironIngot));
+            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
         }
     }
     @Override

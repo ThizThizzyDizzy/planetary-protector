@@ -3,7 +3,7 @@ import planetaryprotector.Core;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.item.Item;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 public class DiscoveryPrerequisite{
     private final Type type;
@@ -39,7 +39,7 @@ public class DiscoveryPrerequisite{
         this.item = item;
         this.count = count;
     }
-    public boolean isMet(MenuGame game){
+    public boolean isMet(Game game){
         return progress>=1;
     }
     public static DiscoveryPrerequisite starlight(){
@@ -78,15 +78,13 @@ public class DiscoveryPrerequisite{
                 if(event.type==ResearchEvent.Type.USE_RESOURCE&&event.item==item)discovery+=event.value;
                 break;
             case TIME:
-                synchronized(prerequisites){
-                    for(DiscoveryPrerequisite prerequisite : prerequisites){
-                        prerequisite.event(event);
-                    }
+                for(DiscoveryPrerequisite prerequisite : prerequisites){
+                    prerequisite.event(event);
                 }
                 break;
         }
     }
-    public void tick(MenuGame game){
+    public void tick(Game game){
         switch(type){
             case STARLIGHT:
                 progress = game.observatory?1:0;
@@ -96,24 +94,20 @@ public class DiscoveryPrerequisite{
                 break;
             case BUILDING:
                 double found = 0;
-                synchronized(game.buildings){
-                    for(Building b : game.buildings){
-                        if(b.type==building){
-                            found += Math.min(level, b.getLevel())/(double)level;
-                        }
+                for(Building b : game.buildings){
+                    if(b.type==building){
+                        found += Math.min(level, b.getLevel())/(double)level;
                     }
                 }
                 progress = found/count;
                 break;
             case TIME:
                 double maxProgress = 0;
-                synchronized(prerequisites){
-                    for(DiscoveryPrerequisite prerequisite : prerequisites){
-                        prerequisite.tick(game);
-                        maxProgress+=prerequisite.progress;
-                    }
-                    maxProgress/=prerequisites.length;
+                for(DiscoveryPrerequisite prerequisite : prerequisites){
+                    prerequisite.tick(game);
+                    maxProgress+=prerequisite.progress;
                 }
+                maxProgress/=prerequisites.length;
                 if(progress<maxProgress)discovery++;
                 progress = discovery/(double)ticks;
                 break;
@@ -142,22 +136,22 @@ public class DiscoveryPrerequisite{
         progress = config.get("progress", progress);
         discovery = config.get("discovery", discovery);
     }
-    public String getProgressDescription(){
+    public String getProgressDescription(Game game){
         switch(type){
             case BUILDING:
                 return count+"x"+building.toString()+" "+level+": ("+toPercent(progress)+"%)";
             case GAIN_RESOURCE:
                 return "Gain "+item.name+": "+discovery+"/"+count+" ("+toPercent(progress)+"%)";
             case PHASE:
-                return "Phase "+Core.game.phase+"/"+phase+" ("+toPercent(progress)+"%)";
+                return "Phase "+game.phase+"/"+phase+" ("+toPercent(progress)+"%)";
             case RESOURCE:
                 return item.name+": "+Math.round(progress*count)+"/"+count+" ("+toPercent(progress)+"%)";
             case STARLIGHT:
-                return "Starlight: "+Core.game.observatory+" ("+toPercent(progress)+"%)";
+                return "Starlight: "+game.observatory+" ("+toPercent(progress)+"%)";
             case TIME:
                 String time = "Time: "+discovery+"/"+ticks+" ("+toPercent(progress)+"%)";
                 for(DiscoveryPrerequisite pre : prerequisites){
-                    for(String s : pre.getProgressDescription().split("\n")){
+                    for(String s : pre.getProgressDescription(game).split("\n")){
                         time+="\n- "+s;
                     }
                 }

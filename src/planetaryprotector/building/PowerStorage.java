@@ -1,8 +1,10 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
+import planetaryprotector.game.Action;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
+import planetaryprotector.menu.ingame.MenuPowerStorageConfiguration;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawCenteredText;
 public class PowerStorage extends Building implements BuildingPowerStorage, BuildingDamagable, BuildingDemolishable{
@@ -25,17 +27,17 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     private boolean lastMeteor = false;
     public int rechargeRate = 100;
     public int dischargeRate = 100;
-    public PowerStorage(double x, double y) {
-        super(x, y, 100, 100, BuildingType.POWER_STORAGE);
+    public PowerStorage(Game game, double x, double y) {
+        super(game, x, y, 100, 100, BuildingType.POWER_STORAGE);
     }
-    public PowerStorage(double x, double y, int level, ArrayList<Upgrade> upgrades){
-        super(x, y, 100, 100, BuildingType.POWER_STORAGE, level, upgrades);
+    public PowerStorage(Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(game, x, y, 100, 100, BuildingType.POWER_STORAGE, level, upgrades);
     }
     @Override
     public void update(){
         if(automaticControl){
             if(daylightControl){
-                int daylight = (int) Math.round(Core.game.getSunlight()*100);
+                int daylight = (int) Math.round(game.getSunlight()*100);
                 if(lastDaylight!=daylight){
                     if(daylight>=daylightThreshold&&lastDaylight<daylightThreshold){
                         charge = daylightRecharge;
@@ -49,13 +51,13 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
                 lastDaylight = daylight;
             }
             if(meteorOverride){
-                if(!lastMeteor&&Core.game.meteorShower){
+                if(!lastMeteor&&game.meteorShower){
                     charge = meteorRecharge;
                     discharge = meteorDischarge;
                 }
-                if(lastMeteor&&!Core.game.meteorShower){
+                if(lastMeteor&&!game.meteorShower){
                     if(daylightControl){
-                        if(Math.round(Core.game.getSunlight()*100)>=daylightThreshold){
+                        if(Math.round(game.getSunlight()*100)>=daylightThreshold){
                             charge = daylightRecharge;
                             discharge = daylightDischarge;
                         }else{
@@ -67,14 +69,15 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
                         discharge = neutralDischarge;
                     }
                 }
-                lastMeteor = Core.game.meteorShower;
+                lastMeteor = game.meteorShower;
             }
         }
         super.update();
     }
     @Override
-    public void drawForeground() {
-        MenuGame.theme.applyTextColor();
+    public void drawForeground(){
+        super.drawForeground();
+        Game.theme.applyTextColor();
         drawCenteredText(x, y, x+width, y+20, (int)power+"");
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
         GL11.glColor4d(1, 1, 1, 1);
@@ -104,8 +107,8 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
         cfg.set("lastMeteor", lastMeteor);
         return cfg;
     }
-    public static PowerStorage loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
-        PowerStorage powerStorage = new PowerStorage(x, y, level, upgrades);
+    public static PowerStorage loadSpecific(Config cfg, Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        PowerStorage powerStorage = new PowerStorage(game, x, y, level, upgrades);
         powerStorage.power = cfg.get("power", powerStorage.power);
         powerStorage.charge = cfg.get("charge", powerStorage.charge);
         powerStorage.discharge = cfg.get("discharge", powerStorage.discharge);
@@ -186,5 +189,31 @@ public class PowerStorage extends Building implements BuildingPowerStorage, Buil
     @Override
     public boolean isBackgroundStructure(){
         return false;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action((charge?"Disable":"Enable")+" Charging", (e) -> {
+            charge = !charge;
+        }, () -> {
+            return true;
+        }));
+        actions.add(new Action((discharge?"Disable":"Enable")+" Discharging", (e) -> {
+            discharge = !discharge;
+        }, () -> {
+            return true;
+        }));
+        actions.add(new Action("Power Storage Configuration", (e) -> {
+            menu.openOverlay(new MenuPowerStorageConfiguration(menu, this));
+        }, () -> {
+            return true;
+        }));
+    }
+    @Override
+    public double getDisplayPower(){
+        return getPower();
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return getMaxPower();
     }
 }

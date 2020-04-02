@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 public class StarlightNetwork{
     public ArrayList<Building> demand = new ArrayList<>();
     public ArrayList<Building> supply = new ArrayList<>();
     private static final int POWER_TRANSFER_RADIUS = 250;
     public static StarlightNetwork detect(ArrayList<Building> buildings, Building building){
-        if(building instanceof StarlightNetworkSection){
-            if(!((StarlightNetworkSection)building).isStarlightActive())return null;
+        if(building instanceof BuildingStarlightUser){
+            if(!((BuildingStarlightUser)building).isStarlightActive())return null;
             StarlightNetwork network = new StarlightNetwork();
             if(building instanceof BuildingStarlightProducer){
                 network.supply.add((Building)building);
@@ -65,19 +65,17 @@ public class StarlightNetwork{
             network.addAll(demand);
             network.addAll(supply);
             for(Building building : network){
-                synchronized(buildings){
-                    for(Building other : buildings){
-                        if(other instanceof StarlightNetworkSection&&!network.contains(other)){
-                            if(!((StarlightNetworkSection)other).isStarlightActive())continue;
-                            if(Core.distance(building, other)>POWER_TRANSFER_RADIUS)continue;
-                            if(other instanceof BuildingStarlightConsumer){
-                                demand.add(other);
-                                foundNew = true;
-                            }
-                            if(other instanceof BuildingStarlightProducer){
-                                supply.add(other);
-                                foundNew = true;
-                            }
+                for(Building other : buildings){
+                    if(other instanceof BuildingStarlightUser&&!network.contains(other)){
+                        if(!((BuildingStarlightUser)other).isStarlightActive())continue;
+                        if(Core.distance(building, other)>POWER_TRANSFER_RADIUS)continue;
+                        if(other instanceof BuildingStarlightConsumer){
+                            demand.add(other);
+                            foundNew = true;
+                        }
+                        if(other instanceof BuildingStarlightProducer){
+                            supply.add(other);
+                            foundNew = true;
                         }
                     }
                 }
@@ -121,21 +119,21 @@ public class StarlightNetwork{
         for(Building b : demand){
             if(Core.debugMode){
                 GL11.glColor4d(.8, 0, 0, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 10, 0);
+                Game.drawTorus(b.x+b.width/2, b.y+b.height/2, 50, 40, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(0, .5, 1, 1);
-            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            Game.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
             GL11.glColor4d(0, .5, 1, 1);
         }
         for(Building b : supply){
             if(Core.debugMode){
                 GL11.glColor4d(0, .3, .9, 1);
-                MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 10, 0);
+                Game.drawTorus(b.x+b.width/2, b.y+b.height/2, 35, 25, 10, 0);
             }
             drawConnectors(b);
             GL11.glColor4d(0, .5, 1, 1);
-            MenuGame.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
+            Game.drawTorus(b.x+b.width/2, b.y+b.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
             GL11.glColor4d(0, .5, 1, 1);
         }
     }
@@ -143,13 +141,13 @@ public class StarlightNetwork{
         for(Building other : demand){
             if(other==b)continue;
             if(Core.distance(b, other)<=POWER_TRANSFER_RADIUS){
-                MenuGame.drawConnector(b.x+b.width/2, b.y+b.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
+                Game.drawConnector(b.x+b.width/2, b.y+b.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
             }
         }
         for(Building other : supply){
             if(other==b)continue;
             if(Core.distance(b, other)<=POWER_TRANSFER_RADIUS){
-                MenuGame.drawConnector(b.x+b.width/2, b.y+b.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
+                Game.drawConnector(b.x+b.width/2, b.y+b.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
             }
         }
     }

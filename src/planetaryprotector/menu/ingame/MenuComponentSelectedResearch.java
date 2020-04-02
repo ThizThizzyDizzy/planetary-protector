@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.building.Laboratory;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.game.Game;
 import planetaryprotector.research.DiscoveryPrerequisite;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.Research.ResearchCategory;
@@ -19,9 +20,11 @@ public class MenuComponentSelectedResearch extends MenuComponent{
     public HorizontalLang title = new HorizontalLang();
     private static final int[] nonsense = {4,4};
     private final Laboratory lab;
+    private final Game game;
     public MenuComponentSelectedResearch(Laboratory lab, double x, double y, double width, double height){
         super(x, y, width, height);
         this.lab = lab;
+        this.game = lab.game;
     }
     @Override
     public void render(){
@@ -52,8 +55,8 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         if(research.isDiscovered()){
             drawDescription(x+border+width*.3, y+borderThickness+width*.15+40, x+width-border, y+borderThickness+width*.15+40+width*.3, x+border, x+width-border, y+height-border-borderThickness, 40, research.getDescription());
         }else{
-            if(Core.game.cheats){
-                drawDescription(x+border+width*.3, y+borderThickness+width*.15+40, x+width-border, y+borderThickness+width*.15+40+width*.3, x+border, x+width-border, y+height-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription());
+            if(game.cheats){
+                drawDescription(x+border+width*.3, y+borderThickness+width*.15+40, x+width-border, y+borderThickness+width*.15+40+width*.3, x+border, x+width-border, y+height-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
             }else{
                 drawNonsense(x+border, y+borderThickness+width*.15+40, x+width-border, y+height-border-borderThickness, 40);
             }
@@ -97,12 +100,12 @@ public class MenuComponentSelectedResearch extends MenuComponent{
     @Override
     public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
         super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
-        if(button==0&&pressed&&Core.game.cheats&&Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+        if(button==0&&pressed&&game.cheats&&Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             if(!research.isDiscovered()){
                 research.cheatDiscover();
             }else if(!research.isCompleted()){
-                research.complete();
+                research.complete(game);
             }
             return;
         }

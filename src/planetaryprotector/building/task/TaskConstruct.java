@@ -3,7 +3,7 @@ import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
@@ -22,7 +22,7 @@ public class TaskConstruct extends TaskAnimated{
     }
     @Override
     public boolean canPerform(){
-        return building.type==BuildingType.EMPTY&&Core.game.hasResources(target.type.costs[0])&&building.task==null;
+        return building.type==BuildingType.EMPTY&&game.hasResources(target.type.costs[0])&&building.task==null;
     }
     @Override
     public String[] getDetails(){
@@ -58,33 +58,33 @@ public class TaskConstruct extends TaskAnimated{
     public void work(){
         progress++;
         if(target.type==BuildingType.MINE){
-            if(MenuGame.rand.nextDouble()<=0.05){
-                double itemX = target.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = target.y+MenuGame.rand.nextInt(79)+11;
+            if(Game.rand.nextDouble()<=0.05){
+                double itemX = target.x+Game.rand.nextInt(79)+11;
+                double itemY = target.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 Item item = null;
                 while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
-                    item = Item.items.get(MenuGame.rand.nextInt(Item.items.size()));
+                    item = Item.items.get(Game.rand.nextInt(Item.items.size()));
                 }
-                Core.game.addItem(new DroppedItem(itemX, itemY, item));
+                game.addItem(new DroppedItem(game, itemX, itemY, item));
             }
         }
     }
     @Override
     public void finish(){
         for(ItemStack stack : target.type.costs[0]){
-            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
         if(target.type==BuildingType.SKYSCRAPER){
             Skyscraper sky = (Skyscraper) target;
             sky.floorCount = 10;
         }
-        Core.game.replaceBuilding(building, target);
+        game.replaceBuilding(building, target);
     }
     @Override
     public void begin(){
-        Core.game.removeResources(target.type.costs[0]);
+        game.removeResources(target.type.costs[0]);
     }
     @Override
     public void onCancel() {
@@ -95,14 +95,14 @@ public class TaskConstruct extends TaskAnimated{
                 continue;
             }
             for(int i = 0; i<stack.count; i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
-        Core.game.replaceBuilding(building, new Wreck(building.x, building.y, ingots));
+        game.replaceBuilding(building, new Wreck(game, building.x, building.y, ingots));
     }
     @Override
     public ItemStack[] getTooltip(){

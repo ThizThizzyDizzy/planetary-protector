@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.Random;
 import org.lwjgl.input.Keyboard;
@@ -18,11 +19,11 @@ public class MenuLost extends Menu{
     private Framebuffer space;
     private boolean gottenFar = false;
     private static final double SPEED = 1.5;//planet break speed modifier
-    private final MenuGame game;
+    private final Game game;
     private double laserSize = 0;
     private boolean laserBig = false;
     private boolean explosion = false;
-    public MenuLost(GUI gui, MenuGame game){
+    public MenuLost(GUI gui, Game game){
         super(gui, game);
         this.game = game;
         Random rand = new Random();
@@ -66,7 +67,7 @@ public class MenuLost extends Menu{
             if(laserBig){
                 if(!explosion){
                     explosion = true;
-                    game.addParticleEffect(new Particle(laserFiring[0], laserFiring[1], ParticleEffectType.EXPLOSION, 10, false){
+                    game.addParticleEffect(new Particle(game, laserFiring[0], laserFiring[1], ParticleEffectType.EXPLOSION, 10, false){
                         @Override
                         public void tick(){
                             radius+=80;
@@ -121,17 +122,17 @@ public class MenuLost extends Menu{
                     for(int i = 0; i<dist; i++){
                         double percent = i/dist;
                         GL11.glColor4d(1, 0, 0, 1);
-                        MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                        Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
                     }
                     for(int i = 0; i<dist; i++){
                         double percent = i/dist;
                         GL11.glColor4d(1, .5, 0, 1);
-                        MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                        Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
                     }
                     for(int i = 0; i<dist; i++){
                         double percent = i/dist;
                         GL11.glColor4d(1, 1, 0, 1);
-                        MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                        Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
                         GL11.glColor4d(1, 1, 1, 1);
                     }
                 }

@@ -2,7 +2,7 @@ package planetaryprotector.menu.options;
 import planetaryprotector.Sounds;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
@@ -60,7 +60,7 @@ public class MenuOptions1 extends Menu{
     @Override
     public void renderBackground(){
         GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         song1 = button1.getIndex()==0;
         song2 = button2.getIndex()==0;
         song3 = button3.getIndex()==0;

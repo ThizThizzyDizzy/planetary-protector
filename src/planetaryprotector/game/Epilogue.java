@@ -1,4 +1,4 @@
-package planetaryprotector.menu;
+package planetaryprotector.game;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import planetaryprotector.building.Building;
@@ -19,37 +19,38 @@ import planetaryprotector.building.ShieldGenerator;
 import planetaryprotector.building.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.friendly.ShootingStar;
+import planetaryprotector.menu.MenuEpilogue2;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
-public class MenuEpilogue extends MenuGame{
+public class Epilogue extends Game{
     private int timer = 195;
     private int i;
     private String[] texts = new String[]{"All of the other cities on the planet are still in ruins.", "Let the people of the city set out and rebuild.", "Thanks for playing!"};
     private Queue<Point> w = new Queue<>();
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
-    public MenuEpilogue(GUI gui){
-        super(gui, new ArrayList<>());
+    public Epilogue(GUI gui){
+        super(gui, null, 1);
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
-            Building building = Building.generateRandomBuilding(buildings);
+            Building building = Building.generateRandomBuilding(this, buildings);
             if(building==null){
                 continue;
             }
-            buildings.add(new Wreck(building.x, building.y, i));
+            buildings.add(new Wreck(this, building.x, building.y, i));
         }
         phase = 0;
         for(Building building : buildings){
             if(building instanceof Base)continue;
-            replaceBuilding(building, new Wreck(building.x, building.y, 0));
+            replaceBuilding(building, new Wreck(this, building.x, building.y, 0));
         }
-        addWorker();
         doNotDisturb = true;
         offset = 0;
     }
-    public MenuEpilogue(GUI gui, int i){
+    public Epilogue(GUI gui, int i){
         this(gui);
         this.i = i;
     }
@@ -98,10 +99,10 @@ public class MenuEpilogue extends MenuGame{
             }
             for(Building building : buildings){
                 if(building.type==BuildingType.WRECK&&rand.nextInt(25)==1){
-                    replaceBuilding(building, new Plot(building.x, building.y));
+                    replaceBuilding(building, new Plot(this, building.x, building.y));
                 }
                 if(building.type==BuildingType.EMPTY&&rand.nextInt(15)==1){
-                    Skyscraper s = new Skyscraper(building.x, building.y);
+                    Skyscraper s = new Skyscraper(this, building.x, building.y);
                     s.floorCount = 1;
                     replaceBuilding(building, s);
                 }
@@ -129,11 +130,9 @@ public class MenuEpilogue extends MenuGame{
     }
     @Override
     public void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
-        synchronized(buildings){
-            for(Building building : buildings){
-                building.renderBackground();
-            }
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+        for(Building building : buildings){
+            building.renderBackground();
         }
         for(Point p : w){
             drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/worker.png"));
@@ -142,22 +141,14 @@ public class MenuEpilogue extends MenuGame{
             if(anim.task.isInBackground())anim.render();
         }
         ArrayList<Particle> groundParticles = new ArrayList<>();
-        synchronized(particles){
-            for(Particle particle : particles){
-                if(!particle.air)groundParticles.add(particle);
-            }
+        for(Particle particle : particles){
+            if(!particle.air)groundParticles.add(particle);
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        synchronized(buildings){
-            mainLayer.addAll(buildings);
-        }
-        synchronized(droppedItems){
-            mainLayer.addAll(droppedItems);
-        }
-        synchronized(workers){
-            mainLayer.addAll(workers);
-        }
+        mainLayer.addAll(buildings);
+        mainLayer.addAll(droppedItems);
+        mainLayer.addAll(workers);
         for(TaskAnimation anim : taskAnimations){
             if(!anim.task.isInBackground())mainLayer.add(anim);
         }
@@ -181,10 +172,8 @@ public class MenuEpilogue extends MenuGame{
         for(GameObject o : mainLayer){
             o.render();
         }
-        synchronized(particles){
-            for(Particle particle : particles){
-                if(particle.air)particle.render();
-            }
+        for(Particle particle : particles){
+            if(particle.air)particle.render();
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Building building : buildings){
@@ -194,15 +183,11 @@ public class MenuEpilogue extends MenuGame{
             }
         }
         //</editor-fold>
-        synchronized(asteroids){
-            for(Asteroid asteroid : asteroids){
-                asteroid.render();
-            }
+        for(Asteroid asteroid : asteroids){
+            asteroid.render();
         }
-        synchronized(shootingStars){
-            for(ShootingStar star : shootingStars){
-                star.render();
-            }
+        for(ShootingStar star : shootingStars){
+            star.render();
         }
         drawDayNightCycle();
     }
@@ -210,7 +195,7 @@ public class MenuEpilogue extends MenuGame{
     public void render(int millisSinceLastTick){
         GL11.glTranslated(0, -Display.getHeight()*offset, 0);
         renderWorld(millisSinceLastTick);
-        drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+MenuGame.theme.tex()+".png"));
+        drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+Game.theme.tex()+".png"));
         drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
         if(blackScreenOpacity>0&&i<10){
             blackScreenOpacity-=.01;
@@ -231,14 +216,14 @@ public class MenuEpilogue extends MenuGame{
         return false;
     }
     private void restart(){
-        gui.open(new MenuEpilogue(gui, i+1));
+        gui.open(new MenuGame(gui, new Epilogue(gui, i+1)));
     }
     @Override
     public void addCloud(){
         if(!MenuOptionsGraphics.clouds)return;
         double strength = rand.nextInt(42);
         double rateOfChange = (rand.nextDouble()-.4)/80;
-        double speed = Core.game.rand.nextGaussian()/10+1;
+        double speed = rand.nextGaussian()/10+1;
         speed*=250;
         rateOfChange*=250;
         double y = rand.nextInt(Display.getHeight());
@@ -260,7 +245,7 @@ public class MenuEpilogue extends MenuGame{
             if(Math.round(X)==Math.round(X*10)/10d){
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    Particle p = new Particle(x, y, strength, rateOfChange, speed);
+                    Particle p = new Particle(this, x, y, strength, rateOfChange, speed);
                     clouds.add(p);
                     addParticleEffect(p);
                     y-=40;
@@ -269,7 +254,7 @@ public class MenuEpilogue extends MenuGame{
             }else{
                 double Y = y;
                 for(int i = 0; i<height; i++){
-                    Particle p = new Particle(x, y-20, strength, rateOfChange, speed);
+                    Particle p = new Particle(this, x, y-20, strength, rateOfChange, speed);
                     clouds.add(p);
                     addParticleEffect(p);
                     y-=40;

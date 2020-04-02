@@ -5,11 +5,10 @@ import club.minnced.discord.rpc.DiscordRichPresence;
 import planetaryprotector.menu.options.MenuOptions5;
 import planetaryprotector.menu.options.MenuOptions1;
 import planetaryprotector.menu.options.MenuOptions4;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.options.MenuOptions3;
 import planetaryprotector.menu.options.MenuOptions2;
 import planetaryprotector.menu.options.MenuOptions6;
-import planetaryprotector.menu.MenuMain;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.particle.ParticleEffectType;
 import java.awt.Color;
@@ -20,8 +19,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -29,15 +26,11 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.Building.Upgrade;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.task.TaskAnimated;
-import planetaryprotector.building.task.TaskType;
-import planetaryprotector.item.Item;
+import planetaryprotector.menu.MenuGame;
+import planetaryprotector.menu.MenuLoad;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
-import planetaryprotector.research.DiscoveryStage;
-import planetaryprotector.research.Research;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
@@ -60,10 +53,8 @@ public class Core extends Renderer2D{
     public static boolean enableCullFace = true;
     public static final boolean fullscreen = true;
     public static final boolean supportTyping = true;
-    public static MenuGame game;
-    public static String save = "unnamed";
-    private static int maxLevel = 1;
-    public static int latestLevel = 0;
+    public static final int LEVELS = 2;
+    public static int latestLevel = 1;
     public static int speedMult = 1;
     private static DiscordRichPresence discord;
     public static String discordState;
@@ -120,6 +111,7 @@ public class Core extends Renderer2D{
             }
         });
         FontManager.addFont("/planetaryprotector/high resolution");
+        FontManager.addFont("/planetaryprotector/slim");
         FontManager.setFont("high resolution");
         GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -157,7 +149,7 @@ public class Core extends Renderer2D{
             Sounds.create();
             Sounds.enableAutoplay();
         }
-        MenuGame.refreshTheme();
+        Game.refreshTheme();
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             for(int i = 0; i<10; i++){
                 m.images[i] = "/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png";
@@ -196,8 +188,14 @@ public class Core extends Renderer2D{
     }
     public static void render(int millisSinceLastTick){
         if(is3D&&enableCullFace) GL11.glDisable(GL11.GL_CULL_FACE);
-        if(game!=null){
-            game.renderWorld(millisSinceLastTick);
+        if(gui.menu instanceof MenuGame){
+            ((MenuGame)gui.menu).game.renderWorld(millisSinceLastTick);
+        }
+        if(gui.menu instanceof Game){
+            ((Game)gui.menu).renderWorld(millisSinceLastTick);
+        }
+        if(gui.menu instanceof MenuLoad){
+            ((MenuLoad)gui.menu).game.renderWorld(millisSinceLastTick);
         }
         gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
@@ -265,12 +263,14 @@ public class Core extends Renderer2D{
         config.set("fogI", MenuOptionsGraphics.fogIntensity);
         config.set("theme", MenuOptionsGraphics.theme);
         config.set("autosave", MenuOptions.autosave);
+        config.set("health", MenuOptionsGraphics.health);
         config.save();
     }
     public static void loadOptions(){
         Config config = Config.newConfig(Main.getAppdataRoot()+"\\options.cfg");
         config.load();
-        latestLevel = config.get("level", 0);
+        latestLevel = config.get("level", 1);
+        if(latestLevel==0)latestLevel = 1;
         MenuOptions1.song1 = config.get("song1", true);
         MenuOptions1.song2 = config.get("song2", false);
         MenuOptions1.song3 = config.get("song3", true);
@@ -321,6 +321,7 @@ public class Core extends Renderer2D{
         MenuOptionsGraphics.fogIntensity = config.get("fogI", MenuOptionsGraphics.fogIntensity);
         MenuOptionsGraphics.theme = config.get("theme", MenuOptionsGraphics.theme);
         MenuOptions.autosave = config.get("autosave", MenuOptions.autosave);
+        MenuOptionsGraphics.health = config.get("health", MenuOptionsGraphics.health);
     }
     public static long getFPS(){
         return FPStracker.size()/5;
@@ -374,7 +375,7 @@ public class Core extends Renderer2D{
         return percent*valDiff+val1;
     }
     public static boolean canPlayLevel(int i){
-        return debugMode||maxLevel>=i;
+        return debugMode||LEVELS>=i;
     }
     private static boolean rpc = false;
     public static void initDiscord() {
@@ -536,5 +537,33 @@ public class Core extends Renderer2D{
             GL11.glVertex2d(X, Y);
         }
         GL11.glEnd();
+    }
+    public static void winLevel(int i){
+        latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
+    }
+    public static void loadGame(String name, int level){
+        Game g = Game.load(gui, name);
+        if(g==null){
+            switch(level){
+                case 1:
+                    gui.open(new MenuLoad(gui, name, null));
+                    break;
+                default:
+                    gui.open(new MenuGame(gui, new Game(gui, name, level)));
+                    break;
+            }
+        }else{
+            gui.open(new MenuGame(gui, g));
+        }
+    }
+    /**
+     * @return the currently loaded game
+     * @deprecated ONLY USED FOR MUSIC
+     */
+    @Deprecated
+    public static Game getGame(){
+        if(gui.menu instanceof Game)return (Game) gui.menu;
+        if(gui.menu instanceof MenuGame)return ((MenuGame) gui.menu).game;
+        return null;
     }
 }

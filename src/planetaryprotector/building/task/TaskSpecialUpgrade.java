@@ -2,7 +2,7 @@ package planetaryprotector.building.task;
 import planetaryprotector.Core;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import java.util.ArrayList;
 import planetaryprotector.building.Building.Upgrade;
@@ -16,7 +16,7 @@ public class TaskSpecialUpgrade extends TaskAnimated{
     }
     @Override
     public boolean canPerform(){
-        return Core.game.hasResources(upgrade.costs)&&building.task==null&&building.damages.isEmpty();
+        return game.hasResources(upgrade.costs)&&building.task==null&&building.damages.isEmpty();
     }
     @Override
     public String[] getDetails(){
@@ -55,23 +55,23 @@ public class TaskSpecialUpgrade extends TaskAnimated{
     @Override
     public void finish(){
         for(ItemStack stack : upgrade.costs){
-            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
         if(!building.buyUpgrade(upgrade))onCancel();
     }
     @Override
     public void begin(){
-        Core.game.removeResources(upgrade.costs);
+        game.removeResources(upgrade.costs);
     }
     @Override
     public void onCancel() {
         for(ItemStack stack : upgrade.costs){
             for(int i = 0; i<stack.count; i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
     }

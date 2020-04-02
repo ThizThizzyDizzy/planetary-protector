@@ -2,21 +2,24 @@ package planetaryprotector.menu.component;
 import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import org.lwjgl.opengl.Display;
+import planetaryprotector.game.Game;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuComponentFalling extends MenuComponent{
     public double yVelocity;
     private final Item item;
-    public MenuComponentFalling(double x, double y, Item item){
+    private final Game game;
+    public MenuComponentFalling(MenuGame menu, double x, double y, Item item){
         super(x,y,20,20);
         this.item = item;
+        this.game = menu.game;
     }
     @Override
     public void render(){
-        if(!Core.game.showUI){
+        if(!game.isPlayable()){
             return;
         }
-        removeRenderBound();
-        if(!Core.game.paused){
+        if(!game.paused){
             if(y>Display.getHeight()){
                 return;
             }
@@ -26,7 +29,7 @@ public class MenuComponentFalling extends MenuComponent{
 
     @Override
     public void tick(){
-        if(!Core.game.paused){
+        if(!game.paused){
             if(y>Display.getHeight()){
                 return;
             }

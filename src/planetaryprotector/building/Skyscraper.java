@@ -1,18 +1,20 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Iterator;
 import java.util.Random;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.building.task.TaskAnimated;
+import planetaryprotector.building.task.TaskSkyscraperAddFloor;
 import planetaryprotector.building.task.TaskType;
 import planetaryprotector.enemy.Enemy;
+import planetaryprotector.game.Action;
+import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
 public class Skyscraper extends Building implements BuildingDamagable, BuildingDemolishable{
     public static final int floorHeight = 10;
@@ -25,9 +27,9 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     private boolean falled = false;
     public double pop = 0;
     public int fallSpeed = 3;
-    public Skyscraper(double x, double y) {
-        super(x, y, 100, 100, BuildingType.SKYSCRAPER);
-        floorCount = MenuGame.rand.nextInt(40)+10;
+    public Skyscraper(Game game, double x, double y){
+        super(game, x, y, 100, 100, BuildingType.SKYSCRAPER);
+        floorCount = Game.rand.nextInt(40)+10;
     }
     @Override
     public void update(){
@@ -39,34 +41,30 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
             falling = true;
         }
         if(falling){
-            synchronized(fires){
-                for(Iterator<Particle> it = fires.iterator(); it.hasNext();){
-                    Particle fire = it.next();
-                    fire.offsetSubParticles(2);
-                    if(fire.y-50>-fallen){
-                        it.remove();
-                        fire.x+=x;
-                        fire.y+=y;
-                        fire.fading = true;
-                        Core.game.addParticleEffect(fire);
-                    }
+            for(Iterator<Particle> it = fires.iterator(); it.hasNext();){
+                Particle fire = it.next();
+                fire.offsetSubParticles(2);
+                if(fire.y-50>-fallen){
+                    it.remove();
+                    fire.x+=x;
+                    fire.y+=y;
+                    fire.fading = true;
+                    game.addParticleEffect(fire);
                 }
             }
             for(int i = 0; i<MenuOptionsGraphics.particles*4+1; i++){
-                Core.game.addParticleEffect(new Particle(MenuGame.rand.nextInt((int)width)+x-25, MenuGame.rand.nextInt((int)height)+y-fallen-25,ParticleEffectType.SMOKE, 1, false));
+                game.addParticleEffect(new Particle(game, Game.rand.nextInt((int)width)+x-25, Game.rand.nextInt((int)height)+y-fallen-25,ParticleEffectType.SMOKE, 1, false));
             }
             right = !right;
             x += right?1:-1;
             y+=fallSpeed;
             fallen+=fallSpeed;
-            synchronized(Core.game.workers){
-                for(Worker worker : Core.game.workers){
-                    if(isClickWithinBounds(worker.x+(worker.width/2), worker.y+(worker.height/2), x, y-fallen, x+width, y+height-fallen)){
-                        worker.dead = true;
-                    }
+            for(Worker worker : game.workers){
+                if(isClickWithinBounds(worker.x+(worker.width/2), worker.y+(worker.height/2), x, y-fallen, x+width, y+height-fallen)){
+                    worker.dead = true;
                 }
             }
-            for(Enemy alien : Core.game.enemies){
+            for(Enemy alien : game.enemies){
                 if(alien instanceof EnemyAlien&&isClickWithinBounds(alien.x+(alien.width/2), alien.y+(alien.height/2), x, y-fallen, x+width, y+height-fallen)){
                     alien.dead = true;
                 }
@@ -82,7 +80,7 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
             if(!right){
                 x++;
             }
-            Core.game.replaceBuilding(this, new Wreck(x, y, floorCount*floorHeight));
+            game.replaceBuilding(this, new Wreck(game, x, y, floorCount*floorHeight));
         }
     }
     @Override
@@ -90,14 +88,12 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
         drawRect(x, y-fallen, x+width, y+height-fallen, BuildingType.EMPTY.getTexture());
     }
     @Override
-    public void drawMouseover(){
-        GL11.glColor4d(0, 1, 1, mouseover);
+    public void drawOverlay(){
         drawRect(x, y-getBuildingHeight()-fallen, x+width, y+height-fallen, 0);
-        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public void draw(){
-        boolean seeThrough = Core.game.hideSkyscrapers;
+        boolean seeThrough = game.hideSkyscrapers;
         GL11.glColor4d(1, 1, 1, seeThrough?.05:1);
         double fallenPercent = fallen/(floorHeight*(floorCount+0D));
         if(falled){
@@ -113,10 +109,14 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
             }
         }
         renderDamages();
-        drawMouseover();
         if(task!=null&&task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
             ((TaskAnimated)task).anim.render();
         }
+    }
+    @Override
+    protected void drawBar(double percent, double r, double g, double b){
+        if(falling)return;
+        super.drawBar(percent, r, g, b);
     }
     @Override
     public boolean onDamage(double x, double y){
@@ -136,8 +136,8 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
         cfg.set("population", pop);
         return cfg;
     }
-    public static Skyscraper loadSpecific(Config cfg, double x, double y) {
-        Skyscraper sky = new Skyscraper(x, y);
+    public static Skyscraper loadSpecific(Config cfg, Game game, double x, double y) {
+        Skyscraper sky = new Skyscraper(game, x, y);
         sky.floorCount = cfg.get("floors", 10);
         sky.falling = cfg.get("falling", false);
         sky.fallen = cfg.get("fallen", 0);
@@ -151,8 +151,8 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     }
     public int getMaxPop(){
         int pop = 0;
-        pop += Core.game.popPerFloor*floorCount;
-        pop -= Core.game.popPerFloor*damages.size()*floorCount/5;
+        pop += game.popPerFloor*floorCount;
+        pop -= game.popPerFloor*damages.size()*floorCount/5;
         pop = Math.max(0, pop);
         return pop;
     }
@@ -199,5 +199,10 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     @Override
     public int getBuildingHeight(){
         return floorHeight*floorCount-fallen;
+    }
+    @Override
+    public void getActions(MenuGame menu, ArrayList<Action> actions){
+        actions.add(new Action("Add Floor", new TaskSkyscraperAddFloor(this)));
+        actions.add(new Action("Add 10 Floors", new TaskSkyscraperAddFloor(this, 10)));
     }
 }

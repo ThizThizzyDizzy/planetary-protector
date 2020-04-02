@@ -1,6 +1,6 @@
 package planetaryprotector.item;
 import org.lwjgl.opengl.Display;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 public class DroppedItem extends GameObject{
@@ -11,10 +11,10 @@ public class DroppedItem extends GameObject{
     private double opacity = 1;
     private double rot;
     public boolean dead = false;
-    public DroppedItem(double x, double y, Item item){
-        super(x,y,10,10);
+    public DroppedItem(Game game, double x, double y, Item item){
+        super(game, x,y,10,10);
         this.item=item;
-        rot = MenuGame.rand.nextDouble()*360;
+        rot = Game.rand.nextDouble()*360;
     }
     @Override
     public void render(){

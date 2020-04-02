@@ -1,7 +1,7 @@
 package planetaryprotector.item;
 import planetaryprotector.menu.component.MenuComponentClickable;
 import java.util.ArrayList;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.opengl.ImageStash;
 public class Item{
     public static final ArrayList<Item> items = new ArrayList<>();
@@ -39,12 +39,12 @@ public class Item{
         return ImageStash.instance.getTexture(getWorldTextureS());
     }
     public String getWorldTextureS() {
-        return "/textures/items/"+MenuGame.theme.tex()+"/"+texture+".png";
+        return "/textures/items/"+Game.theme.tex()+"/"+texture+".png";
     }
     public int getTexture(){
         return ImageStash.instance.getTexture(getTextureS());
     }
     public String getTextureS() {
-        return "/textures/items/"+MenuGame.Theme.NORMAL.tex()+"/"+texture+".png";
+        return "/textures/items/"+Game.Theme.NORMAL.tex()+"/"+texture+".png";
     }
 }

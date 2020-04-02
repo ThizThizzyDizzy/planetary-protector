@@ -1,26 +1,25 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 public class Mine extends Building implements BuildingPowerConsumer, BuildingDamagable, BuildingDemolishable{
     private int timer = 0;
     private int delay = 20;
     private double power;
     private boolean powerTools = true;//used for every-other-tick double items
-    public Mine(double x, double y){
-        super(x,y,100,100,BuildingType.MINE);
+    public Mine(Game game, double x, double y){
+        super(game, x,y,100,100,BuildingType.MINE);
     }
-    public Mine(double x, double y, int level, ArrayList<Upgrade> upgrades){
-        super(x,y,100,100,BuildingType.MINE, level, upgrades);
+    public Mine(Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        super(game, x,y,100,100,BuildingType.MINE, level, upgrades);
         delay = 20-level;
     }
     private boolean canDeployItem(){
         int items = 0;
-        for(DroppedItem item : Core.game.droppedItems){
+        for(DroppedItem item : game.droppedItems){
             if(isClickWithinBounds(item.x+item.width/2, item.y+item.height/2, x, y, x+width, y+height)){
                 items++;
             }
@@ -29,11 +28,11 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     }
     public void deployItem(){
         if(!canDeployItem())return;
-        double itemX = x+MenuGame.rand.nextInt(79)+11;
-        double itemY = y+MenuGame.rand.nextInt(79)+11;
+        double itemX = x+Game.rand.nextInt(79)+11;
+        double itemY = y+Game.rand.nextInt(79)+11;
         itemX-=5;
         itemY-=5;
-        Core.game.addItem(new DroppedItem(itemX, itemY, randomItem()));
+        game.addItem(new DroppedItem(game, itemX, itemY, randomItem()));
     }
     @Override
     public void update(){
@@ -55,7 +54,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     }
     @Override
     public void drawForeground(){
-        MenuGame.theme.applyTextColor();
+        super.drawForeground();
+        Game.theme.applyTextColor();
         if(power>0)drawCenteredText(x, y, x+width, y+20, (int)power+"");
         drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
         GL11.glColor4d(1, 1, 1, 1);
@@ -71,8 +71,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
         cfg.set("powerTools", powerTools);
         return cfg;
     }
-    public static Mine loadSpecific(Config cfg, double x, double y, int level, ArrayList<Upgrade> upgrades){
-        Mine mine = new Mine(x, y, level, upgrades);
+    public static Mine loadSpecific(Config cfg, Game game, double x, double y, int level, ArrayList<Upgrade> upgrades){
+        Mine mine = new Mine(game, x, y, level, upgrades);
         mine.timer = cfg.get("timer", mine.timer);
         mine.delay = cfg.get("delay", mine.delay);
         mine.powerTools = cfg.get("powerTools", mine.powerTools);
@@ -93,8 +93,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     }
     private Item randomItem(){
         double stoneThreshold = 0.5-getUpgrades(Upgrade.STONE_GRINDING)*.2;
-        if(MenuGame.rand.nextDouble()<stoneThreshold)return Item.stone;
-        if(MenuGame.rand.nextDouble()>.6)return Item.ironOre;
+        if(Game.rand.nextDouble()<stoneThreshold)return Item.stone;
+        if(Game.rand.nextDouble()>.6)return Item.ironOre;
         return Item.coal;
     }
     @Override
@@ -126,5 +126,13 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     @Override
     public boolean isBackgroundStructure(){
         return true;
+    }
+    @Override
+    public double getDisplayPower(){
+        return getPower();
+    }
+    @Override
+    public double getDisplayMaxPower(){
+        return getMaxPower();
     }
 }

@@ -2,7 +2,7 @@ package planetaryprotector.friendly;
 import java.util.Random;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
@@ -10,6 +10,7 @@ import planetaryprotector.enemy.Enemy;
 import planetaryprotector.building.Silo;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
+import planetaryprotector.enemy.EnemyMothership;
 import simplelibrary.opengl.ImageStash;
 public class Drone extends GameObject{
     int power = 0;
@@ -23,7 +24,7 @@ public class Drone extends GameObject{
     boolean charge = false;
     boolean deaded = false;
     public Drone(Silo silo, int power){
-        super(silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
+        super(silo.game, silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
         this.silo = silo;
         this.power = power;
     }
@@ -31,18 +32,16 @@ public class Drone extends GameObject{
         if(deaded) return;
         if(power<=0){
             dead = true;
-            Core.game.addParticleEffect(new Particle(x, y, ParticleEffectType.EXPLOSION, 1, true));
+            game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(silo!=null){
                 silo.drones--;
-                synchronized(silo.droneList){
-                    silo.droneList.remove(this);
-                }
+                silo.droneList.remove(this);
             }
             deaded = true;
             return;
         }
         power--;
-        if(silo!=null&&(silo.damages.size()>=10||!Core.game.buildings.contains(silo))){
+        if(silo!=null&&(silo.damages.size()>=10||!game.buildings.contains(silo))){
             silo = null;
         }
         if(silo!=null&&Core.distance(this, silo)<100&&silo.getPower()>=100&&power<=maxPower-10){
@@ -107,32 +106,26 @@ public class Drone extends GameObject{
     Enemy en = null;
     private void findEnemy(){
         double dist = Double.POSITIVE_INFINITY;
-        MenuGame game = Core.game;
         en = null;
         for(Enemy enemy : game.enemies){
-            if(!(enemy instanceof EnemyMeteorStrike)){
-                dist = Math.min(dist,Core.distance(this, enemy));
+            if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyMothership)continue;
+            double d = Core.distance(this, enemy);
+            if(d<dist){
                 en = enemy;
+                dist = d;
             }
         }
-        if(en==null&&game.mothership!=null){
-            en = game.mothership;
+        if(en==null){
+            for(Enemy enemy : game.enemies){
+                if(enemy instanceof EnemyMothership){
+                    en = enemy;
+                }
+            }
         }
     }
     private void fireLaser(){
         laserFiring = null;
-        double dist = Double.POSITIVE_INFINITY;
-        MenuGame game = Core.game;
-        en = null;
-        for(Enemy enemy : game.enemies){
-            if(!(enemy instanceof EnemyMeteorStrike)){
-                dist = Math.min(dist,Core.distance(this, enemy));
-                en = enemy;
-            }
-        }
-        if(en==null&&game.mothership!=null){
-            en = game.mothership;
-        }
+        findEnemy();
         if(en==null) return;
         laserSize+=laserSizing;
         if(laserSize>=25){
@@ -154,17 +147,17 @@ public class Drone extends GameObject{
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 0, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, .5, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
             }
             for(int i = 0; i<dist; i++){
                 double percent = i/dist;
                 GL11.glColor4d(1, 1, 0, 1);
-                MenuGame.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }

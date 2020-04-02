@@ -9,8 +9,8 @@ public class MenuControls extends MenuComponentOverlay{
     private final MenuComponentButton back;
     double yOffset = 0;
     private final int textHeight = 40;
-    public MenuControls(MenuGame game){
-        super(game);
+    public MenuControls(MenuGame menu){
+        super(menu);
         back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, "Back", true));
     }
     @Override
@@ -22,7 +22,7 @@ public class MenuControls extends MenuComponentOverlay{
         text("Mute music: "+getKeyName(Controls.mute));
         text("Hide skyscrapers: "+getKeyName(Controls.hideSkyscrapers));
         text("Show power networks: "+getKeyName(Controls.showPowerNetworks));
-        if(game.cheats){
+        if(menu.game.cheats){
             text("Cheat | Lose: "+getKeyName(Controls.CHEAT_LOSE));
             text("Cheat | Phase: "+getKeyName(Controls.CHEAT_PHASE));
             text("Cheat | Secret: "+getKeyName(Controls.CHEAT_SECRET));
@@ -43,7 +43,7 @@ public class MenuControls extends MenuComponentOverlay{
     @Override
     public void buttonClicked(MenuComponentButton button) {
         if(button==back){
-            open(new MenuIngame(game));
+            open(new MenuIngame(menu));
         }
     }
     private void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {

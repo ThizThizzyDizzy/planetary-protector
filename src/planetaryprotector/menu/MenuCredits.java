@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -13,22 +14,22 @@ public class MenuCredits extends Menu{
     static{
         credits.add("Project Manager");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("");
         credits.add("");
         credits.add("Producer");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("");
         credits.add("");
         credits.add("Lead Designer");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("");
         credits.add("");
         credits.add("Lead Programmer");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("");
         credits.add("Other Programmers");
         credits.add("");
@@ -37,12 +38,12 @@ public class MenuCredits extends Menu{
         credits.add("");
         credits.add("Graphic Designers");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("");
         credits.add("");
         credits.add("Game Testers");
         credits.add("");
-        credits.add("James Dolan");
+        credits.add("ThizThizzyDizzy");
         credits.add("Bryan Dolan");
         credits.add("");
         credits.add("");
@@ -119,13 +120,13 @@ public class MenuCredits extends Menu{
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), MenuGame.theme.getBackgroundTexture());
+        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
         back.x = Display.getWidth()/2-back.width/2;
         back.y = Display.getHeight()-80;
         drawRect(Display.getWidth()/4-100, 40, (Display.getWidth()-Display.getWidth()/4)-100+200, 200, ImageStash.instance.getTexture("/textures/logo.png"));
         yOffset = 240;
         totalTextHeight = 0;
-        if(MenuGame.theme==MenuGame.Theme.SNOWY)GL11.glColor4d(0, 0, 0, 1);
+        if(Game.theme==Game.Theme.SNOWY)GL11.glColor4d(0, 0, 0, 1);
         for(String str : credits){
             text(str);
         }

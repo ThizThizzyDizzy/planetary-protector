@@ -2,7 +2,7 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.menu.MenuGame;
+import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
@@ -43,7 +43,7 @@ public class TaskRepairAll extends Task{
                 break;
         }
         for(ItemStack s : building.type.repairCost){
-            if(!Core.game.hasResources(new ItemStack(s.item, s.count*building.damages.size())))return false;
+            if(!game.hasResources(new ItemStack(s.item, s.count*building.damages.size())))return false;
         }
         return building.task==null&&building.damages.size()>0;
     }
@@ -88,7 +88,7 @@ public class TaskRepairAll extends Task{
     @Override
     public void finish(){
         for(ItemStack stack : building.type.repairCost){
-            Core.game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count*damages.size()));
+            game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count*damages.size()));
         }
         building.damages.removeAll(damages);
         building.fire = building.fireIncreaseRate = building.fireDamage = 0;
@@ -104,18 +104,18 @@ public class TaskRepairAll extends Task{
         }
         progress = (int) Math.round((1-damages.get(0).opacity)*time);
         for(ItemStack stack : building.type.repairCost){
-            Core.game.removeResources(new ItemStack(stack.item, stack.count*damages.size()));
+            game.removeResources(new ItemStack(stack.item, stack.count*damages.size()));
         }
     }
     @Override
     public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*progress()-1*damages.size(); i++){
-                double itemX = building.x+MenuGame.rand.nextInt(79)+11;
-                double itemY = building.y+MenuGame.rand.nextInt(79)+11;
+                double itemX = building.x+Game.rand.nextInt(79)+11;
+                double itemY = building.y+Game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
-                Core.game.addItem(new DroppedItem(itemX, itemY, stack.item));
+                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }
     }

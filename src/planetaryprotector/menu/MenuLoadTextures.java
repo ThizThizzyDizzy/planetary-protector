@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import planetaryprotector.game.Game;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -69,8 +70,8 @@ public class MenuLoadTextures extends Menu{
             for(ParticleEffectType p : ParticleEffectType.values()){
                 for(String s : p.images)verifyTextures.enqueue(s);
             }
-            for(MenuGame.Theme t : MenuGame.Theme.values()){
-                MenuGame.theme = t;
+            for(Game.Theme t : Game.Theme.values()){
+                Game.theme = t;
                 for(int i = 0; i<=16; i++){
                     verifyTextures.enqueue("/textures/buildings/base/door/"+i+".png");
                 }
@@ -107,8 +108,10 @@ public class MenuLoadTextures extends Menu{
                 verifyTextures.enqueue("/textures/background/dirt snowy.png");
                 verifyTextures.enqueue("/textures/background/cave.png");
                 verifyTextures.enqueue("/textures/background/stone.png");
-                for(MenuGame.Theme theme : MenuGame.Theme.values()){
-                    verifyTextures.enqueue(theme.getBackgroundTextureS());
+                for(Game.Theme theme : Game.Theme.values()){
+                    for(int i = 1; i<=Core.LEVELS; i++){
+                        verifyTextures.enqueue(theme.getBackgroundTextureS(i));
+                    }
                 }
                 verifyTextures.enqueue("/textures/gui/sidebar.png");
                 verifyTextures.enqueue("/textures/planet.png");

@@ -5,6 +5,7 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
 import planetaryprotector.menu.component.ZComponent;
 import simplelibrary.opengl.ImageStash;
@@ -30,8 +31,8 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
      * @param material the material of the asteroid
      * @param particulate 0=never, 1=only if settings allow, 2=always
      */
-    public Asteroid(double x, double y, AsteroidMaterial material, int particulate){
-        super(x,y, 50, 50, material.images);
+    public Asteroid(Game game, double x, double y, AsteroidMaterial material, int particulate){
+        super(game, x,y, 50, 50, material.images);
         delay /= 2;
         twelve /= 2;
         this.material = material;
@@ -61,11 +62,11 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
         if(frame>=twelve&&!hit){
             hit = true;
             if(drop){
-                Core.game.damage(x+width/2,y+height/2, material);
+                game.damage(x+width/2,y+height/2, material);
             }else{
-                Core.game.damage(x+width/2, y+height/2);
+                game.damage(x+width/2, y+height/2);
             }
-            Core.game.pushParticles(x+width/2, y+height/2, width*2, width/8, Particle.PushCause.ASTEROID);
+            game.pushParticles(x+width/2, y+height/2, width*2, width/8, Particle.PushCause.ASTEROID);
         }
         if(frame>=images.length-1&&x>-100){
             dead = true;
@@ -85,9 +86,9 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
             for(int i = 0; i<particleResolution; i++){
                 X-=dX;
                 Y-=dY;
-                Particle particle = new Particle(X, Y, ParticleEffectType.SMOKE, 1, true);
+                Particle particle = new Particle(game, X, Y, ParticleEffectType.SMOKE, 1, true);
                 particle.width = particle.height = 25;
-                Core.game.addParticleEffect(particle);
+                game.addParticleEffect(particle);
             }
         }
     }

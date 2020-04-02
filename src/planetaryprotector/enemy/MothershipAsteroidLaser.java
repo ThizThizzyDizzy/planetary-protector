@@ -2,13 +2,14 @@ package planetaryprotector.enemy;
 import planetaryprotector.Core;
  import org.lwjgl.opengl.Display;
 import planetaryprotector.GameObject;
+import planetaryprotector.game.Game;
 public class MothershipAsteroidLaser extends GameObject{
     int time = 0;
     double[] target = new double[]{0,0};
     int speed = 1;
     int damageMult = 1;
-    public MothershipAsteroidLaser(){
-        super(-150, Display.getHeight()/2, 0, 0);
+    public MothershipAsteroidLaser(Game game){
+        super(game, -150, Display.getHeight()/2, 0, 0);
         target = new double[]{x,y};
     }
     public void tick(){
@@ -27,7 +28,7 @@ public class MothershipAsteroidLaser extends GameObject{
             y-=speed;
         }
         if(oldx==x&&oldy==y){
-            target = Enemy.getBestStrike();
+            target = Enemy.getBestStrike(game);
             if(target==null){
                 target = new double[]{x,y};
             }
@@ -43,15 +44,14 @@ public class MothershipAsteroidLaser extends GameObject{
             double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
             double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
             for(int j = 0; j<damageMult; j++){
-                Asteroid a = new Asteroid(X-25, Y-25, AsteroidMaterial.STONE, 0);
-                Asteroid A = new Asteroid(x-25, y-25, AsteroidMaterial.STONE, 0);
+                Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
+                Asteroid A = new Asteroid(game, x-25, y-25, AsteroidMaterial.STONE, 0);
                 a.drop = A.drop = false;
-                Core.game.addAsteroid(a);
-                Core.game.addAsteroid(A);
+                game.addAsteroid(a);
+                game.addAsteroid(A);
             }
         }
     }
     @Override
-    public void render(){
-    }
+    public void render(){}
 }
