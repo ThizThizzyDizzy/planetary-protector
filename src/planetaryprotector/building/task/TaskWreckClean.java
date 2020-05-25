@@ -5,7 +5,6 @@ import planetaryprotector.game.Game;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.Plot;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.item.ItemStack;
 public class TaskWreckClean extends TaskAnimated{
     private final Wreck wreck;
@@ -47,8 +46,8 @@ public class TaskWreckClean extends TaskAnimated{
     public void work(){
         progress++;
         if(wreck.ingots>0){
-            double itemX = building.x+Game.rand.nextInt(79)+11;
-            double itemY = building.y+Game.rand.nextInt(79)+11;
+            double itemX = building.x+game.rand.nextInt(79)+11;
+            double itemY = building.y+game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
             game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
@@ -59,8 +58,8 @@ public class TaskWreckClean extends TaskAnimated{
     public void finish(){
         game.replaceBuilding(building, new Plot(game, building.x, building.y));
         while(wreck.ingots>0){
-            double itemX = building.x+Game.rand.nextInt(79)+11;
-            double itemY = building.y+Game.rand.nextInt(79)+11;
+            double itemX = building.x+game.rand.nextInt(79)+11;
+            double itemY = building.y+game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
             game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));

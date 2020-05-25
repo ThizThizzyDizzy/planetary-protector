@@ -10,8 +10,8 @@ public class Expedition{
     public int time = 0;
     public int totalTime = 0;
     public int civilians = 0;
-    public int civilianCooldown = Game.rand.nextInt(20*60*4);
-    public int dieCooldown = Game.rand.nextInt(20*60*20);
+    public int civilianCooldown;
+    public int dieCooldown;
     public boolean returning = false;
     public boolean done = false;
     public boolean returned = false;
@@ -26,6 +26,8 @@ public class Expedition{
         workerGraph.put(0, workers);
         lastWorkers = workers;
         this.game = game;
+        civilianCooldown = game.rand.nextInt(20*60*4);
+        dieCooldown = game.rand.nextInt(20*60*20);
     }
     public ArrayList<String> getText(){
         ArrayList<String> text = new ArrayList<>();
@@ -124,14 +126,14 @@ public class Expedition{
             }
             civilianCooldown--;
             if(civilianCooldown<=0){
-                civilianCooldown = Game.rand.nextInt(20*60*4);
-                double newCivilians = Math.min(50, Math.max(-100, Game.rand.nextGaussian()));
+                civilianCooldown = game.rand.nextInt(20*60*4);
+                double newCivilians = Math.min(50, Math.max(-100, game.rand.nextGaussian()));
                 if(newCivilians<0){
                     newCivilians*=-2;
                 }
                 while(newCivilians>0){
                     newCivilians--;
-                    if(Game.rand.nextInt(50)>0){
+                    if(game.rand.nextInt(50)>0){
                         civilians++;
                     }else{
                         workers++;
@@ -140,11 +142,11 @@ public class Expedition{
             }
             dieCooldown--;
             if(dieCooldown<=0){
-                dieCooldown = Game.rand.nextInt(20*60*15);
-                double dead = Game.rand.nextGaussian()*(civilians+workers)/25;
+                dieCooldown = game.rand.nextInt(20*60*15);
+                double dead = game.rand.nextGaussian()*(civilians+workers)/25;
                 while(dead>0){
                     dead--;
-                    if(Game.rand.nextInt(civilians+workers)>workers){
+                    if(game.rand.nextInt(civilians+workers)>workers){
                         civilians--;
                     }else{
                         workers--;

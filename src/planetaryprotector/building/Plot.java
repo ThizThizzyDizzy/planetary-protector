@@ -1,6 +1,5 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.building.task.TaskConstruct;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;

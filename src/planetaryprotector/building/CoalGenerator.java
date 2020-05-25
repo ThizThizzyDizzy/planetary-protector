@@ -1,7 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 import planetaryprotector.game.Action;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;

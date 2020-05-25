@@ -1,7 +1,6 @@
 package planetaryprotector.menu.ingame;
 import planetaryprotector.Controls;
 import org.lwjgl.opengl.Display;
-import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuMain;
 import planetaryprotector.menu.MenuSaveAs;

@@ -25,7 +25,7 @@ public abstract class Enemy extends GameObject{
             return new EnemyMeteorStrike(game);
         }
         if(strength>=2.5){
-            if(Game.rand.nextDouble()<=.5){
+            if(game.rand.nextDouble()<=.5){
                 if(strength>=10){
                     return new EnemyLaserMeteor(game);
                 }
@@ -33,7 +33,7 @@ public abstract class Enemy extends GameObject{
             }
         }
         if(strength>=7.5){
-            if(Game.rand.nextDouble()<=.25){
+            if(game.rand.nextDouble()<=.25){
                 return new EnemyLandingParty(game);
             }
         }

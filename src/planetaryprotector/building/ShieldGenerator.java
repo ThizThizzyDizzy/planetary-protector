@@ -1,7 +1,6 @@
 package planetaryprotector.building;
 import java.util.ArrayList;
 import planetaryprotector.enemy.AsteroidMaterial;
-import planetaryprotector.Core;
 import planetaryprotector.enemy.Enemy;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;

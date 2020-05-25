@@ -28,8 +28,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     }
     public void deployItem(){
         if(!canDeployItem())return;
-        double itemX = x+Game.rand.nextInt(79)+11;
-        double itemY = y+Game.rand.nextInt(79)+11;
+        double itemX = x+game.rand.nextInt(79)+11;
+        double itemY = y+game.rand.nextInt(79)+11;
         itemX-=5;
         itemY-=5;
         game.addItem(new DroppedItem(game, itemX, itemY, randomItem()));
@@ -93,8 +93,8 @@ public class Mine extends Building implements BuildingPowerConsumer, BuildingDam
     }
     private Item randomItem(){
         double stoneThreshold = 0.5-getUpgrades(Upgrade.STONE_GRINDING)*.2;
-        if(Game.rand.nextDouble()<stoneThreshold)return Item.stone;
-        if(Game.rand.nextDouble()>.6)return Item.ironOre;
+        if(game.rand.nextDouble()<stoneThreshold)return Item.stone;
+        if(game.rand.nextDouble()>.6)return Item.ironOre;
         return Item.coal;
     }
     @Override

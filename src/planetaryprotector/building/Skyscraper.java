@@ -29,7 +29,7 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     public int fallSpeed = 3;
     public Skyscraper(Game game, double x, double y){
         super(game, x, y, 100, 100, BuildingType.SKYSCRAPER);
-        floorCount = Game.rand.nextInt(40)+10;
+        floorCount = game.rand.nextInt(40)+10;
     }
     @Override
     public void update(){
@@ -53,7 +53,7 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
                 }
             }
             for(int i = 0; i<MenuOptionsGraphics.particles*4+1; i++){
-                game.addParticleEffect(new Particle(game, Game.rand.nextInt((int)width)+x-25, Game.rand.nextInt((int)height)+y-fallen-25,ParticleEffectType.SMOKE, 1, false));
+                game.addParticleEffect(new Particle(game, game.rand.nextInt((int)width)+x-25, game.rand.nextInt((int)height)+y-fallen-25,ParticleEffectType.SMOKE, 1, false));
             }
             right = !right;
             x += right?1:-1;

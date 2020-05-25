@@ -7,7 +7,6 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
-import planetaryprotector.building.BuildingDamage;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.opengl.ImageStash;

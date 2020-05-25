@@ -1,9 +1,7 @@
 package planetaryprotector.building.task;
-import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.Wreck;
 import planetaryprotector.building.BuildingType;
@@ -58,14 +56,14 @@ public class TaskConstruct extends TaskAnimated{
     public void work(){
         progress++;
         if(target.type==BuildingType.MINE){
-            if(Game.rand.nextDouble()<=0.05){
-                double itemX = target.x+Game.rand.nextInt(79)+11;
-                double itemY = target.y+Game.rand.nextInt(79)+11;
+            if(game.rand.nextDouble()<=0.05){
+                double itemX = target.x+game.rand.nextInt(79)+11;
+                double itemY = target.y+game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 Item item = null;
                 while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
-                    item = Item.items.get(Game.rand.nextInt(Item.items.size()));
+                    item = Item.items.get(game.rand.nextInt(Item.items.size()));
                 }
                 game.addItem(new DroppedItem(game, itemX, itemY, item));
             }
@@ -95,8 +93,8 @@ public class TaskConstruct extends TaskAnimated{
                 continue;
             }
             for(int i = 0; i<stack.count; i++){
-                double itemX = building.x+Game.rand.nextInt(79)+11;
-                double itemY = building.y+Game.rand.nextInt(79)+11;
+                double itemX = building.x+game.rand.nextInt(79)+11;
+                double itemY = building.y+game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 game.addItem(new DroppedItem(game, itemX, itemY, stack.item));

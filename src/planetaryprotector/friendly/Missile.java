@@ -1,5 +1,4 @@
 package planetaryprotector.friendly;
-import planetaryprotector.Core;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyLandingParty;

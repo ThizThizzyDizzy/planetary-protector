@@ -1,5 +1,4 @@
 package planetaryprotector.building;
-import planetaryprotector.Core;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.item.Item;
@@ -138,7 +137,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     }
     @Override
     public boolean onDamage(double x, double y){
-        if(damages.size()>=5&&Game.rand.nextBoolean()){
+        if(damages.size()>=5&&game.rand.nextBoolean()){
             explosionInHangar();
         }
         return super.onDamage(x, y);
@@ -165,7 +164,7 @@ public class Silo extends Building implements BuildingPowerConsumer, BuildingDam
     }
     public void explosionInHangar(){
         for(int i = 0; i<missiles; i++){
-            damages.add(new BuildingDamage(this, Game.rand.nextInt((int) width), Game.rand.nextInt((int) height)));
+            damages.add(new BuildingDamage(this, game.rand.nextInt((int) width), game.rand.nextInt((int) height)));
         }
         game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
     }

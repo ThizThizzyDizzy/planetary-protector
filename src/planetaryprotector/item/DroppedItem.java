@@ -14,7 +14,7 @@ public class DroppedItem extends GameObject{
     public DroppedItem(Game game, double x, double y, Item item){
         super(game, x,y,10,10);
         this.item=item;
-        rot = Game.rand.nextDouble()*360;
+        rot = game.rand.nextDouble()*360;
     }
     @Override
     public void render(){

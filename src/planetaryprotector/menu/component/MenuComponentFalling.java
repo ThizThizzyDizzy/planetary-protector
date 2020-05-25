@@ -1,5 +1,4 @@
 package planetaryprotector.menu.component;
-import planetaryprotector.Core;
 import planetaryprotector.item.Item;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.game.Game;

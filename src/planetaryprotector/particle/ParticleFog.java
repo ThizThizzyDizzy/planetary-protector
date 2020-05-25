@@ -1,5 +1,4 @@
 package planetaryprotector.particle;
-import planetaryprotector.Core;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.enemy.Enemy;

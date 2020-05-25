@@ -1,7 +1,6 @@
 package planetaryprotector.research;
 import java.util.ArrayList;
 import java.util.Random;
-import planetaryprotector.Core;
 import planetaryprotector.building.Building.Upgrade;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.item.Item;

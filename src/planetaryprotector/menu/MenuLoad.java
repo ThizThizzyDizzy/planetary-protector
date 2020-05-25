@@ -27,7 +27,7 @@ public class MenuLoad extends Menu{
     public MenuLoad(GUI gui, String name, Menu parent){
         super(gui, parent);
         game = new Game(gui, name, 1);
-        base = new Base(game, Game.rand.nextInt(Display.getWidth()-100), Game.rand.nextInt(Display.getHeight()-100));
+        base = new Base(game, game.rand.nextInt(Display.getWidth()-100), game.rand.nextInt(Display.getHeight()-100));
         buildings.add(base);
         this.name = name;
     }

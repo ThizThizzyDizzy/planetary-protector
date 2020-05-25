@@ -75,7 +75,7 @@ import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class Game extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
-    public static Random rand = new Random();
+    public Random rand = new Random();
     public boolean lost = false;
     public boolean meteorShower;
     public int meteorShowerTimer = 100;
@@ -102,7 +102,7 @@ public class Game extends Menu{
     private int enemyTimer = 20*30;
     public double damageReportTimer = 0;
     public double damageReportTime = 20*10;
-    public int civilianCooldown = Game.rand.nextInt(20*60*5);
+    public int civilianCooldown = rand.nextInt(20*60*5);
     public double civilianIncreasePerSec = 0;
     public int civilianTimer = 0;
     public boolean doNotDisturb = false;
@@ -110,7 +110,7 @@ public class Game extends Menu{
     boolean fading;
     public double blackScreenOpacity = 0;
     public boolean cheats = false;
-    public static int tick;
+    public int tick;
     public boolean won;
     private int cloudTimer = rand.nextInt(750)+500;
     //FOG
@@ -467,7 +467,7 @@ public class Game extends Menu{
         if(hasResources(new ItemStack(Item.star))){
             observatory = true;
         }
-        if(workers.isEmpty()&&!lost&&losing<=-1){
+        if(canFastForward()){
             Core.speedMult = 12;
         }else{
             Core.speedMult = 1;
@@ -537,6 +537,7 @@ public class Game extends Menu{
         }
         tickingEnemies = false; 
         enemies.addAll(nextEnemies);
+        nextEnemies.clear();
         for(Iterator<Drone> it = drones.iterator(); it.hasNext();){
             Drone drone = it.next();
             drone.tick();
@@ -769,14 +770,14 @@ public class Game extends Menu{
             for(int i = 0; i<6; i++){
                 civilianCooldown--;
                 if(civilianCooldown<=0){
-                    civilianCooldown = Game.rand.nextInt(20*60*5);
-                    double newCivilians = Math.min(50, Math.max(-100, Game.rand.nextGaussian()));
+                    civilianCooldown = rand.nextInt(20*60*5);
+                    double newCivilians = Math.min(50, Math.max(-100, rand.nextGaussian()));
                     if(newCivilians<0){
                         newCivilians*=-2;
                     }
                     while(newCivilians>0){
                         newCivilians--;
-                        if(Game.rand.nextInt(1000)>0){
+                        if(rand.nextInt(1000)>0){
                             addCivilians(1);
                         }else{
                             addWorker();
@@ -2006,6 +2007,17 @@ public class Game extends Menu{
         debug.add("Time: "+time);
         return debug;
     }
+    private boolean canFastForward(){
+        if(!workers.isEmpty())return false;
+        if(lost)return false;
+        if(losing>-1)return false;
+        for(Enemy e : enemies){
+            if(e instanceof EnemyMothership){
+                return false;
+            }
+        }
+        return true;
+    }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
         SNOWY("snowy", new Color(255, 244, 179, 15),new Color(20, 33, 107, 72), new Color(31, 31, 31, 255)),
@@ -2054,7 +2066,7 @@ public class Game extends Menu{
                 asteroidTimers.put(material, Integer.MAX_VALUE);
                 return;
             }
-            asteroidTimers.put(material, Game.rand.nextInt(material.max-material.min)+material.min);
+            asteroidTimers.put(material, rand.nextInt(material.max-material.min)+material.min);
         }
     }
     public boolean isPlayable(){

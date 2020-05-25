@@ -5,7 +5,6 @@ import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.building.Skyscraper;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.research.ResearchEvent;
 public class TaskSkyscraperAddFloor extends TaskAnimated{
     private final Skyscraper skyscraper;
@@ -70,8 +69,8 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
     public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*floors; i++){
-                double itemX = building.x+Game.rand.nextInt(79)+11;
-                double itemY = building.y+Game.rand.nextInt(79)+11;
+                double itemX = building.x+game.rand.nextInt(79)+11;
+                double itemY = building.y+game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 game.addItem(new DroppedItem(game, itemX, itemY, stack.item));

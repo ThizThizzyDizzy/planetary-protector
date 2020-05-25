@@ -1,5 +1,4 @@
 package planetaryprotector.research;
-import planetaryprotector.Core;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.item.Item;

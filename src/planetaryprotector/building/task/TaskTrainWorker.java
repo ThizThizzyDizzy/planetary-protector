@@ -2,9 +2,7 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.game.Game;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.building.Workshop;
 import planetaryprotector.research.ResearchEvent;
 public class TaskTrainWorker extends Task{
@@ -60,8 +58,8 @@ public class TaskTrainWorker extends Task{
     @Override
     public void onCancel(){
         for(int i = 0; i<30; i++){
-            double itemX = building.x+Game.rand.nextInt(79)+11;
-            double itemY = building.y+Game.rand.nextInt(79)+11;
+            double itemX = building.x+game.rand.nextInt(79)+11;
+            double itemY = building.y+game.rand.nextInt(79)+11;
             itemX-=5;
             itemY-=5;
             game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));

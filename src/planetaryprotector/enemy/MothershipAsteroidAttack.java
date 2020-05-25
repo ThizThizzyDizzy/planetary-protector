@@ -1,6 +1,4 @@
 package planetaryprotector.enemy;
-import planetaryprotector.Core;
-import planetaryprotector.game.Game;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.GameObject;
 public class MothershipAsteroidAttack extends GameObject{
@@ -11,7 +9,7 @@ public class MothershipAsteroidAttack extends GameObject{
     public MothershipAsteroidAttack(EnemyMothership ship){
         super(ship.game, 0, 0, Display.getWidth(), Display.getHeight());
         this.ship = ship;
-        type = Game.rand.nextInt(types);
+        type = game.rand.nextInt(types);
     }
     int direction = 1;
     boolean out = false;

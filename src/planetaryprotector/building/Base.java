@@ -4,7 +4,6 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
-import static planetaryprotector.game.Game.rand;
 import java.util.Random;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
@@ -40,7 +39,7 @@ public class Base extends Building implements BuildingDamagable{
         }
         if(deathTick>-1){
             if(deathTick%10==0&&deathTick<100){
-                game.addParticleEffect(new Particle(game, x+rand.nextInt(100), y+rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
+                game.addParticleEffect(new Particle(game, x+game.rand.nextInt(100), y+game.rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
             }
             if(deathTick==100){
                 game.addParticleEffect(new Particle(game, x+50, y+51, ParticleEffectType.EXPLOSION, 10));

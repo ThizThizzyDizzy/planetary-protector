@@ -1,5 +1,4 @@
 package planetaryprotector.enemy;
-import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
@@ -120,7 +119,7 @@ public class EnemyMothership extends Enemy{
                 if(explosionTimer<=10){
                     explosionTimer+=10;
                     explosions--;
-                    game.addParticleEffect(new Particle(game, Game.rand.nextInt((int) width)+x-width/2, Game.rand.nextInt((int) height)+y-height/2, ParticleEffectType.EXPLOSION, Game.rand.nextInt(3)+2, true));
+                    game.addParticleEffect(new Particle(game, game.rand.nextInt((int) width)+x-width/2, game.rand.nextInt((int) height)+y-height/2, ParticleEffectType.EXPLOSION, game.rand.nextInt(3)+2, true));
                 }
             }else if(explosions==0){
                 explosions--;
@@ -248,8 +247,8 @@ public class EnemyMothership extends Enemy{
             laserFiring = null;
             randomLaserTimer--;
             if(randomLaserTimer==0){
-                begin = new int[]{Game.rand.nextInt(Display.getWidth()),Game.rand.nextInt(Display.getHeight())};
-                end = new int[]{Game.rand.nextInt(Display.getWidth()),Game.rand.nextInt(Display.getHeight())};
+                begin = new int[]{game.rand.nextInt(Display.getWidth()),game.rand.nextInt(Display.getHeight())};
+                end = new int[]{game.rand.nextInt(Display.getWidth()),game.rand.nextInt(Display.getHeight())};
                 randomLaserTimer = -randomLaserTime;
             }
         }else{

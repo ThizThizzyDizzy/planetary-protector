@@ -5,7 +5,6 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.building.task.Task;
 import java.util.ArrayList;
 import java.util.Collections;
-import static planetaryprotector.game.Game.rand;
 import java.util.Random;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -60,7 +59,7 @@ public abstract class Building extends GameObject{
     }
     public void update(){
         if(damages.size()>=10){
-            game.addParticleEffect(new Particle(game, x+rand.nextInt(100), y+rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
+            game.addParticleEffect(new Particle(game, x+game.rand.nextInt(100), y+game.rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
             int ingots = 0;
             try{
                 for(int i = 0; i<getLevel(); i++){
@@ -175,8 +174,8 @@ public abstract class Building extends GameObject{
             if(i>1000){
                 return null;
             }
-            buildingX = Game.rand.nextInt(Display.getWidth()-100);
-            buildingY = Game.rand.nextInt(Display.getHeight()-100);
+            buildingX = game.rand.nextInt(Display.getWidth()-100);
+            buildingY = game.rand.nextInt(Display.getHeight()-100);
             for(Building building : buildings){
                 double Y = building.y;
                 if(building instanceof Skyscraper){

@@ -1,6 +1,5 @@
 package planetaryprotector.enemy;
-import planetaryprotector.Core;
- import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.Display;
 import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
 public class MothershipAsteroidLaser extends GameObject{

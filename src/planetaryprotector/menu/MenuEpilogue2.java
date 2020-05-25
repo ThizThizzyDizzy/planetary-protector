@@ -1,5 +1,4 @@
 package planetaryprotector.menu;
-import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import java.awt.Color;
 import java.util.Random;

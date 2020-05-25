@@ -2,13 +2,11 @@ package planetaryprotector.building.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.item.DroppedItem;
-import planetaryprotector.game.Game;
 import planetaryprotector.building.Building;
 import planetaryprotector.building.BuildingType;
 import planetaryprotector.building.Skyscraper;
 import planetaryprotector.building.BuildingDamage;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 import planetaryprotector.research.ResearchEvent;
 public class TaskRepairAll extends Task{
     ArrayList<BuildingDamage> damages = new ArrayList<>();
@@ -111,8 +109,8 @@ public class TaskRepairAll extends Task{
     public void onCancel(){
         for(ItemStack stack : building.type.repairCost){
             for(int i = 0; i<stack.count*progress()-1*damages.size(); i++){
-                double itemX = building.x+Game.rand.nextInt(79)+11;
-                double itemY = building.y+Game.rand.nextInt(79)+11;
+                double itemX = building.x+game.rand.nextInt(79)+11;
+                double itemY = building.y+game.rand.nextInt(79)+11;
                 itemX-=5;
                 itemY-=5;
                 game.addItem(new DroppedItem(game, itemX, itemY, stack.item));

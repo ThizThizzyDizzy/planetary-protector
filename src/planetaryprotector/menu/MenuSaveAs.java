@@ -1,6 +1,5 @@
 package planetaryprotector.menu;
 import planetaryprotector.game.Game;
-import planetaryprotector.Core;
 import org.lwjgl.opengl.Display;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
