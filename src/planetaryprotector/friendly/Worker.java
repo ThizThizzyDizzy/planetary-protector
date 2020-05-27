@@ -2,18 +2,20 @@ package planetaryprotector.friendly;
 import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
-import planetaryprotector.building.task.Task;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
+import planetaryprotector.structure.building.task.Task;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
 import java.util.Iterator;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
 import planetaryprotector.GameObject;
-import planetaryprotector.building.Base;
-import planetaryprotector.building.Skyscraper;
-import planetaryprotector.building.task.TaskDemolish;
+import planetaryprotector.structure.building.Base;
+import planetaryprotector.structure.building.Skyscraper;
+import planetaryprotector.structure.building.task.TaskDemolish;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.research.ResearchEvent;
+import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.building.ShieldGenerator;
 import simplelibrary.opengl.ImageStash;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
@@ -55,11 +57,11 @@ public class Worker extends GameObject{
                 }
             }
         }
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.SKYSCRAPER){
-                if(((Skyscraper)building).falling){
-                    if(Core.distance(building.x+building.width/2, building.y-((Skyscraper)building).fallen+building.height/2, x+width/2, y+height/2)<building.width*3/4){
-                        runningFrom = new double[]{building.x+building.width/2, building.y+building.height/2};
+        for(Structure structure : game.structures){
+            if(structure instanceof Skyscraper){
+                if(((Skyscraper)structure).falling){
+                    if(Core.distance(structure.x+structure.width/2, structure.y-((Skyscraper)structure).fallen+structure.height/2, x+width/2, y+height/2)<structure.width*3/4){
+                        runningFrom = new double[]{structure.x+structure.width/2, structure.y+structure.height/2};
                     }
                 }
             }
@@ -165,9 +167,9 @@ public class Worker extends GameObject{
             targetItem = null;
             //<editor-fold defaultstate="collapsed" desc="Run">
             target = null;
-            for(Building building : game.buildings){
-                if(building.type==BuildingType.SHIELD_GENERATOR){
-                    target = new double[]{building.x+building.width/2,building.y+building.height/2};
+            for(Structure structure : game.structures){
+                if(structure instanceof ShieldGenerator){
+                    target = new double[]{structure.x+structure.width/2,structure.y+structure.height/2};
                 }
             }
 //</editor-fold>
@@ -268,12 +270,12 @@ public class Worker extends GameObject{
     private Base getClosestBase(){
         Base closest = null;
         double dist = 0;
-        for(Building b : game.buildings){
-            if(b instanceof Base){
-                if(((Base) b).deathTick>=0)continue;
-                double d = Core.distance(this, ((Base) b).getWorkerX(),((Base) b).getWorkerY());
+        for(Structure s : game.structures){
+            if(s instanceof Base){
+                if(((Base) s).deathTick>=0)continue;
+                double d = Core.distance(this, ((Base) s).getWorkerX(),((Base) s).getWorkerY());
                 if(closest==null||d<dist){
-                    closest = (Base) b;
+                    closest = (Base) s;
                     dist = d;
                 }
             }

@@ -1,8 +1,9 @@
 package planetaryprotector.research;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
 import planetaryprotector.item.Item;
 import planetaryprotector.game.Game;
+import planetaryprotector.structure.Structure;
 import simplelibrary.config2.Config;
 public class DiscoveryPrerequisite{
     private final Type type;
@@ -93,9 +94,12 @@ public class DiscoveryPrerequisite{
                 break;
             case BUILDING:
                 double found = 0;
-                for(Building b : game.buildings){
-                    if(b.type==building){
-                        found += Math.min(level, b.getLevel())/(double)level;
+                for(Structure s : game.structures){
+                    if(s instanceof Building){
+                        Building b = (Building) s;
+                        if(b.type==building){
+                            found += Math.min(level, b.getLevel())/(double)level;
+                        }
                     }
                 }
                 progress = found/count;

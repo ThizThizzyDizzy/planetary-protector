@@ -1,14 +1,15 @@
 package planetaryprotector.enemy;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
-import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.Wreck;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.Skyscraper;
+import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.Wreck;
+import planetaryprotector.structure.building.BuildingType;
+import planetaryprotector.structure.building.Skyscraper;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.structure.Structure;
 public class EnemyMeteorStrike extends Enemy{
     public int initialDelay = 20*10;
     public int meteorDelay = 0;
@@ -54,20 +55,20 @@ public class EnemyMeteorStrike extends Enemy{
     }
     public static double[] getMeteorStrike(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.SHIELD_GENERATOR){
-                shieldGen.add((ShieldGenerator) building);
+        for(Structure structure : game.structures){
+            if(structure instanceof ShieldGenerator){
+                shieldGen.add((ShieldGenerator) structure);
             }
         }
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.WRECK){
-                if(((Wreck)building).ingots<=1){
+        for(Structure structure : game.structures){
+            if(structure instanceof Wreck){
+                if(((Wreck)structure).ingots<=1){
                     continue;
                 }
             }
-            double[] hitBox = new double[]{building.x, building.y, building.x+building.width, building.y+building.height};
-            if(building instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) building;
+            double[] hitBox = new double[]{structure.x, structure.y, structure.x+structure.width, structure.y+structure.height};
+            if(structure instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) structure;
                 hitBox = new double[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
             }
             double[][] corners = new double[][]{new double[]{hitBox[0]+1,hitBox[1]+1}, new double[]{hitBox[2]-1,hitBox[1]+1}, new double[]{hitBox[0]+1,hitBox[3]-1}, new double[]{hitBox[2]-1,hitBox[3]-1}};

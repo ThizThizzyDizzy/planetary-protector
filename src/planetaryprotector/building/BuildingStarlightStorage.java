@@ -1,2 +1,0 @@
-package planetaryprotector.building;
-public interface BuildingStarlightStorage extends BuildingStarlightConsumer, BuildingStarlightProducer{}

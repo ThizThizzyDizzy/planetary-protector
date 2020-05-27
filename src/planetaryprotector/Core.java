@@ -25,7 +25,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoad;
 import planetaryprotector.menu.MenuLoadTextures;

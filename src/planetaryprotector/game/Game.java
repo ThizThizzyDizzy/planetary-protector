@@ -15,18 +15,18 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.building.task.TaskDemolish;
-import planetaryprotector.building.task.TaskRepair;
-import planetaryprotector.building.task.TaskRepairAll;
-import planetaryprotector.building.task.TaskType;
-import planetaryprotector.building.task.Task;
-import planetaryprotector.building.task.TaskUpgrade;
-import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.Building.Upgrade;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.Skyscraper;
-import planetaryprotector.building.Base;
+import planetaryprotector.structure.building.task.TaskDemolish;
+import planetaryprotector.structure.building.task.TaskRepair;
+import planetaryprotector.structure.building.task.TaskRepairAll;
+import planetaryprotector.structure.building.task.TaskType;
+import planetaryprotector.structure.building.task.Task;
+import planetaryprotector.structure.building.task.TaskUpgrade;
+import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.Building.Upgrade;
+import planetaryprotector.structure.building.BuildingType;
+import planetaryprotector.structure.building.Skyscraper;
+import planetaryprotector.structure.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.ParticleFog;
 import java.awt.Color;
@@ -48,19 +48,19 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
-import planetaryprotector.building.BuildingDamagable;
-import planetaryprotector.building.BuildingDemolishable;
-import planetaryprotector.building.PowerNetwork;
-import planetaryprotector.building.StarlightNetwork;
-import planetaryprotector.building.task.TaskAnimated;
-import planetaryprotector.building.task.TaskAnimation;
-import planetaryprotector.building.task.TaskSpecialUpgrade;
-import planetaryprotector.event.BuildingChangeEventListener;
+import planetaryprotector.structure.building.BuildingDamagable;
+import planetaryprotector.structure.building.BuildingDemolishable;
+import planetaryprotector.structure.building.PowerNetwork;
+import planetaryprotector.structure.building.StarlightNetwork;
+import planetaryprotector.structure.building.task.TaskAnimated;
+import planetaryprotector.structure.building.task.TaskAnimation;
+import planetaryprotector.structure.building.task.TaskSpecialUpgrade;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLost;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
+import planetaryprotector.structure.Structure;
 import simplelibrary.Queue;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
@@ -72,6 +72,8 @@ import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
+import planetaryprotector.event.StructureChangeEventListener;
+import planetaryprotector.structure.building.Laboratory;
 public class Game extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
@@ -80,10 +82,10 @@ public class Game extends Menu{
     public boolean meteorShower;
     public int meteorShowerTimer = 100;
     public ArrayList<Worker> workers = new ArrayList<>();
-    public ArrayList<Building> buildings = new ArrayList<>();
-    public Building selectedBuilding;
+    public ArrayList<Structure> structures = new ArrayList<>();
+    public Structure selectedStructure;
     public int actionUpdateRequired = 0;
-    HashMap<Building, Building> buildingsToReplace = new HashMap<>();
+    HashMap<Structure, Structure> structuresToReplace = new HashMap<>();
     public boolean paused;
     public int workerCooldown = 1020;
     public int phase;
@@ -174,10 +176,10 @@ public class Game extends Menu{
         this.level = level;
         phase = 1;
     }
-    public Game(GUI gui, String name, int level, ArrayList<Building> buildings) {
+    public Game(GUI gui, String name, int level, ArrayList<Structure> structures) {
         this(gui, name, level);
-        for(Building b : buildings)b.game = this;
-        this.buildings = new ArrayList<>(buildings);
+        for(Structure s : structures)s.game = this;
+        this.structures = new ArrayList<>(structures);
         addWorker();
     }
     @Override
@@ -186,9 +188,9 @@ public class Game extends Menu{
         //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
         if(popPerFloor==-1){
             int floorCount = 0;
-            for(Building building : buildings){
-                if(building instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)building;
+            for(Structure structure : structures){
+                if(structure instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)structure;
                     floorCount+=sky.floorCount;
                 }
             }
@@ -201,10 +203,10 @@ public class Game extends Menu{
     }
     @Override
     public void renderBackground(){
-        for(Building building : buildings){
-            building.mouseover = 0;
+        for(Structure structure : structures){
+            structure.mouseover = 0;
         }
-        Collections.sort(buildings, (Building o1, Building o2) -> {
+        Collections.sort(structures, (Structure o1, Structure o2) -> {
             double y1 = o1.y;
             double y2 = o2.y;
             double height1 = o1.height;
@@ -221,12 +223,12 @@ public class Game extends Menu{
             y2 += height2/2;
             return (int) Math.round(y1-y2);
         });
-        Building building = getMouseoverBuilding(Mouse.getX(), Display.getHeight()-Mouse.getY());
-        if(building!=null){
-            building.mouseover = .1;
+        Structure structure = getMouseoverStructure(Mouse.getX(), Display.getHeight()-Mouse.getY());
+        if(structure!=null){
+            structure.mouseover = .1;
         }
-        if(selectedBuilding!=null){
-            selectedBuilding.mouseover+=.2;
+        if(selectedStructure!=null){
+            selectedStructure.mouseover+=.2;
         }
     }
     @Override
@@ -235,8 +237,8 @@ public class Game extends Menu{
     }
     public synchronized void renderWorld(int millisSinceLastTick){
         drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(level));
-        for(Building building : buildings){
-            building.renderBackground();
+        for(Structure structure : structures){
+            structure.renderBackground();
         }
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())anim.render();
@@ -247,7 +249,7 @@ public class Game extends Menu{
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        mainLayer.addAll(buildings);
+        mainLayer.addAll(structures);
         mainLayer.addAll(droppedItems);
         mainLayer.addAll(workers);
         for(Enemy e : enemies){
@@ -301,9 +303,9 @@ public class Game extends Menu{
             drone.render();
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
-        for(Building building : buildings){
-            if(building instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) building;
+        for(Structure structure : structures){
+            if(structure instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) structure;
                 gen.shield.renderOnWorld();
             }
         }
@@ -328,24 +330,24 @@ public class Game extends Menu{
             }
         }
         if(pressed&&button==0){
-            Building building = getMouseoverBuilding(x, y);
-            if(building!=null){
-                if(setTarget!=null){
-                    setTarget.setProjectorTarget(building);
+            Structure structure = getMouseoverStructure(x, y);
+            if(structure!=null){
+                if(setTarget!=null&&structure.canBeShielded()){
+                    setTarget.setProjectorTarget(structure);
                     setTarget = null;
                 }else{
-                    selectedBuilding = building;
+                    selectedStructure = structure;
                     actionUpdateRequired = 2;
                 }
             }else{
                 if(setTarget!=null)setTarget = null;
-                selectedBuilding = null;
+                selectedStructure = null;
                 actionUpdateRequired = 2;
             }
         }
         if(pressed&&button==1){
             if(setTarget!=null)setTarget = null;
-            selectedBuilding = null;
+            selectedStructure = null;
             actionUpdateRequired = 2;
         }
     }
@@ -494,33 +496,33 @@ public class Game extends Menu{
                 furnaceTimer = (int)Math.pow(10, maxFurnaceLevel-furnaceLevel);
             }
         }
-        for(Building building : buildings){
-            building.tick();
+        for(Structure structure : structures){
+            structure.tick();
         }
-        while(!buildingsToReplace.isEmpty()){
-            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
-            Building start = list.get(0);
-            Building end = buildingsToReplace.remove(start);
-            if(!buildings.contains(start)){
+        while(!structuresToReplace.isEmpty()){
+            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
+            Structure start = list.get(0);
+            Structure end = structuresToReplace.remove(start);
+            if(!structures.contains(start)){
                 start.dead = true;
                 continue;
             }
-            buildings.remove(start);
+            structures.remove(start);
             start.dead = true;
-            if(selectedBuilding==start){
-                selectedBuilding = end;
+            if(selectedStructure==start){
+                selectedStructure = end;
                 actionUpdateRequired = 2;
             }
             if(setTarget==start){
                 if(end instanceof ShieldGenerator)setTarget = (ShieldGenerator)end;
                 else setTarget = null;
             }
-            for(Building b : buildings){
-                if(b instanceof BuildingChangeEventListener){
-                    ((BuildingChangeEventListener) b).onBuildingChange(start, end);
+            for(Structure s : structures){
+                if(s instanceof StructureChangeEventListener){
+                    ((StructureChangeEventListener) s).onStructureChange(start, end);
                 }
             }
-            buildings.add(end);
+            structures.add(end);
         }
         refreshNetworks();
         tickingEnemies = true;
@@ -571,8 +573,8 @@ public class Game extends Menu{
             particle.tick();
             if(particle.dead)it.remove();
         }
-        for(Building b : buildings){
-            if(b.type==BuildingType.LABORATORY){
+        for(Structure s : structures){
+            if(s instanceof Laboratory){
                 for(Research research : Research.values()){
                     research.tick(this);
                 }
@@ -602,9 +604,9 @@ public class Game extends Menu{
             }
         }
         if(phase<3){
-            for(Building building : buildings){
-                if(building instanceof Skyscraper){
-                    ((Skyscraper) building).pop = 0;//TODO you shouldn't have to do that...
+            for(Structure structure : structures){
+                if(structure instanceof Skyscraper){
+                    ((Skyscraper) structure).pop = 0;//TODO you shouldn't have to do that...
                 }
             }
         }
@@ -644,7 +646,7 @@ public class Game extends Menu{
             }
         }
         if(lost){
-            selectedBuilding = null;
+            selectedStructure = null;
             actionUpdateRequired = 2;
             notifyOnce("Game Over", 1);
         }
@@ -740,9 +742,12 @@ public class Game extends Menu{
             }
         }
 //</editor-fold>
-        for(Building building : buildings){
-            if(building.task!=null&&building.task.getPendingWorkers()==0){
-                assignWorker(building.task);
+        for(Structure structure : structures){
+            if(structure instanceof Building){
+                Building building = (Building) structure;
+                if(building.task!=null&&building.task.getPendingWorkers()==0){
+                    assignWorker(building.task);
+                }
             }
         }
         for(Enemy a : enemies){
@@ -798,9 +803,9 @@ public class Game extends Menu{
         }
         if(losing==-1){
             boolean base = false;
-            for(Building b : buildings){
-                if(b instanceof Base){
-                    if(((Base) b).deathTick>=0)continue;
+            for(Structure s : structures){
+                if(s instanceof Base){
+                    if(((Base) s).deathTick>=0)continue;
                     base = true;
                 }
             }
@@ -820,9 +825,9 @@ public class Game extends Menu{
             if(phase==1){
                 int shieldArea = 0;
                 double maxSize = 0;
-                for(Building building : buildings){
-                    if(building instanceof ShieldGenerator){
-                        ShieldGenerator shield = (ShieldGenerator) building;
+                for(Structure structure : structures){
+                    if(structure instanceof ShieldGenerator){
+                        ShieldGenerator shield = (ShieldGenerator) structure;
                         shieldArea += Math.PI*Math.pow(shield.shieldSize*.5,2);
                         maxSize = Math.max(maxSize, shield.shieldSize);
                     }
@@ -968,15 +973,15 @@ public class Game extends Menu{
         return particle;
     }
     public void addWorker(){
-        for(Building b : buildings){
-            if(b instanceof Base){
-                addWorker(((Base)b).getWorkerX(), ((Base)b).getWorkerY());
+        for(Structure s : structures){
+            if(s instanceof Base){
+                addWorker(((Base)s).getWorkerX(), ((Base)s).getWorkerY());
                 break;
             }
         }
     }
-    public void replaceBuilding(Building start, Building end){
-        buildingsToReplace.put(start,end);
+    public void replaceStructure(Structure start, Structure end){
+        structuresToReplace.put(start,end);
     }
     @Deprecated
     private void textWithBackground(double left, double top, double right, double bottom, String str){
@@ -1015,9 +1020,9 @@ public class Game extends Menu{
             return false;
         }
         boolean safe = false;
-        for(Building building : buildings){
-            if(building instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) building;
+        for(Structure structure : structures){
+            if(structure instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) structure;
                 if(gen.shieldSize/2-50>=Core.distance(gen, worker)){
                     safe = true;
                 }
@@ -1030,9 +1035,9 @@ public class Game extends Menu{
             return false;
         }
         boolean safe = !meteorShower;
-        for(Building building : buildings){
-            if(building instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) building;
+        for(Structure structure : structures){
+            if(structure instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) structure;
                 if(sky.falling){
                     safe = false;
                 }
@@ -1045,9 +1050,9 @@ public class Game extends Menu{
     }
     private int calculatePopulationCapacity() {
         int pop = 0;
-        for(Building building : buildings){
-            if(building instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) building;
+        for(Structure structure : structures){
+            if(structure instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) structure;
                 pop += sky.getMaxPop();
             }
         }
@@ -1055,9 +1060,9 @@ public class Game extends Menu{
     }
     private int calculatePopulation(){
         int pop = 0;
-        for(Building building : buildings){
-            if(building instanceof Skyscraper){
-                pop += ((Skyscraper)building).pop;
+        for(Structure structure : structures){
+            if(structure instanceof Skyscraper){
+                pop += ((Skyscraper)structure).pop;
             }
         }
         return pop;
@@ -1109,10 +1114,10 @@ public class Game extends Menu{
         config.set("Meteor Shower Timer", meteorShowerTimer);
         config.set("workers", workers.size());
         cfg = Config.newConfig();
-        cfg.set("count", buildings.size());
-        for(int i = 0; i<buildings.size(); i++){
-            Building building = buildings.get(i);
-            cfg.set(i+"", building.saveBuilding(Config.newConfig()));
+        cfg.set("count", structures.size());
+        for(int i = 0; i<structures.size(); i++){
+            Structure structure = structures.get(i);
+            cfg.set(i+"", structure.saveStructure(Config.newConfig()));
         }
         config.set("Buildings", cfg);
         config.set("worker cooldown", workerCooldown);
@@ -1222,11 +1227,11 @@ public class Game extends Menu{
         for(int i = 0; i<cfg.get("count", 0); i++){
             Config conf = cfg.get(i+"", Config.newConfig());
             Building b = Building.load(conf, game);
-            game.buildings.add(b);
+            game.structures.add(b);
             buildings.put(b, conf);
         }
-        for(Building b : game.buildings){
-            b.postLoad(game, buildings.get(b));
+        for(Structure s : game.structures){
+            s.postLoad(game, buildings.get(s));
         }
         for(int i = 0; i<config.get("workers", 1); i++){
             game.addWorker();
@@ -1274,10 +1279,10 @@ public class Game extends Menu{
         return game;
     }
     public void addCivilians(int civilians){
-        for(Building b : buildings){
-            if(b instanceof Skyscraper){
-                Skyscraper s = (Skyscraper) b;
-                civilians = s.addPop(civilians);
+        for(Structure s : structures){
+            if(s instanceof Skyscraper){
+                Skyscraper sky = (Skyscraper) s;
+                civilians = sky.addPop(civilians);
                 if(civilians<=0) break;
             }
         }
@@ -1590,10 +1595,10 @@ public class Game extends Menu{
     }
     public void damage(double x, double y, int damage, AsteroidMaterial material){
         DAMAGE:for(int i = 0; i<damage; i++){
-            for(Building building : buildings){
-                if(building instanceof ShieldGenerator){
-                    ShieldGenerator shield = (ShieldGenerator) building;
-                    if(Core.distance(building, x, y)<=shield.getShieldSize()/2){
+            for(Structure structure : structures){
+                if(structure instanceof ShieldGenerator){
+                    ShieldGenerator shield = (ShieldGenerator) structure;
+                    if(Core.distance(structure, x, y)<=shield.getShieldSize()/2){
                         if(shield.shieldHit()){
                             continue DAMAGE;
                         }else{
@@ -1602,8 +1607,8 @@ public class Game extends Menu{
                     }
                 }
             }
-            Building hit = getBuilding(x,y);
-            if(hit==null||!hit.damage(x,y)||material!=null&&material.forceDrop){
+            Structure hit = getStructure(x,y);
+            if(hit==null||!hit.onHit(x,y)||material!=null&&material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
                 double dmgRad = 25;
                 for(Worker worker : workers){
@@ -1638,16 +1643,16 @@ public class Game extends Menu{
             }
         }
     }
-    public Building getBuilding(double x, double y){
-        Building hit = null;
-        for(Building building : buildings){
-            if(building instanceof Skyscraper){
-                if(isClickWithinBounds(x, y, building.x, building.y-building.getBuildingHeight()-((Skyscraper) building).fallen, building.x+building.width, building.y+building.height-((Skyscraper) building).fallen)){
-                    hit = building;
+    public Structure getStructure(double x, double y){
+        Structure hit = null;
+        for(Structure structure : structures){
+            if(structure instanceof Skyscraper){
+                if(isClickWithinBounds(x, y, structure.x, structure.y-structure.getStructureHeight()-((Skyscraper) structure).fallen, structure.x+structure.width, structure.y+structure.height-((Skyscraper) structure).fallen)){
+                    hit = structure;
                 }
             }else{
-                if(isClickWithinBounds(x, y, building.x, building.y-building.getBuildingHeight(), building.x+building.width, building.y+building.height)){
-                    hit = building;
+                if(isClickWithinBounds(x, y, structure.x, structure.y-structure.getStructureHeight(), structure.x+structure.width, structure.y+structure.height)){
+                    hit = structure;
                 }
             }
         }
@@ -1801,14 +1806,14 @@ public class Game extends Menu{
     }
     private ArrayList<PowerNetwork> getPowerNetworks(){
         if(powerNetworks.isEmpty()){
-            ArrayList<Building> possibilities = new ArrayList<>();
-            possibilities.addAll(buildings);
+            ArrayList<Structure> possibilities = new ArrayList<>();
+            possibilities.addAll(structures);
             boolean added = true;
             while(added){
                 PowerNetwork network = null;
                 added = false;
-                for(Building b : possibilities){
-                    network = PowerNetwork.detect(buildings, b);
+                for(Structure b : possibilities){
+                    network = PowerNetwork.detect(structures, b);
                     if(network!=null){
                         powerNetworks.add(network);
                         added = true;
@@ -1825,14 +1830,14 @@ public class Game extends Menu{
     }
     private ArrayList<StarlightNetwork> getStarlightNetworks(){
         if(starlightNetworks.isEmpty()){
-            ArrayList<Building> possibilities = new ArrayList<>();
-            possibilities.addAll(buildings);
+            ArrayList<Structure> possibilities = new ArrayList<>();
+            possibilities.addAll(structures);
             boolean added = true;
             while(added){
                 StarlightNetwork network = null;
                 added = false;
-                for(Building b : possibilities){
-                    network = StarlightNetwork.detect(buildings, b);
+                for(Structure s : possibilities){
+                    network = StarlightNetwork.detect(structures, s);
                     if(network!=null){
                         starlightNetworks.add(network);
                         added = true;
@@ -1902,18 +1907,18 @@ public class Game extends Menu{
             research.event(event);
         }
     }
-    private Building getMouseoverBuilding(float x, float y){
-        Building hit = null;
-        for(Building building : buildings){
-            int h = building.getBuildingHeight();
-            if(building instanceof Skyscraper&&hideSkyscrapers)h = 0;
-            if(building instanceof Skyscraper){
-                if(isClickWithinBounds(x, y, building.x, building.y-h-((Skyscraper) building).fallen, building.x+building.width, building.y+building.height-((Skyscraper) building).fallen)){
-                    hit = building;
+    private Structure getMouseoverStructure(float x, float y){
+        Structure hit = null;
+        for(Structure structure : structures){
+            int h = structure.getStructureHeight();
+            if(structure instanceof Skyscraper&&hideSkyscrapers)h = 0;
+            if(structure instanceof Skyscraper){
+                if(isClickWithinBounds(x, y, structure.x, structure.y-h-((Skyscraper) structure).fallen, structure.x+structure.width, structure.y+structure.height-((Skyscraper) structure).fallen)){
+                    hit = structure;
                 }
             }else{
-                if(isClickWithinBounds(x, y, building.x, building.y-h, building.x+building.width, building.y+building.height)){
-                    hit = building;
+                if(isClickWithinBounds(x, y, structure.x, structure.y-h, structure.x+structure.width, structure.y+structure.height)){
+                    hit = structure;
                 }
             }
         }
@@ -1958,23 +1963,26 @@ public class Game extends Menu{
             if(w.task!=null)debug.add("Worker "+(i+1)+": Working");
         }
         debug.add("Worker Cooldown: "+workerCooldown);
-        debug.add("Buildings: "+buildings.size());
+        debug.add("Buildings: "+structures.size());
         HashMap<BuildingType, Integer> theBuildings = new HashMap<>();
-        for(Building building : buildings){
-            if(theBuildings.containsKey(building.type)){
-                theBuildings.put(building.type, theBuildings.get(building.type)+1);
-            }else{
-                theBuildings.put(building.type, 1);
+        for(Structure structure : structures){
+            if(structure instanceof Building){
+                Building building = (Building) structure;
+                if(theBuildings.containsKey(building.type)){
+                    theBuildings.put(building.type, theBuildings.get(building.type)+1);
+                }else{
+                    theBuildings.put(building.type, 1);
+                }
             }
         }
         for(BuildingType building : theBuildings.keySet()){
             int amount = theBuildings.get(building);
-            debug.add(" - "+amount+" "+building.name+" ("+Math.round(amount/(double)buildings.size()*100)+"%)");
+            debug.add(" - "+amount+" "+building.name+" ("+Math.round(amount/(double)structures.size()*100)+"%)");
         }
-        if(selectedBuilding!=null){
+        if(selectedStructure!=null){
             debug.add("Selected building: ");
             ArrayList<String> data = new ArrayList<>();
-            selectedBuilding.getDebugInfo(data);
+            selectedStructure.getDebugInfo(data);
             for(String s : data){
                 data.add(" - "+s);
             }
@@ -2074,7 +2082,8 @@ public class Game extends Menu{
     }
     public ArrayList<Action> getActions(MenuGame menu){
         ArrayList<Action> actions = new ArrayList<>();
-        if(selectedBuilding!=null){
+        if(selectedStructure!=null&&selectedStructure instanceof Building){
+            Building selectedBuilding = (Building) selectedStructure;
             if(selectedBuilding instanceof BuildingDamagable){
                 actions.add(new Action("Repair", new TaskRepair(selectedBuilding)));
                 actions.add(new Action("Repair All", new TaskRepairAll(selectedBuilding)));

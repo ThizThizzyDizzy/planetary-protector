@@ -3,12 +3,13 @@ import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
+import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
 public class EnemyLandingParty extends Enemy{
     public int initialDelay = 20*10;
@@ -118,9 +119,9 @@ public class EnemyLandingParty extends Enemy{
         laserFiring = null;
         double dist = Double.POSITIVE_INFINITY;
         ShieldGenerator gen = null;
-        for(Building building : game.buildings){
-            if(building instanceof ShieldGenerator){
-                ShieldGenerator g = (ShieldGenerator) building;
+        for(Structure structure : game.structures){
+            if(structure instanceof ShieldGenerator){
+                ShieldGenerator g = (ShieldGenerator) structure;
                 dist = Math.min(dist,Core.distance(this, g));
                 gen = g;
             }
@@ -147,9 +148,9 @@ public class EnemyLandingParty extends Enemy{
     }
     public static double[] getFurthestCorner(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.SHIELD_GENERATOR){
-                shieldGen.add((ShieldGenerator) building);
+        for(Structure structure : game.structures){
+            if(structure instanceof ShieldGenerator){
+                shieldGen.add((ShieldGenerator) structure);
             }
         }
         ArrayList<Double[]> possibleStrikes = new ArrayList<>();

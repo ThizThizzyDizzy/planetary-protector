@@ -1,16 +1,17 @@
 package planetaryprotector.menu;
 import planetaryprotector.game.Game;
-import planetaryprotector.building.Mine;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.Wreck;
-import planetaryprotector.building.Plot;
-import planetaryprotector.building.Skyscraper;
-import planetaryprotector.building.Base;
+import planetaryprotector.structure.building.Mine;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.Wreck;
+import planetaryprotector.structure.building.Plot;
+import planetaryprotector.structure.building.Skyscraper;
+import planetaryprotector.structure.building.Base;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
+import planetaryprotector.structure.Structure;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import static simplelibrary.opengl.Renderer2D.drawText;
 import simplelibrary.opengl.gui.GUI;
@@ -82,8 +83,8 @@ public class MenuLoad extends Menu{
             return (int) Math.round(y1-y2);
         });
         super.render(millisSinceLastTick);
-        for(Building b : buildings){
-            b.draw();
+        for(Building s : buildings){
+            s.draw();
         }
         centeredTextWithBackground(0, 0, Display.getWidth(), 75, "Place the base wherever you want");
     }
@@ -114,7 +115,7 @@ public class MenuLoad extends Menu{
                 }
                 buildings.add(building);
             }
-            game = new Game(gui, name, 1, buildings);
+            game = new Game(gui, name, 1, new ArrayList<>(buildings));
             gui.open(new MenuGame(gui, game));
         }
     }

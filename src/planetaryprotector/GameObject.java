@@ -1,4 +1,5 @@
 package planetaryprotector;
+import java.util.Random;
 import planetaryprotector.game.Game;
 import simplelibrary.opengl.Renderer2D;
 public abstract class GameObject extends Renderer2D{
@@ -13,4 +14,10 @@ public abstract class GameObject extends Renderer2D{
         this.height = height;
     }
     public abstract void render();
+    public double getRandX(Random rand){
+        return rand.nextDouble()*width;
+    }
+    public double getRandY(Random rand){
+        return rand.nextDouble()*height;
+    }
 }

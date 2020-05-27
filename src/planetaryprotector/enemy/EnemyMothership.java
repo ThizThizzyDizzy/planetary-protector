@@ -3,12 +3,13 @@ import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.CoalGenerator;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.CoalGenerator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.building.BuildingPowerConsumer;
+import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
+import planetaryprotector.structure.building.PowerConsumer;
 public class EnemyMothership extends Enemy{
     public int initialDelay = 20*10;
     public double laserPower = 15;
@@ -233,7 +234,7 @@ public class EnemyMothership extends Enemy{
     double randomLaserTimer = 100;
     double randomLaserTime = 40;
     double randomLaserDelay = 50;
-    Building powerLaserFiring = null;
+    Structure powerLaserFiring = null;
     double powerLaserTimer = 100;
     double powerLaserTime = 400;
     double powerLaserDelay = 500;
@@ -270,8 +271,8 @@ public class EnemyMothership extends Enemy{
                     redo = true;
                 }
             }
-            if(powerLaserFiring instanceof BuildingPowerConsumer){
-                if(((BuildingPowerConsumer) powerLaserFiring).getPower()<powerLaserPower){
+            if(powerLaserFiring instanceof PowerConsumer){
+                if(((PowerConsumer) powerLaserFiring).getPower()<powerLaserPower){
                     redo = true;
                 }
             }
@@ -280,16 +281,16 @@ public class EnemyMothership extends Enemy{
             powerLaserFiring = null;
             powerLaserTimer--;
             if(powerLaserTimer==0||redo){
-                for(Building b : game.buildings){
-                    if(b instanceof CoalGenerator){
-                        if(((CoalGenerator) b).power>=powerLaserPower){
-                            powerLaserFiring = b;
+                for(Structure s : game.structures){
+                    if(s instanceof CoalGenerator){
+                        if(((CoalGenerator) s).power>=powerLaserPower){
+                            powerLaserFiring = s;
                             break;
                         }
                     }
-                    if(b instanceof BuildingPowerConsumer){
-                        if(((BuildingPowerConsumer) b).getPower()>=powerLaserPower){
-                            powerLaserFiring = b;
+                    if(s instanceof PowerConsumer){
+                        if(((PowerConsumer) s).getPower()>=powerLaserPower){
+                            powerLaserFiring = s;
                             break;
                         }
                     }
@@ -302,8 +303,8 @@ public class EnemyMothership extends Enemy{
             }
         }else{
             powerLaserTimer++;
-            if(powerLaserFiring instanceof BuildingPowerConsumer){
-                ((BuildingPowerConsumer)powerLaserFiring).addPower(-powerLaserPower);
+            if(powerLaserFiring instanceof PowerConsumer){
+                ((PowerConsumer)powerLaserFiring).addPower(-powerLaserPower);
             }
             if(powerLaserFiring instanceof CoalGenerator){
                 ((CoalGenerator)powerLaserFiring).power-=powerLaserPower;

@@ -4,11 +4,12 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.Skyscraper;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
+import planetaryprotector.structure.building.Skyscraper;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
 public class EnemyAlien extends Enemy{
     public static final double speed = Worker.workerSpeed*(2/3D);
@@ -32,12 +33,15 @@ public class EnemyAlien extends Enemy{
         }
         Building b = null;
         double dist = Double.POSITIVE_INFINITY;
-        for(Building building : game.buildings){
-            if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY||(building instanceof Skyscraper&&((Skyscraper)building).falling)||building.shield!=null)continue;
-            double d = Core.distance(this, building);
-            if(d<dist){
-                dist = d;
-                b = building;
+        for(Structure structure : game.structures){
+            if(structure instanceof Building){
+                Building building = (Building) structure;
+                if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY||(building instanceof Skyscraper&&((Skyscraper)building).falling)||building.shield!=null)continue;
+                double d = Core.distance(this, building);
+                if(d<dist){
+                    dist = d;
+                    b = building;
+                }
             }
         }
         if(b==null){
@@ -49,7 +53,7 @@ public class EnemyAlien extends Enemy{
             timer--;
             if(timer<0){
                 timer+=4;//0;
-                b.damage(x-b.x, y-b.y);
+                b.onHit(x-b.x, y-b.y);
                 for(int i = 0; i<MenuOptionsGraphics.particles; i++){
                     game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.SMOKE, 0));
                 }

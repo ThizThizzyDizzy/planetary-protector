@@ -1,6 +1,6 @@
 package planetaryprotector.menu.ingame;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
 import planetaryprotector.menu.MenuGame;
 public abstract class MenuComponentOverlayBuilding extends MenuComponentOverlay{
     private final Building building;

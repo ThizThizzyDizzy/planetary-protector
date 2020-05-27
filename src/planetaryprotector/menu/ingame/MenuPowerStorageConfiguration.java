@@ -2,7 +2,7 @@ package planetaryprotector.menu.ingame;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
-import planetaryprotector.building.PowerStorage;
+import planetaryprotector.structure.building.PowerStorage;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.component.MenuComponentCheckbox;
 import simplelibrary.font.FontManager;

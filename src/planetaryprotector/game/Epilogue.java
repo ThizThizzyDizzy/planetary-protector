@@ -1,12 +1,12 @@
 package planetaryprotector.game;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.Wreck;
-import planetaryprotector.building.Plot;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.Skyscraper;
-import planetaryprotector.building.Base;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.Wreck;
+import planetaryprotector.structure.building.Plot;
+import planetaryprotector.structure.building.BuildingType;
+import planetaryprotector.structure.building.Skyscraper;
+import planetaryprotector.structure.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import java.awt.Point;
@@ -15,12 +15,13 @@ import java.util.Collections;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
-import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.task.TaskAnimation;
+import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.building.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuEpilogue2;
 import planetaryprotector.menu.MenuGame;
+import planetaryprotector.structure.Structure;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -36,16 +37,20 @@ public class Epilogue extends Game{
         super(gui, null, 1);
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
+            ArrayList<Building> buildings = new ArrayList<>();
+            for(Structure s : structures){
+                if(s instanceof Building)buildings.add((Building) s);
+            }
             Building building = Building.generateRandomBuilding(this, buildings);
             if(building==null){
                 continue;
             }
-            buildings.add(new Wreck(this, building.x, building.y, i));
+            structures.add(new Wreck(this, building.x, building.y, i));
         }
         phase = 0;
-        for(Building building : buildings){
-            if(building instanceof Base)continue;
-            replaceBuilding(building, new Wreck(this, building.x, building.y, 0));
+        for(Structure structure : structures){
+            if(structure instanceof Base)continue;
+            if(structure instanceof Building)replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));
         }
         doNotDisturb = true;
         offset = 0;
@@ -97,27 +102,27 @@ public class Epilogue extends Game{
             for(int i = 0; i<Display.getHeight()/100; i++){
                 w.enqueue(new Point(rand.nextInt(Display.getWidth()), rand.nextInt(Display.getHeight())));
             }
-            for(Building building : buildings){
-                if(building.type==BuildingType.WRECK&&rand.nextInt(25)==1){
-                    replaceBuilding(building, new Plot(this, building.x, building.y));
+            for(Structure structure : structures){
+                if(structure instanceof Wreck&&rand.nextInt(25)==1){
+                    replaceStructure(structure, new Plot(this, structure.x, structure.y));
                 }
-                if(building.type==BuildingType.EMPTY&&rand.nextInt(15)==1){
-                    Skyscraper s = new Skyscraper(this, building.x, building.y);
+                if(structure instanceof Plot&&rand.nextInt(15)==1){
+                    Skyscraper s = new Skyscraper(this, structure.x, structure.y);
                     s.floorCount = 1;
-                    replaceBuilding(building, s);
+                    replaceStructure(structure, s);
                 }
-                if(building.type==BuildingType.SKYSCRAPER&&rand.nextInt(4)==1){
-                    Skyscraper sky = (Skyscraper) building;
+                if(structure instanceof Skyscraper&&rand.nextInt(4)==1){
+                    Skyscraper sky = (Skyscraper) structure;
                     sky.floorCount++;
                 }
             }
         }
-        while(!buildingsToReplace.isEmpty()){
-            ArrayList<Building> list = new ArrayList<>(buildingsToReplace.keySet());
-            Building start = list.get(0);
-            Building end = buildingsToReplace.remove(start);
-            buildings.remove(start);
-            buildings.add(end);
+        while(!structuresToReplace.isEmpty()){
+            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
+            Structure start = list.get(0);
+            Structure end = structuresToReplace.remove(start);
+            structures.remove(start);
+            structures.add(end);
         }
         super.tick();
     }
@@ -131,8 +136,8 @@ public class Epilogue extends Game{
     @Override
     public void renderWorld(int millisSinceLastTick){
         drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
-        for(Building building : buildings){
-            building.renderBackground();
+        for(Structure structure : structures){
+            structure.renderBackground();
         }
         for(Point p : w){
             drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/worker.png"));
@@ -146,7 +151,7 @@ public class Epilogue extends Game{
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        mainLayer.addAll(buildings);
+        mainLayer.addAll(structures);
         mainLayer.addAll(droppedItems);
         mainLayer.addAll(workers);
         for(TaskAnimation anim : taskAnimations){
@@ -176,9 +181,9 @@ public class Epilogue extends Game{
             if(particle.air)particle.render();
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
-        for(Building building : buildings){
-            if(building instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) building;
+        for(Structure structure : structures){
+            if(structure instanceof ShieldGenerator){
+                ShieldGenerator gen = (ShieldGenerator) structure;
                 gen.shield.renderOnWorld();
             }
         }

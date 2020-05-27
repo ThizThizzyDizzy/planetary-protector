@@ -2,7 +2,7 @@ package planetaryprotector.menu.ingame;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
-import planetaryprotector.building.Laboratory;
+import planetaryprotector.structure.building.Laboratory;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.research.Research;
 import simplelibrary.opengl.gui.components.MenuComponent;

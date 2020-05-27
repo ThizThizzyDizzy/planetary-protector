@@ -3,10 +3,11 @@ import org.lwjgl.opengl.Display;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.building.ShieldGenerator;
-import planetaryprotector.building.Building;
+import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.building.Building;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
+import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
 public class EnemyLaser extends Enemy{
     public int initialDelay = 20*5;
@@ -88,9 +89,9 @@ public class EnemyLaser extends Enemy{
         laserFiring = null;
         double dist = Double.POSITIVE_INFINITY;
         ShieldGenerator gen = null;
-        for(Building building : game.buildings){
-            if(building instanceof ShieldGenerator){
-                ShieldGenerator g = (ShieldGenerator) building;
+        for(Structure structure : game.structures){
+            if(structure instanceof ShieldGenerator){
+                ShieldGenerator g = (ShieldGenerator) structure;
                 dist = Math.min(dist,Core.distance(this, g));
                 gen = g;
             }

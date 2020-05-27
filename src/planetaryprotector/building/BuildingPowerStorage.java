@@ -1,2 +1,0 @@
-package planetaryprotector.building;
-public interface BuildingPowerStorage extends BuildingPowerConsumer, BuildingPowerProducer{}

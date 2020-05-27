@@ -7,7 +7,7 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.building.Silo;
+import planetaryprotector.structure.building.Silo;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.enemy.EnemyMothership;
@@ -41,7 +41,7 @@ public class Drone extends GameObject{
             return;
         }
         power--;
-        if(silo!=null&&(silo.damages.size()>=10||!game.buildings.contains(silo))){
+        if(silo!=null&&(silo.damages.size()>=10||!game.structures.contains(silo))){
             silo = null;
         }
         if(silo!=null&&Core.distance(this, silo)<100&&silo.getPower()>=100&&power<=maxPower-10){

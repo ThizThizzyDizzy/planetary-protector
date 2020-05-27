@@ -1,8 +1,8 @@
 package planetaryprotector.particle;
 import planetaryprotector.Core;
-import planetaryprotector.building.Building;
-import planetaryprotector.building.BuildingType;
-import planetaryprotector.building.BuildingDamage;
+import planetaryprotector.structure.building.Building;
+import planetaryprotector.structure.building.BuildingType;
+import planetaryprotector.structure.building.BuildingDamage;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,6 +10,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
+import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Particle extends GameObjectAnimated{
@@ -203,12 +204,9 @@ public class Particle extends GameObjectAnimated{
             radius+=5+0.5*((11-size));
             game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
-                for(Building building : game.buildings){
-                    if(building.type==BuildingType.WRECK||building.type==BuildingType.EMPTY){
-                        continue;
-                    }
-                    if(Core.distance(building, x, y)<=radius&&building.damages.size()<=10){
-                        building.damages.add(new BuildingDamage(building, building.x-25, building.y+building.height-25));
+                for(Structure structure : game.structures){
+                    if(Core.distance(structure, x, y)<=radius&&!structure.isBackgroundStructure()){
+                        structure.onHit(structure.x-25, structure.y+structure.height-25);
                     }
                 }
             }

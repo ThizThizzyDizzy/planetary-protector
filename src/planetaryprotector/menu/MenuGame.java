@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.building.Building.Upgrade;
+import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.enemy.Enemy;
@@ -27,6 +27,7 @@ import planetaryprotector.menu.component.MenuComponentFalling;
 import planetaryprotector.menu.component.MenuComponentRising;
 import planetaryprotector.menu.ingame.MenuComponentOverlay;
 import planetaryprotector.menu.ingame.MenuIngame;
+import planetaryprotector.structure.building.Building;
 import simplelibrary.font.FontManager;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.components.MenuComponent;
@@ -77,10 +78,12 @@ public class MenuGame extends Menu{
 //</editor-fold>
         if(game.isPlayable()){
             drawRect(Display.getWidth()-100, Display.getHeight()-200, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/gui/sidebar.png"));
-            if(game.selectedBuilding!=null){
+            if(game.selectedStructure!=null){
                 String upgrades = "";
-                for(Upgrade u : game.selectedBuilding.getBoughtUpgrades())upgrades+="*";
-                textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedBuilding.getName());
+                if(game.selectedStructure instanceof Building){
+                    for(Upgrade u : ((Building)game.selectedStructure).getBoughtUpgrades())upgrades+="*";
+                }
+                textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedStructure.getName());
             }
             if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)){
                 GL11.glColor4d(0, Math.sin(game.tick/5d)/4+.75, 0, 1);
@@ -135,9 +138,12 @@ public class MenuGame extends Menu{
                 if(n.isDead())it.remove();
             }
         }
-        if(game.selectedBuilding!=null&&game.selectedBuilding.task!=null){
-            for(int i = 0; i<game.selectedBuilding.task.getDetails().length; i++){
-                textWithBackground(actionButtonWidth, 30*i, Display.getWidth(), 30*(i+1), game.selectedBuilding.task.getDetails()[i], game.selectedBuilding.task.important);
+        if(game.selectedStructure!=null&&game.selectedStructure instanceof Building){
+            Building building = (Building) game.selectedStructure;
+            if(building.task!=null){
+                for(int i = 0; i<building.task.getDetails().length; i++){
+                    textWithBackground(actionButtonWidth, 30*i, Display.getWidth(), 30*(i+1), building.task.getDetails()[i], building.task.important);
+                }
             }
         }
         if(game.paused){
@@ -205,13 +211,13 @@ public class MenuGame extends Menu{
                     game.secretWaiting = key-2;
                 }
             }
-            if(!actionButtons.isEmpty()&&game.selectedBuilding!=null){
+            if(!actionButtons.isEmpty()&&game.selectedStructure!=null&&game.selectedStructure instanceof Building){
                 if(key>=Keyboard.KEY_1&&key<=Keyboard.KEY_EQUALS){
                     if(actionButtons.size()>key-2){
                         actionButtons.get(key-2).perform();
-                        if(game.selectedBuilding.task!=null){
+                        if(((Building)game.selectedStructure).task!=null){
                             game.notify("Cheat: Instant Completion");
-                            game.selectedBuilding.task.progress = game.selectedBuilding.task.time-1;
+                            ((Building)game.selectedStructure).task.progress = ((Building)game.selectedStructure).task.time-1;
                         }
                     }
                 }
@@ -299,7 +305,7 @@ public class MenuGame extends Menu{
                     break;
             }
         }else if(pressed){
-            if(!actionButtons.isEmpty()&&game.selectedBuilding!=null){
+            if(!actionButtons.isEmpty()&&game.selectedStructure!=null){
                 if(key>=Keyboard.KEY_1&&key<=Keyboard.KEY_EQUALS){
                     if(actionButtons.size()>key-2){
                         if(actionButtons.get(key-2).enabled&&!actionButtons.get(key-2).action.isImportant())actionButtons.get(key-2).perform();

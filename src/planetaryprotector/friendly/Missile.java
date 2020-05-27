@@ -4,7 +4,7 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyLandingParty;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.building.Silo;
+import planetaryprotector.structure.building.Silo;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
 public class Missile extends Drone{
