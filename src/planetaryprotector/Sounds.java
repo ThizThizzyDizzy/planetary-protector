@@ -1,10 +1,4 @@
 package planetaryprotector;
-import planetaryprotector.menu.options.MenuOptions1;
-import planetaryprotector.menu.options.MenuOptions2;
-import planetaryprotector.menu.options.MenuOptions3;
-import planetaryprotector.menu.options.MenuOptions4;
-import planetaryprotector.menu.options.MenuOptions5;
-import planetaryprotector.menu.options.MenuOptions6;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -19,7 +13,6 @@ import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuLost;
-import planetaryprotector.menu.MenuMusicDownload;
 import simplelibrary.openal.Autoplayer;
 import simplelibrary.openal.SoundChannel;
 import simplelibrary.openal.SoundSystem;
@@ -33,9 +26,7 @@ public class Sounds{
                 getPlayableMusic(strs);
                 if(!strs.isEmpty()){
                     String sound = strs.get(new Random().nextInt(strs.size()));
-                    if(canPlayMusic(sound)){
-                        return soundSystem.getSong(soundNames.get(sound));
-                    }
+                    return soundSystem.getSong(soundNames.get(sound));
                 }
                 return null;
             }
@@ -45,11 +36,10 @@ public class Sounds{
             }
         };
     public static boolean autoplay = true;
-    public static boolean allowDownload = false;
     private static void addMusic(){
         addSong("EndMusic1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
         addSong("Music1", "Killers", "https://www.dropbox.com/s/e2p5uwdyzznked0/Killers.mp3?dl=1", 9541);
-        addSong("Music2", "Clenched Teeth", "https://www.dropbox.com/s/jzstxq3404lai4q/Clenched%20Teeth.mp3?dl=1", 3563);
+//        addSong("Music2", "Clenched Teeth", "https://www.dropbox.com/s/jzstxq3404lai4q/Clenched%20Teeth.mp3?dl=1", 3563);
         addSong("Music3", "Achilles", "https://www.dropbox.com/s/agtrfb81kmix3f2/Achilles.mp3?dl=1", 2482);
         addSong("Music4", "Noble Race", "https://www.dropbox.com/s/jmqmcttfx9in4a5/Noble%20Race.mp3?dl=1", 10399);
         addSong("Music5", "Rynos Theme", "https://www.dropbox.com/s/uodl6uu825hik38/Rynos%20Theme.mp3?dl=1", 5805);
@@ -57,7 +47,7 @@ public class Sounds{
         addSong("Boss1Music2", "Five Armies", "https://www.dropbox.com/s/n2nnl7o3qp6pfmu/Five%20Armies.mp3?dl=1", 6090);
         addSong("Boss2Music1", "Corruption", "https://www.dropbox.com/s/0wjbtmx2ya5t7f6/Corruption.mp3?dl=1", 13223);
         addSong("Boss2Music2", "Clash Defiant", "https://www.dropbox.com/s/6p6ulhfp58jty24/Clash%20Defiant.mp3?dl=1", 11740);
-        addSong("Boss3Music1", "Metalmania", "https://www.dropbox.com/s/p6e99sa8z9kdckp/Metalmania.mp3?dl=1", 5955);
+//        addSong("Boss3Music1", "Metalmania", "https://www.dropbox.com/s/p6e99sa8z9kdckp/Metalmania.mp3?dl=1", 5955);
         addSong("Boss3Music2", "Obliteration", "https://www.dropbox.com/s/2685hexub0a1tm0/Obliteration.mp3?dl=1", 4672);
         addSong("Boss4Music1", "Death and Axes", "https://www.dropbox.com/s/uk9m4xnlcm5mqao/Death%20and%20Axes.mp3?dl=1", 5255);
         addSong("Boss4Music2", "Grim Idol", "https://www.dropbox.com/s/606kbzltk24v307/Grim%20Idol.mp3?dl=1", 7030);
@@ -150,7 +140,7 @@ public class Sounds{
                             playableMusic.add("Boss2Music2");
                             break;
                         case 3:
-                            playableMusic.add("Boss3Music1");
+//                            playableMusic.add("Boss3Music1");
                             playableMusic.add("Boss3Music2");
                             break;
                         case 4:
@@ -159,14 +149,14 @@ public class Sounds{
                             break;
                     }
                 }else{
-                    playableMusic.add("Music2");
+//                    playableMusic.add("Music2");
                     playableMusic.add("Music3");
                     playableMusic.add("Music4");
                     playableMusic.add("Music5");
                 }
             }
         }else{
-            playableMusic.add("Music2");
+//            playableMusic.add("Music2");
             playableMusic.add("Music3");
             playableMusic.add("Music4");
             playableMusic.add("Music5");
@@ -207,15 +197,6 @@ public class Sounds{
             if(downloadSize<=0){
                 return;
             }
-            Core.gui.open(new MenuMusicDownload(Core.gui, Core.gui.menu, downloadSize));
-            while(!allowDownload){
-                try{
-                    Thread.sleep(100);
-                }catch(InterruptedException ex){}
-                if(!Core.helper.running){
-                    return;
-                }
-            }
             System.out.println("Starting Music Download...");
             for(String key : songURLs.keySet()){
                 if(!running){
@@ -245,9 +226,6 @@ public class Sounds{
             enableAutoplay();
         }
         vol = Math.max(0,Math.min(1,vol));
-        if(nowPlaying()!=null&&!canPlayMusic(nowPlaying())){
-            stopSound("music");
-        }
         soundSystem.setMasterVolume(Math.max(0.0001f,vol));
     }
     /**
@@ -258,7 +236,6 @@ public class Sounds{
     }
     public static synchronized void playSound(String source, String sound){
         if(source.equals("music")){
-            if(!canPlayMusic(sound)) return;
             soundSystem.getChannel(source).fadeTo(120, soundSystem.getSong(soundNames.get(sound)));
             enableAutoplay();
         }
@@ -267,118 +244,6 @@ public class Sounds{
     @Deprecated
     public static synchronized void playSoundOneChannel(String source, String sound){
         playSound(source, sound);
-    }
-    public static boolean canPlayMusic(String music){
-        if(music==null){
-            return false;
-        }
-        if(music.contains(".mp3")){
-            for(String key : soundNames.keySet()){
-                if(soundNames.get(key).equals(music)){
-                    music = key;
-                }
-            }
-        }
-//        ArrayList<String> playable = new ArrayList<>();
-//        getPlayableMusic(playable);
-//        if(!playable.contains(music)){
-//            return false;
-//        }
-        if(music.startsWith("Mystery"))return true;
-        switch(music){
-            case "Music1":
-                return MenuOptions1.song1;
-            case "Music2":
-                return MenuOptions1.song2;
-            case "Music3":
-                return MenuOptions1.song3;
-            case "Music4":
-                return MenuOptions1.song4;
-            case "Music5":
-                return MenuOptions1.song5;
-            case "Boss1Music1":
-                return MenuOptions2.boss11;
-            case "Boss1Music2":
-                return MenuOptions2.boss12;
-            case "Boss2Music1":
-                return MenuOptions2.boss21;
-            case "Boss2Music2":
-                return MenuOptions2.boss22;
-            case "Boss3Music1":
-                return MenuOptions2.boss31;
-            case "Boss3Music2":
-                return MenuOptions2.boss32;
-            case "Boss4Music1":
-                return MenuOptions2.boss41;
-            case "Boss4Music2":
-                return MenuOptions2.boss42;
-            case "EndMusic1":
-                return MenuOptions1.song1;
-            case "SadMusic1":
-                return MenuOptions3.music1;
-            case "SadMusic2":
-                return MenuOptions3.music2;
-            case "SadMusic3":
-                return MenuOptions3.music3;
-            case "SadMusic4":
-                return MenuOptions3.music4;
-            case "SadMusic5":
-                return MenuOptions3.music5;
-            case "SadMusic6":
-                return MenuOptions3.music6;
-            case "SadMusic7":
-                return true;
-            case "SadMusic8":
-                return MenuOptions3.music8;
-            case "SadMusic9":
-                return MenuOptions3.music9;
-            case "SadMusic10":
-                return MenuOptions3.music10;
-            case "SadMusic11":
-                return MenuOptions4.music1;
-            case "SadMusic12":
-                return MenuOptions4.music2;
-            case "SadMusic13":
-                return MenuOptions4.music3;
-            case "SadMusic14":
-                return MenuOptions4.music4;
-            case "SadMusic15":
-                return MenuOptions4.music5;
-            case "SadMusic16":
-                return MenuOptions4.music6;
-            case "SadMusic17":
-                return MenuOptions4.music7;
-            case "SadMusic18":
-                return MenuOptions4.music8;
-            case "SadMusic19":
-                return MenuOptions4.music9;
-            case "SadMusic20":
-                return MenuOptions4.music10;
-            case "SadMusic21":
-                return MenuOptions5.music1;
-            case "SadMusic22":
-                return MenuOptions5.music2;
-            case "SadMusic23":
-                return MenuOptions5.music3;
-            case "SadMusic24":
-                return MenuOptions5.music4;
-            case "SadMusic25":
-                return MenuOptions5.music5;
-            case "SadMusic26":
-                return MenuOptions5.music6;
-            case "SadMusic27":
-                return MenuOptions5.music7;
-            case "SadMusic28":
-                return MenuOptions5.music8;
-            case "WinMusic":
-                return MenuOptions6.music1;
-            case "SuspenseMusic1":
-                return MenuOptions6.music2;
-            case "VictoryMusic1":
-                return true;
-            default:
-                throw new IllegalArgumentException("Unknown music: "+music);
-        }
     }
     @Deprecated
     public static synchronized void stopSounds(String source){

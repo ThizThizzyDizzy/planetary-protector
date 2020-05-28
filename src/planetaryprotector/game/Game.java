@@ -73,6 +73,7 @@ import simplelibrary.opengl.gui.Menu;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.event.StructureChangeEventListener;
+import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.building.Laboratory;
 public class Game extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
@@ -496,8 +497,10 @@ public class Game extends Menu{
                 furnaceTimer = (int)Math.pow(10, maxFurnaceLevel-furnaceLevel);
             }
         }
-        for(Structure structure : structures){
+        for(Iterator<Structure> it = structures.iterator(); it.hasNext();){
+            Structure structure = it.next();
             structure.tick();
+            if(structure.dead)it.remove();
         }
         while(!structuresToReplace.isEmpty()){
             ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
@@ -1984,7 +1987,7 @@ public class Game extends Menu{
             ArrayList<String> data = new ArrayList<>();
             selectedStructure.getDebugInfo(data);
             for(String s : data){
-                data.add(" - "+s);
+                debug.add(" - "+s);
             }
         }
         debug.add("Phase: "+phase);
