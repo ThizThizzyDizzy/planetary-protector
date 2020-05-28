@@ -5,7 +5,7 @@ import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 public class Tree extends Structure{
     public Tree(Game game, double x, double y){
-        super(game, x, y, 10, 10);
+        super(game, x, y, 10, 4);
     }
     @Override
     public String getName(){
@@ -34,7 +34,7 @@ public class Tree extends Structure{
     public void getDebugInfo(ArrayList<String> data){}
     @Override
     public int getStructureHeight(){
-        return 20;
+        return 14;
     }
     @Override
     public boolean isSelectable(){

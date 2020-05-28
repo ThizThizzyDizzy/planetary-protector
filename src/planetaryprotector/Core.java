@@ -21,7 +21,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.menu.MenuLoad;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
@@ -187,9 +186,6 @@ public class Core extends Renderer2D{
         }
         if(gui.menu instanceof Game){
             ((Game)gui.menu).renderWorld(millisSinceLastTick);
-        }
-        if(gui.menu instanceof MenuLoad){
-            ((MenuLoad)gui.menu).game.renderWorld(millisSinceLastTick);
         }
         gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
@@ -454,14 +450,7 @@ public class Core extends Renderer2D{
     public static void loadGame(String name, int level){
         Game g = Game.load(gui, name);
         if(g==null){
-            switch(level){
-                case 1:
-                    gui.open(new MenuLoad(gui, name, null));
-                    break;
-                default:
-                    gui.open(new MenuGame(gui, new Game(gui, name, level)));
-                    break;
-            }
+            gui.open(new MenuGame(gui, Game.generate(gui, name, level)));
         }else{
             gui.open(new MenuGame(gui, g));
         }

@@ -4,7 +4,6 @@ import planetaryprotector.Sounds;
 import planetaryprotector.structure.building.Building;
 import planetaryprotector.structure.building.Wreck;
 import planetaryprotector.structure.building.Plot;
-import planetaryprotector.structure.building.BuildingType;
 import planetaryprotector.structure.building.Skyscraper;
 import planetaryprotector.structure.building.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;

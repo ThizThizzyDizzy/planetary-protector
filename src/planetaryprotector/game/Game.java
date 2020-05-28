@@ -163,6 +163,9 @@ public class Game extends Menu{
     public static final int maxFurnaceLevel = 2;
     private boolean tickingEnemies = false;
     public Queue<GameObject> thingsToAdd = new Queue<>();
+    //generation settings
+    private static final int generationTries = 1000;
+    private static final int generationFails = 10;
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -170,6 +173,11 @@ public class Game extends Menu{
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
         resetTimers();
+    }
+    public static Game generate(GUI gui, String name, int level){
+        Game game = new Game(gui, name, level);
+        game.generate();
+        return game;
     }
     public Game(GUI gui, String name, int level){
         super(gui, null);
@@ -2028,6 +2036,54 @@ public class Game extends Menu{
             }
         }
         return true;
+    }
+    private void generate(){
+        switch(level){
+            case 1:
+                structures.add(new Base(this, Display.getWidth()/2-50, Display.getHeight()/2-50));
+                int fails = 0;
+                while(fails<generationFails){
+                    //<editor-fold defaultstate="collapsed" desc="Generate building">
+                    FOR:for(int i = 0; i<generationTries; i++){
+                        Skyscraper scraper = new Skyscraper(this, rand.nextInt(Display.getWidth()-100), rand.nextInt(Display.getHeight()-100));
+                        for(Structure structure : structures){
+                            double Y = structure.y;
+                            if(structure instanceof Skyscraper){
+                                Y-=((Skyscraper) structure).fallen;
+                            }
+                            if(isClickWithinBounds(scraper.x, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                    isClickWithinBounds(scraper.x+scraper.width, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                    isClickWithinBounds(scraper.x, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                    isClickWithinBounds(scraper.x+scraper.width, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
+                                continue FOR;
+                            }
+                        }
+                        structures.add(scraper);
+                    }
+                    //</editor-fold>
+                    fails++;
+                }
+                GEN:for(int i = 0; i<generationTries; i++){
+                    Tree tree = new Tree(this, rand.nextInt(Display.getWidth()-10), rand.nextInt(Display.getHeight()-4));
+                    for(Structure structure : structures){
+                        double Y = structure.y;
+                        if(structure instanceof Skyscraper){
+                            Y-=((Skyscraper) structure).fallen;
+                        }
+                        if(isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                                isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
+                            continue GEN;
+                        }
+                    }
+                    structures.add(tree);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown world generator for level "+level+"!");
+        }
+        addWorker();
     }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
