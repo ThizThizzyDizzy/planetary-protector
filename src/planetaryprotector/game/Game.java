@@ -73,6 +73,7 @@ import simplelibrary.opengl.gui.Menu;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.event.StructureChangeEventListener;
+import planetaryprotector.game.worldgen.WorldGenerator;
 import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.building.Laboratory;
 public class Game extends Menu{
@@ -163,9 +164,7 @@ public class Game extends Menu{
     public static final int maxFurnaceLevel = 2;
     private boolean tickingEnemies = false;
     public Queue<GameObject> thingsToAdd = new Queue<>();
-    //generation settings
-    private static final int generationTries = 1000;
-    private static final int generationFails = 10;
+    private final WorldGenerator worldGenerator;
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -174,22 +173,17 @@ public class Game extends Menu{
         resources.add(new ItemStack(Item.ironIngot, 0));
         resetTimers();
     }
-    public static Game generate(GUI gui, String name, int level){
-        Game game = new Game(gui, name, level);
+    public static Game generate(GUI gui, String name, int level, WorldGenerator worldGenerator){
+        Game game = new Game(gui, name, level, worldGenerator);
         game.generate();
         return game;
     }
-    public Game(GUI gui, String name, int level){
+    public Game(GUI gui, String name, int level, WorldGenerator worldGenerator){
         super(gui, null);
         this.name = name;
+        this.worldGenerator = worldGenerator;
         this.level = level;
         phase = 1;
-    }
-    public Game(GUI gui, String name, int level, ArrayList<Structure> structures) {
-        this(gui, name, level);
-        for(Structure s : structures)s.game = this;
-        this.structures = new ArrayList<>(structures);
-        addWorker();
     }
     @Override
     public void onGUIOpened(){
@@ -1208,7 +1202,7 @@ public class Game extends Menu{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
             return null;
         }
-        Game game = new Game(gui, save, level);
+        Game game = new Game(gui, save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")));
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             game.asteroidTimers.put(m, config.get(m.name()+" timer", game.asteroidTimers.get(m)));
         }
@@ -2038,47 +2032,9 @@ public class Game extends Menu{
         return true;
     }
     private void generate(){
+        worldGenerator.generateCity(this);
         switch(level){
             case 1:
-                structures.add(new Base(this, Display.getWidth()/2-50, Display.getHeight()/2-50));
-                int fails = 0;
-                while(fails<generationFails){
-                    //<editor-fold defaultstate="collapsed" desc="Generate building">
-                    FOR:for(int i = 0; i<generationTries; i++){
-                        Skyscraper scraper = new Skyscraper(this, rand.nextInt(Display.getWidth()-100), rand.nextInt(Display.getHeight()-100));
-                        for(Structure structure : structures){
-                            double Y = structure.y;
-                            if(structure instanceof Skyscraper){
-                                Y-=((Skyscraper) structure).fallen;
-                            }
-                            if(isClickWithinBounds(scraper.x, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    isClickWithinBounds(scraper.x+scraper.width, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    isClickWithinBounds(scraper.x, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    isClickWithinBounds(scraper.x+scraper.width, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                                continue FOR;
-                            }
-                        }
-                        structures.add(scraper);
-                    }
-                    //</editor-fold>
-                    fails++;
-                }
-                GEN:for(int i = 0; i<generationTries; i++){
-                    Tree tree = new Tree(this, rand.nextInt(Display.getWidth()-10), rand.nextInt(Display.getHeight()-4));
-                    for(Structure structure : structures){
-                        double Y = structure.y;
-                        if(structure instanceof Skyscraper){
-                            Y-=((Skyscraper) structure).fallen;
-                        }
-                        if(isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                            continue GEN;
-                        }
-                    }
-                    structures.add(tree);
-                }
                 break;
             default:
                 throw new IllegalArgumentException("Unknown world generator for level "+level+"!");

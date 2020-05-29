@@ -68,10 +68,6 @@ public abstract class Structure extends GameObject{
         return game.structures.indexOf(this);
     }
     @Override
-    public double getRandX(Random rand){
-        return rand.nextDouble()*width;
-    }
-    @Override
     public double getRandY(Random rand){
         return rand.nextDouble()*(height+getStructureHeight())-getStructureHeight();
     }

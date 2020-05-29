@@ -5,7 +5,6 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.building.task.Task;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.building.task.TaskAnimated;
 import planetaryprotector.structure.Structure;
@@ -161,33 +160,6 @@ public abstract class Building extends Structure{
     public void upgrade(){
         level++;
         game.refreshNetworks();
-    }
-    public static Building generateRandomBuilding(Game game, ArrayList<Building> buildings){
-        int buildingX;
-        int buildingY;
-        int i = 0;
-        WHILE:while(true){
-            i++;
-            if(i>1000){
-                return null;
-            }
-            buildingX = game.rand.nextInt(Display.getWidth()-100);
-            buildingY = game.rand.nextInt(Display.getHeight()-100);
-            for(Building building : buildings){
-                double Y = building.y;
-                if(building instanceof Skyscraper){
-                    Y-=((Skyscraper) building).fallen;
-                }
-                if(isClickWithinBounds(buildingX, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX+100, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX+100, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)){
-                    continue WHILE;
-                }
-            }
-            break;
-        }
-        return new Skyscraper(game, buildingX, buildingY);
     }
     public static Building load(Config cfg, Game game){
         Building b = null;

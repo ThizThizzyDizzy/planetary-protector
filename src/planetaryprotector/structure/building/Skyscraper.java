@@ -7,7 +7,6 @@ import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Iterator;
-import java.util.Random;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.building.task.TaskAnimated;
 import planetaryprotector.structure.building.task.TaskSkyscraperAddFloor;
@@ -27,9 +26,9 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
     private boolean falled = false;
     public double pop = 0;
     public int fallSpeed = 3;
-    public Skyscraper(Game game, double x, double y){
+    public Skyscraper(Game game, double x, double y, int floors){
         super(game, x, y, 100, 100, BuildingType.SKYSCRAPER);
-        floorCount = game.rand.nextInt(40)+10;
+        this.floorCount = floors;
     }
     @Override
     public void update(){
@@ -137,8 +136,7 @@ public class Skyscraper extends Building implements BuildingDamagable, BuildingD
         return cfg;
     }
     public static Skyscraper loadSpecific(Config cfg, Game game, double x, double y) {
-        Skyscraper sky = new Skyscraper(game, x, y);
-        sky.floorCount = cfg.get("floors", 10);
+        Skyscraper sky = new Skyscraper(game, x, y, cfg.get("floors", 10));
         sky.falling = cfg.get("falling", false);
         sky.fallen = cfg.get("fallen", 0);
         sky.falled = cfg.get("falled", false);

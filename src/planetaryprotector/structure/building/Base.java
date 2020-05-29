@@ -1,10 +1,9 @@
-    package planetaryprotector.structure.building;
+package planetaryprotector.structure.building;
 import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
-import java.util.Random;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;

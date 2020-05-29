@@ -497,7 +497,7 @@ public enum BuildingType{
             case SILO:
                 return new Silo(game, x, y);
             case SKYSCRAPER:
-                return new Skyscraper(game, x, y);
+                return new Skyscraper(game, x, y, 10);
             case SOLAR_GENERATOR:
                 return new SolarGenerator(game, x, y);
             case WORKSHOP:

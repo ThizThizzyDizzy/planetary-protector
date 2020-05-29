@@ -3,22 +3,31 @@ import planetaryprotector.game.Game;
 import planetaryprotector.Core;
 import planetaryprotector.Main;
 import java.io.File;
+import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
+import planetaryprotector.game.worldgen.WorldGenerator;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import simplelibrary.opengl.gui.components.MenuComponentTextBox;
 import simplelibrary.opengl.gui.Menu;
+import simplelibrary.opengl.gui.components.MenuComponentOptionButton;
 import simplelibrary.opengl.gui.components.MenuComponentSlider;
 public class MenuNewGame extends Menu{
     private final MenuComponentButton back;
     private final MenuComponentButton create;
     private final MenuComponentTextBox name;
     private final MenuComponentSlider selectedLevel = new MenuComponentSlider(Display.getWidth()/2-200, 60, 400, 40, 1, Core.latestLevel, 1, true);
+    private final MenuComponentOptionButton worldGenerator;
     public MenuNewGame(GUI gui){
         super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 500, 60, "Back", true));
         create = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-160, 500, 60, "Create", false));
         name = add(new MenuComponentTextBox(Display.getWidth()/2-200, 120, 600, 60, "", true));
+        ArrayList<String> gens = new ArrayList<>();
+        for(WorldGenerator gen : WorldGenerator.generators.get((int)selectedLevel.getValue())){
+            gens.add(gen.getName());
+        }
+        worldGenerator = add(new MenuComponentOptionButton(Display.getWidth()/2-300, Display.getHeight()/2+120, 600, 60, "World Generator", true, 0, gens.toArray(new String[gens.size()])));
         if(Core.latestLevel>1){
             add(selectedLevel);
         }
@@ -49,7 +58,7 @@ public class MenuNewGame extends Menu{
             if(fileExists()){
                 return;
             }
-            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue());
+            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue(), WorldGenerator.generators.get((int)selectedLevel.getValue()).get(worldGenerator.getIndex()));
         }
     }
 }

@@ -19,6 +19,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.game.worldgen.WorldGenerator;
 import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
@@ -447,10 +448,11 @@ public class Core extends Renderer2D{
     public static void winLevel(int i){
         latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
     }
-    public static void loadGame(String name, int level){
+    public static void loadGame(String name, int level, WorldGenerator gen){
         Game g = Game.load(gui, name);
         if(g==null){
-            gui.open(new MenuGame(gui, Game.generate(gui, name, level)));
+            if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
+            gui.open(new MenuGame(gui, Game.generate(gui, name, level, gen)));
         }else{
             gui.open(new MenuGame(gui, g));
         }

@@ -18,6 +18,7 @@ import planetaryprotector.structure.building.ShieldGenerator;
 import planetaryprotector.structure.building.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.friendly.ShootingStar;
+import planetaryprotector.game.worldgen.WorldGenerator;
 import planetaryprotector.menu.MenuEpilogue2;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.structure.Structure;
@@ -33,14 +34,14 @@ public class Epilogue extends Game{
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
     public Epilogue(GUI gui){
-        super(gui, null, 1);
+        super(gui, null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"));
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
             ArrayList<Building> buildings = new ArrayList<>();
             for(Structure s : structures){
                 if(s instanceof Building)buildings.add((Building) s);
             }
-            Building building = Building.generateRandomBuilding(this, buildings);
+            Building building = genBuilding(this, buildings);
             if(building==null){
                 continue;
             }
@@ -53,6 +54,33 @@ public class Epilogue extends Game{
         }
         doNotDisturb = true;
         offset = 0;
+    }
+    private static Building genBuilding(Game game, ArrayList<Building> buildings){
+        int buildingX;
+        int buildingY;
+        int i = 0;
+        WHILE:while(true){
+            i++;
+            if(i>1000){
+                return null;
+            }
+            buildingX = game.rand.nextInt(Display.getWidth()-100);
+            buildingY = game.rand.nextInt(Display.getHeight()-100);
+            for(Building building : buildings){
+                double Y = building.y;
+                if(building instanceof Skyscraper){
+                    Y-=((Skyscraper) building).fallen;
+                }
+                if(isClickWithinBounds(buildingX, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
+                     isClickWithinBounds(buildingX+100, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
+                     isClickWithinBounds(buildingX, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)||
+                     isClickWithinBounds(buildingX+100, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)){
+                    continue WHILE;
+                }
+            }
+            break;
+        }
+        return new Skyscraper(game, buildingX, buildingY, game.rand.nextInt(40)+10);
     }
     public Epilogue(GUI gui, int i){
         this(gui);
@@ -106,9 +134,7 @@ public class Epilogue extends Game{
                     replaceStructure(structure, new Plot(this, structure.x, structure.y));
                 }
                 if(structure instanceof Plot&&rand.nextInt(15)==1){
-                    Skyscraper s = new Skyscraper(this, structure.x, structure.y);
-                    s.floorCount = 1;
-                    replaceStructure(structure, s);
+                    replaceStructure(structure, new Skyscraper(this, structure.x, structure.y, 1));
                 }
                 if(structure instanceof Skyscraper&&rand.nextInt(4)==1){
                     Skyscraper sky = (Skyscraper) structure;

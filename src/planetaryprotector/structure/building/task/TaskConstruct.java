@@ -12,9 +12,6 @@ public class TaskConstruct extends TaskAnimated{
     public final Building target;
     public TaskConstruct(Building building, Building target){
         super(building, TaskType.CONSTRUCT, 1);
-        if(target instanceof Skyscraper){
-            ((Skyscraper) target).floorCount = 10;
-        }
         this.target = target;
         time = target.type.constructionTime[0];
     }

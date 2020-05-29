@@ -1,8 +1,5 @@
 package planetaryprotector.particle;
 import planetaryprotector.Core;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.BuildingType;
-import planetaryprotector.structure.building.BuildingDamage;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.ArrayList;
 import java.util.Iterator;
