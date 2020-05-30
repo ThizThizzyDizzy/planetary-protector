@@ -316,6 +316,7 @@ public class EnemyMothership extends Enemy{
         }
     }
     private void fireLaser(){
+        if(powerLaserFiring==null)return;
         laserSize+=laserSizing;
         if(laserSize>=80){
             laserSizing = -1;
@@ -327,6 +328,7 @@ public class EnemyMothership extends Enemy{
         game.pushParticles(laserFiring[0], laserFiring[1], laserSize*1.5, laserSize/2, Particle.PushCause.LASER);
     }
     private void firePowerLaser(){
+        if(powerLaserFiring==null)return;
         powerLaserSize+=powerLaserSizing;
         if(powerLaserSize>=80){
             powerLaserSizing = -1;

@@ -51,9 +51,7 @@ public class ShieldGenerator extends Building implements PowerConsumer, Building
                     enemy.shieldBlast();
                 }
                 game.meteorShower = false;
-                for(AsteroidMaterial mat : AsteroidMaterial.values()){
-                    game.asteroidTimers.put(mat, game.asteroidTimers.get(mat)+100);
-                }
+                game.meteorTimer++;
             }
             if(blastRecharge==0){
                 blastRecharge = 20*60*10;

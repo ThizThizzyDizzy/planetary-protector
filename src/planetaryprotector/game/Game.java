@@ -45,7 +45,6 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.building.BuildingDamagable;
@@ -74,8 +73,8 @@ import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.game.worldgen.WorldGenerator;
-import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.building.Laboratory;
+import org.lwjgl.opengl.Display;
 public class Game extends Menu{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
@@ -94,8 +93,13 @@ public class Game extends Menu{
     public final int level;
     int targetPopulation = 8_000_000;
     public int popPerFloor = -1;
-    private double meteorShowerDelayMultiplier = 1;
-    private double meteorShowerIntensityMultiplier = 1;
+    private final double METEOR_INTENSITY = 1/20_000d;//default meteors per tick per 100x100 pixels
+    private final double METEOR_SHOWER_MULT = 50;//multiplier during meteor showers
+    private double meteorPhaseIntensityMult = 1;//modified by phase
+    private double meteorManualIntensityMult = 1;//modified by cheats
+    private double meteorShowerDelayMultiplier = 1;//time between meteor showers
+    //number of ticks until the next meteor drops
+    public double meteorTimer = 0;
     @Deprecated
     public Expedition pendingExpedition;
     public ArrayList<Expedition> activeExpeditions = new ArrayList<>();
@@ -157,7 +161,7 @@ public class Game extends Menu{
     public ShieldGenerator setTarget;
     public ArrayList<ItemStack> resources = new ArrayList<>();
     public String name;
-    public HashMap<AsteroidMaterial, Integer> asteroidTimers = new HashMap<>();
+//    public HashMap<AsteroidMaterial, Integer> asteroidTimers = new HashMap<>();
     public boolean updatePhaseMarker = true;
     public int addingIron, addingCoal, smeltingIron;
     public int furnaceOre, furnaceCoal, furnaceXP, furnaceLevel, furnaceTimer;
@@ -171,7 +175,6 @@ public class Game extends Menu{
         resources.add(new ItemStack(Item.coal, 0));
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
-        resetTimers();
     }
     public static Game generate(GUI gui, String name, int level, WorldGenerator worldGenerator){
         Game game = new Game(gui, name, level, worldGenerator);
@@ -200,7 +203,6 @@ public class Game extends Menu{
             double d = rand.nextDouble()/10+.7;
             targetPopulation = (int) Math.round(100*floorCount*d);
             popPerFloor = (int) Math.round(targetPopulation/(double)floorCount);
-            meteorShowerIntensityMultiplier = Display.getWidth()*Display.getHeight()/1024000d;
         }
         //</editor-fold>
     }
@@ -534,12 +536,6 @@ public class Game extends Menu{
         for(Iterator<Enemy> it = enemies.iterator(); it.hasNext();){
             Enemy enemy = it.next();
             enemy.tick();
-            if(!(enemy instanceof EnemyMothership)){
-                if(enemy.x<enemy.width/2)enemy.x = enemy.width/2;
-                if(enemy.y<enemy.height/2)enemy.y = enemy.height/2;
-                if(enemy.x>Display.getWidth()-enemy.width/2)enemy.x = Display.getWidth()-enemy.width/2;
-                if(enemy.y>Display.getHeight()-enemy.height/2)enemy.y = Display.getHeight()-enemy.height/2;
-            }
             if(enemy.dead)it.remove();
         }
         tickingEnemies = false; 
@@ -635,21 +631,6 @@ public class Game extends Menu{
             workerCooldown += Math.max(1200,6000-workers.size()*20);
         }
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
-        if(lost&&allowArmogeddon){
-            for(int i = 0; i<2; i++){
-                switch(rand.nextInt(3)){
-                    case 0:
-                        addAsteroid(new Asteroid(this, rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.COAL, 1));
-                        break;
-                    case 1:
-                        addAsteroid(new Asteroid(this, rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.STONE, 1));
-                        break;
-                    case 2:
-                        addAsteroid(new Asteroid(this, rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), AsteroidMaterial.IRON, 1));
-                        break;
-                }
-            }
-        }
         if(lost){
             selectedStructure = null;
             actionUpdateRequired = 2;
@@ -673,17 +654,12 @@ public class Game extends Menu{
         }
         if(meteorShowerTimer==0){
             meteorShower = !meteorShower;
-            if(meteorShower){
-                for(AsteroidMaterial m : AsteroidMaterial.values()){
-                    if(asteroidTimers.get(m)>=Integer.MAX_VALUE)continue;
-                    asteroidTimers.put(m, 0);
-                }
-            }else{
+            if(!meteorShower){
                 if(Sounds.nowPlaying()!=null&&Sounds.nowPlaying().equals("Music1")){
                     Sounds.fadeSound("music");
                 }
             }
-            meteorShowerTimer = (int)Math.round((meteorShower?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
+            meteorShowerTimer = (int)Math.round((meteorShower||(lost&&allowArmogeddon)?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
         }
         if(secretWaiting==-1&&workers.size()>0){
             secretTimer--;
@@ -714,14 +690,15 @@ public class Game extends Menu{
                 addCloud();
             }
         }
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            if(asteroidTimers.get(m)>=Integer.MAX_VALUE)continue;
-            asteroidTimers.put(m, asteroidTimers.get(m)-1);
-            if(asteroidTimers.get(m)<=0){
-                addAsteroid(new Asteroid(this, rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50), m, 1));
-                asteroidTimers.put(m, (int)Math.round(((rand.nextInt(m.max-m.min)+m.min)/(meteorShower?50:1))/meteorShowerIntensityMultiplier));
-            }
+        //<editor-fold defaultstate="collapsed" desc="Meteors">
+        BoundingBox box = getCityBoundingBox();
+        double intensity = METEOR_INTENSITY*(meteorShower?METEOR_SHOWER_MULT:1)*meteorManualIntensityMult*meteorPhaseIntensityMult*(rand.nextDouble()+1)*box.area()/100_00;
+        meteorTimer-=intensity;
+        while(meteorTimer<0){
+            addAsteroid(new Asteroid(this, box.randX(rand), box.randY(rand), AsteroidMaterial.random(rand), 1));
+            meteorTimer++;
         }
+//</editor-fold>
         taskAnimations.removeAll(animationsToRemove);
         animationsToRemove.clear();
         //<editor-fold defaultstate="collapsed" desc="Expeditions">
@@ -753,21 +730,6 @@ public class Game extends Menu{
                 if(building.task!=null&&building.task.getPendingWorkers()==0){
                     assignWorker(building.task);
                 }
-            }
-        }
-        for(Enemy a : enemies){
-            if(!(a instanceof EnemyAlien))continue;
-            if(a.y+a.width>Display.getHeight()){
-                a.y = Display.getHeight()-a.height;
-            }
-            if(a.x+a.height>Display.getWidth()){
-                a.x = Display.getWidth()-a.width;
-            }
-            if(a.x<0){
-                a.x=0;
-            }
-            if(a.y<0){
-                a.y=0;
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Phase 3">
@@ -837,7 +799,8 @@ public class Game extends Menu{
                         maxSize = Math.max(maxSize, shield.shieldSize);
                     }
                 }
-                if(shieldArea>=Display.getWidth()*Display.getHeight()*.7||maxSize>Display.getWidth()){
+                BoundingBox bbox = getCityBoundingBox();
+                if(shieldArea>=bbox.area()*.7||maxSize>bbox.width){
                     phase(2);
                 }
             }
@@ -895,9 +858,7 @@ public class Game extends Menu{
                 e.dead = true;
             }
         }
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            asteroidTimers.put(m, Integer.MAX_VALUE);
-        }
+        meteorPhaseIntensityMult = 0;
         won = true;
         Sounds.fadeSound("music", "WinMusic");
         winTimer = 20*30;
@@ -907,9 +868,6 @@ public class Game extends Menu{
         losing = -1;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            asteroidTimers.put(m, Integer.MAX_VALUE);
-        }
         new Thread(() -> {
             while(!isDestroyed()){
                 try {
@@ -1090,9 +1048,7 @@ public class Game extends Menu{
         config.set("level", 0);
         config.set("version", VersionManager.currentVersion);
         config.save(stream);
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            config.set(m.name()+" timer", asteroidTimers.get(m));
-        }
+        config.set("meteor timer", meteorTimer);
         for(Enemy e : enemies){
             if(e instanceof EnemyMothership){
                 config.set("mothership health", e.health);
@@ -1130,7 +1086,7 @@ public class Game extends Menu{
         config.set("target pop", targetPopulation);
         config.set("pop per floor", popPerFloor);
         config.set("meteor shower delay", meteorShowerDelayMultiplier);
-        config.set("meteor shower intensity", meteorShowerIntensityMultiplier);
+        config.set("meteor shower intensity", meteorPhaseIntensityMult);
         if(pendingExpedition!=null){
             config.set("Pending Expedition", pendingExpedition.save(Config.newConfig()));
         }
@@ -1203,9 +1159,7 @@ public class Game extends Menu{
             return null;
         }
         Game game = new Game(gui, save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")));
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            game.asteroidTimers.put(m, config.get(m.name()+" timer", game.asteroidTimers.get(m)));
-        }
+        game.meteorTimer = config.get("meteor timer", game.meteorTimer);
         int hp = config.get("mothership health", -1);
         if(hp!=-1){
             EnemyMothership ship = new EnemyMothership(game);
@@ -1246,7 +1200,7 @@ public class Game extends Menu{
         game.targetPopulation = config.get("target pop", game.targetPopulation);
         game.popPerFloor = config.get("pop per floor", game.popPerFloor);
         game.meteorShowerDelayMultiplier = config.get("meteor shower delay", game.meteorShowerDelayMultiplier);
-        game.meteorShowerIntensityMultiplier = config.get("meteor shower intensity", game.meteorShowerIntensityMultiplier);
+        game.meteorPhaseIntensityMult = config.get("meteor shower intensity", game.meteorPhaseIntensityMult);
         game.pendingExpedition = Expedition.load(config.get("Pending Expedition"), game);
         cfg = config.get("Active Expeditions", Config.newConfig());
         for(int i = 0; i<cfg.get("count", 0); i++){
@@ -1434,18 +1388,16 @@ public class Game extends Menu{
         switch(i){
             case 2:
                 meteorShowerDelayMultiplier *= 0.9;
-                meteorShowerIntensityMultiplier *= 2.5;
+                meteorPhaseIntensityMult *= 2.5;
                 break;
             case 3:
                 meteorShowerDelayMultiplier *= 0.6;
-                meteorShowerIntensityMultiplier *= 4;
+                meteorPhaseIntensityMult *= 4;
                 break;
             case 4:
                 meteorShower = false;
                 meteorShowerTimer = Integer.MAX_VALUE;
-                for(AsteroidMaterial m : AsteroidMaterial.values()){
-                    asteroidTimers.put(m, Integer.MAX_VALUE);
-                }
+                meteorPhaseIntensityMult = 0;
                 boolean mothership = false;
                 for(Enemy e : enemies){
                     if(e instanceof EnemyMothership){
@@ -1464,8 +1416,7 @@ public class Game extends Menu{
     }
     public void addCloud(){
         if(!MenuOptionsGraphics.clouds)return;
-        double y = rand.nextInt(Display.getHeight());
-        addCloud(0,y);
+        addCloud(0,getCityBoundingBox().randY(rand));
     }
     public void addCloud(double x, double y){
         if(!MenuOptionsGraphics.clouds)return;
@@ -1579,7 +1530,7 @@ public class Game extends Menu{
         double o1 = density;
         double o2 = density*height;
         double size = ParticleFog.SIZE*.75;
-        int count = (int)(Display.getHeight()/size+1);
+        int count = (int)(getCityBoundingBox().height/size+1);
         double xOffset = count/size;
         for(int i = 0; i<count; i++){
             addParticleEffect(new ParticleFog(this, -size*2-xOffset*i, i*size-50, false, o1));
@@ -1730,7 +1681,8 @@ public class Game extends Menu{
         }
     }
     private void addShootingStar(){
-        addShootingStar(new ShootingStar(this, rand.nextInt(Display.getWidth()-50), rand.nextInt(Display.getHeight()-50)));
+        BoundingBox bbox = getCityBoundingBox();
+        addShootingStar(new ShootingStar(this, bbox.randX(rand), bbox.randY(rand)));
     }
     public ShootingStar addShootingStar(ShootingStar star){
         shootingStars.add(star);
@@ -1953,10 +1905,7 @@ public class Game extends Menu{
             int amount = items.get(item);
             debug.add(" - "+amount+" "+item.name+" ("+Math.round(amount/(double)droppedItems.size()*100)+"%)");
         }
-        debug.add("Asteroid materials: "+AsteroidMaterial.values().length);
-        for(AsteroidMaterial mat : AsteroidMaterial.values()){
-            debug.add(" 0 "+mat.toString()+": "+asteroidTimers.get(mat));
-        }
+        debug.add("Meteor timer: "+meteorTimer);
         debug.add("Meteor Shower: "+meteorShower);
         debug.add("Meteor Shower Timer: "+meteorShowerTimer);
         debug.add("Workers: "+workers.size());
@@ -1996,7 +1945,8 @@ public class Game extends Menu{
         debug.add("Target population: "+targetPopulation);
         debug.add("Population per floor: "+popPerFloor);
         debug.add("Meteor Shower Delay Multiplier: "+meteorShowerDelayMultiplier);
-        debug.add("Meteor Shower Intensity Multiplier: "+meteorShowerIntensityMultiplier);
+        debug.add("Meteor Phase Intensity Multiplier: "+meteorPhaseIntensityMult);
+        debug.add("Meteor Manual Intensity Multiplier: "+meteorManualIntensityMult);
         if(pendingExpedition!=null){
             debug.add("Pending Expedition: "+pendingExpedition.toString());
         }
@@ -2083,15 +2033,6 @@ public class Game extends Menu{
             Game.theme = Game.Theme.SPOOKY;
         }
     }
-    public void resetTimers(){
-        for(AsteroidMaterial material : AsteroidMaterial.values()){
-            if(material.min==-1||material.max==-1){
-                asteroidTimers.put(material, Integer.MAX_VALUE);
-                return;
-            }
-            asteroidTimers.put(material, rand.nextInt(material.max-material.min)+material.min);
-        }
-    }
     public boolean isPlayable(){
         return !(won||lost);
     }
@@ -2141,5 +2082,8 @@ public class Game extends Menu{
             }
         }
         return actions;
+    }
+    public BoundingBox getCityBoundingBox(){
+        return BoundingBox.enclosing(structures).expand(100);
     }
 }
