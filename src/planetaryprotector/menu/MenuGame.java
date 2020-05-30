@@ -15,6 +15,7 @@ import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.game.Action;
+import planetaryprotector.game.Epilogue;
 import planetaryprotector.game.Game;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
@@ -45,16 +46,13 @@ public class MenuGame extends Menu{
         this.game = game;
     }
     @Override
-    public void onGUIOpened(){
-        game.onGUIOpened();
-    }
-    @Override
     public void renderBackground(){
         game.renderBackground();
     }
     @Override
     public void render(int millisSinceLastTick){
         game.render(millisSinceLastTick);
+        if(game instanceof Epilogue)return;
         super.render(millisSinceLastTick);
         //<editor-fold defaultstate="collapsed" desc="Updating Action Buttons">
         if(game.actionUpdateRequired==2){
@@ -118,7 +116,7 @@ public class MenuGame extends Menu{
         if(game.won){
             if(game.phase>0){
                 centeredTextWithBackground(0, 0, Display.getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
-                if(game.winTimer<20&&Sounds.nowPlaying().equals("VictoryMusic1")){
+                if(game.winTimer<20&&"VictoryMusic1".equals(Sounds.nowPlaying())){
                     centeredTextWithBackground(0, 35, Display.getWidth(), 85, "Only one problem remains...");
                 }
             }
@@ -168,6 +166,7 @@ public class MenuGame extends Menu{
     }
     @Override
     public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
+        if(game instanceof Epilogue)return;
         if(overlay!=null){
             overlay.keyboardEvent(character, key, pressed, repeat);
             return;
@@ -316,6 +315,7 @@ public class MenuGame extends Menu{
     }
     @Override
     public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
+        if(game instanceof Epilogue)return;
         if(overlay!=null){
             overlay.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
             return;
@@ -359,7 +359,90 @@ public class MenuGame extends Menu{
             if(phaseMarker.opacity<0)phaseMarker = null;
         }
         super.tick();
-        game.tick();
+        //<editor-fold defaultstate="collapsed" desc="Discord">
+        Core.discordState = "";
+        Core.discordSmallImageKey = "";
+        Core.discordSmallImageText = "";
+        switch(game.phase){
+            case 1:
+                Core.discordDetails = "Phase 1 - Armogeddon";
+                Core.discordLargeImageKey = "base";
+                Core.discordLargeImageText = "Phase 1 - Armogeddon";
+                break;
+            case 2:
+                Core.discordDetails = "Phase 2 - Reconstruction";
+                Core.discordLargeImageKey = "skyscraper";
+                Core.discordLargeImageText = "Phase 2 - Reconstruction";
+                int maxPop = game.calculatePopulationCapacity();
+                Core.discordState = "Pop. Cap.: "+maxPop/1000+"k/"+game.targetPopulation/1000+"k ("+Math.round(maxPop/(double)game.targetPopulation*10000D)/100D+"%)";
+                break;
+            case 3:
+                Core.discordDetails = "Phase 3 - Repopulation";
+                Core.discordLargeImageKey = "city";
+                Core.discordLargeImageText = "Phase 3 - Repopulation";
+                int pop = game.calculatePopulation();
+                maxPop = game.calculatePopulationCapacity();
+                Core.discordState = "Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)";
+                break;
+            case 4:
+                int mothershipPhase = 0;
+                for(Enemy e : game.enemies){
+                    if(e instanceof EnemyMothership){
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
+                    }
+                }
+                if(mothershipPhase>0){
+                    Core.discordDetails = "Boss Fight - Phase "+mothershipPhase;
+                    Core.discordLargeImageText = "Boss Fight - Phase "+mothershipPhase;
+                    switch(mothershipPhase){
+                        case 1:
+                            Core.discordLargeImageKey = "mothership_1";
+                            break;
+                        case 2:
+                            Core.discordLargeImageKey = "mothership_2";
+                            break;
+                        case 3:
+                            Core.discordLargeImageKey = "mothership_3";
+                            break;
+                        case 4:
+                            Core.discordLargeImageKey = "mothership_4";
+                            break;
+                    }
+                }
+                break;
+        }
+        if(game.meteorShower){
+            Core.discordState = "Meteor Shower!";
+            Core.discordSmallImageKey = "asteroid_stone";
+            Core.discordSmallImageText = "Meteor Shower!";
+        }
+        if(game.lost){
+            Core.discordState = "Game Over";
+        }
+        if(game.won){
+            Core.discordState = "Victory!";
+        }
+//</editor-fold>
+        if(game.fading)game.blackScreenOpacity+=0.01;
+        if(!game.paused){
+            game.tick();
+            game.story.tick(game);
+        }
+        if(game.lost&&game.phase>3){
+            if(game.lostTimer>game.loseSongLength/10){
+                if(Sounds.songTimer()<game.loseSongLength/20){
+                    if(game.lostTimer>game.loseSongLength/20+20*5){
+                        gui.open(new MenuLost(gui, game));
+                    }
+                }
+            }
+        }
+        if(game.blackScreenOpacity>=1){
+            Epilogue g = new Epilogue(gui);
+            g.blackScreenOpacity = 1;
+            g.fading = false;
+            gui.open(new MenuGame(gui, g));
+        }
         if(game.addingIron>0){
             add(new MenuComponentFalling(this, Display.getWidth()-90+game.rand.nextInt(60), Display.getHeight()-180+game.rand.nextInt(50), Item.ironOre));
             game.addingIron--;

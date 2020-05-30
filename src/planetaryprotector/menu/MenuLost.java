@@ -24,7 +24,7 @@ public class MenuLost extends Menu{
     private boolean laserBig = false;
     private boolean explosion = false;
     public MenuLost(GUI gui, Game game){
-        super(gui, game);
+        super(gui, null);
         this.game = game;
         Random rand = new Random();
         for(int i = 0; i<1000; i++){
@@ -47,7 +47,7 @@ public class MenuLost extends Menu{
     }
     @Override
     public void tick(){
-        parent.tick();
+        game.tick();
         super.tick();
         Core.discordDetails = "Game Over";
         Core.discordEndTimestamp = (System.currentTimeMillis()+206000-(Sounds.songTimer()*50))/1000;

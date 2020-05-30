@@ -28,7 +28,7 @@ public class MenuCredits extends Menu{
         credits.add("");
         credits.add("Boss Fight Music");
         credits.add("Phase 1&Phase 2&Phase 3&Phase 4");
-        credits.add("\"Eternal Terminal\"&\"Corruption\"&\"Metalmania\"&\"Death and Axes\"");
+        credits.add("&\"Corruption\"&&\"Death and Axes\"");
         credits.add("\"Five Armies\"&\"Clash Defiant\"&\"Obliteration\"&\"Grim Idol\"");
         credits.add("");
         credits.add("Game Over Music");

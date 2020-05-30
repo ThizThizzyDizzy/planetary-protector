@@ -18,7 +18,6 @@ import planetaryprotector.structure.building.ShieldGenerator;
 import planetaryprotector.structure.building.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.friendly.ShootingStar;
-import planetaryprotector.game.worldgen.WorldGenerator;
 import planetaryprotector.menu.MenuEpilogue2;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.structure.Structure;
@@ -34,7 +33,7 @@ public class Epilogue extends Game{
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
     public Epilogue(GUI gui){
-        super(gui, null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"));
+        super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0));
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
             ArrayList<Building> buildings = new ArrayList<>();
@@ -54,6 +53,10 @@ public class Epilogue extends Game{
         }
         doNotDisturb = true;
         offset = 0;
+        meteorPhaseIntensityMult = 0;
+        meteorShowerTimer = Integer.MAX_VALUE;
+        paused = false;
+        updatePhaseMarker = false;
     }
     private static Building genBuilding(Game game, ArrayList<Building> buildings){
         int buildingX;
@@ -111,7 +114,7 @@ public class Epilogue extends Game{
         if(i>2&&Sounds.songTimer()>=1726){
             offset = (Sounds.songTimer()-1726)/97.5D;
             if(offset>=2){
-                gui.open(new MenuEpilogue2(gui));
+                Core.gui.open(new MenuEpilogue2(Core.gui));
             }
         }
         if(offset>=Display.getHeight())return;
@@ -238,15 +241,13 @@ public class Epilogue extends Game{
     @Override
     public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){}
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){}
-    @Override
     public void save(){}
     @Override
     public boolean isDestroyed(){
         return false;
     }
     private void restart(){
-        gui.open(new MenuGame(gui, new Epilogue(gui, i+1)));
+        Core.gui.open(new MenuGame(Core.gui, new Epilogue(Core.gui, i+1)));
     }
     @Override
     public void addCloud(){

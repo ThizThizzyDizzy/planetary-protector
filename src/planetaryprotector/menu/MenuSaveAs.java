@@ -10,12 +10,12 @@ public class MenuSaveAs extends Menu{
     private final MenuComponentButton save;
     private final MenuComponentTextBox name;
     private final Game game;
-    public MenuSaveAs(GUI gui, Game game){
+    public MenuSaveAs(GUI gui, MenuGame game){
         super(gui, game);
         cancel = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 400, 40, "Cancel", true));
         save = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-160, 400, 40, "Save", false));
-        name = add(new MenuComponentTextBox(Display.getWidth()/2-200, 120, 400, 40, game.name==null?"":game.name, true));
-        this.game = game;
+        name = add(new MenuComponentTextBox(Display.getWidth()/2-200, 120, 400, 40, game.game.name==null?"":game.game.name, true));
+        this.game = game.game;
     }
     @Override
     public void renderBackground(){

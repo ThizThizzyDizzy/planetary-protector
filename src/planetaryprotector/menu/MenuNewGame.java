@@ -5,7 +5,8 @@ import planetaryprotector.Main;
 import java.io.File;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
-import planetaryprotector.game.worldgen.WorldGenerator;
+import planetaryprotector.game.WorldGenerator;
+import planetaryprotector.game.Story;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 import simplelibrary.opengl.gui.components.MenuComponentTextBox;
@@ -58,7 +59,7 @@ public class MenuNewGame extends Menu{
             if(fileExists()){
                 return;
             }
-            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue(), WorldGenerator.generators.get((int)selectedLevel.getValue()).get(worldGenerator.getIndex()));
+            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue(), WorldGenerator.generators.get((int)selectedLevel.getValue()).get(worldGenerator.getIndex()), Story.stories.get((int)selectedLevel.getValue()).get(0));//TODO story selector
         }
     }
 }

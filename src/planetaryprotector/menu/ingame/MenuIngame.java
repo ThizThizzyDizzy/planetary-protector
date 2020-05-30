@@ -40,7 +40,7 @@ public class MenuIngame extends MenuComponentOverlay{
             menu.game.save();
         }
         if(button==saveAs){
-            gui.open(new MenuSaveAs(gui, menu.game));
+            gui.open(new MenuSaveAs(gui, menu));
         }
         if(button==controls){
             open(new MenuControls(menu));

@@ -3,7 +3,6 @@ import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.building.Building;
 import planetaryprotector.structure.building.CoalGenerator;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;

@@ -19,7 +19,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.game.worldgen.WorldGenerator;
+import planetaryprotector.game.WorldGenerator;
+import planetaryprotector.game.Story;
 import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
@@ -184,9 +185,6 @@ public class Core extends Renderer2D{
         if(is3D&&enableCullFace) GL11.glDisable(GL11.GL_CULL_FACE);
         if(gui.menu instanceof MenuGame){
             ((MenuGame)gui.menu).game.renderWorld(millisSinceLastTick);
-        }
-        if(gui.menu instanceof Game){
-            ((Game)gui.menu).renderWorld(millisSinceLastTick);
         }
         gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
@@ -448,11 +446,11 @@ public class Core extends Renderer2D{
     public static void winLevel(int i){
         latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
     }
-    public static void loadGame(String name, int level, WorldGenerator gen){
-        Game g = Game.load(gui, name);
+    public static void loadGame(String name, int level, WorldGenerator gen, Story story){
+        Game g = Game.load(name);
         if(g==null){
             if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
-            gui.open(new MenuGame(gui, Game.generate(gui, name, level, gen)));
+            gui.open(new MenuGame(gui, Game.generate(name, level, gen, story)));
         }else{
             gui.open(new MenuGame(gui, g));
         }
@@ -463,7 +461,6 @@ public class Core extends Renderer2D{
      */
     @Deprecated
     public static Game getGame(){
-        if(gui.menu instanceof Game)return (Game) gui.menu;
         if(gui.menu instanceof MenuGame)return ((MenuGame) gui.menu).game;
         return null;
     }

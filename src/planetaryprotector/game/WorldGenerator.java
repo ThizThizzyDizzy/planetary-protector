@@ -1,4 +1,4 @@
-package planetaryprotector.game.worldgen;
+package planetaryprotector.game;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.lwjgl.opengl.Display;
@@ -120,7 +120,7 @@ public abstract class WorldGenerator{
         }
         return generators.get(level).get(0);
     }
-    private final String id;
+    public final String id;
     public WorldGenerator(String id, int level){
         generators.get(level).add(this);
         this.id = id;

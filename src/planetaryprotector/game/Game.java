@@ -56,7 +56,6 @@ import planetaryprotector.structure.building.task.TaskAnimation;
 import planetaryprotector.structure.building.task.TaskSpecialUpgrade;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.menu.MenuLost;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
@@ -67,15 +66,11 @@ import simplelibrary.config2.ConfigList;
 import simplelibrary.error.ErrorCategory;
 import simplelibrary.error.ErrorLevel;
 import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponent;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.event.StructureChangeEventListener;
-import planetaryprotector.game.worldgen.WorldGenerator;
 import planetaryprotector.structure.building.Laboratory;
 import org.lwjgl.opengl.Display;
-public class Game extends Menu{
+import simplelibrary.opengl.Renderer2D;
+public class Game extends Renderer2D{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Random rand = new Random();
@@ -91,13 +86,13 @@ public class Game extends Menu{
     public int workerCooldown = 1020;
     public int phase;
     public final int level;
-    int targetPopulation = 8_000_000;
+    public int targetPopulation = 8_000_000;
     public int popPerFloor = -1;
     private final double METEOR_INTENSITY = 1/20_000d;//default meteors per tick per 100x100 pixels
     private final double METEOR_SHOWER_MULT = 50;//multiplier during meteor showers
-    private double meteorPhaseIntensityMult = 1;//modified by phase
-    private double meteorManualIntensityMult = 1;//modified by cheats
-    private double meteorShowerDelayMultiplier = 1;//time between meteor showers
+    public double meteorPhaseIntensityMult = 1;//modified by phase
+    public double meteorManualIntensityMult = 1;//modified by cheats
+    public double meteorShowerDelayMultiplier = 1;//time between meteor showers
     //number of ticks until the next meteor drops
     public double meteorTimer = 0;
     @Deprecated
@@ -115,7 +110,7 @@ public class Game extends Menu{
     public int civilianTimer = 0;
     public boolean doNotDisturb = false;
     public int winTimer = -1;
-    boolean fading;
+    public boolean fading;
     public double blackScreenOpacity = 0;
     public boolean cheats = false;
     public int tick;
@@ -134,9 +129,9 @@ public class Game extends Menu{
     double fogIntensity = .75;
     double fogHeightIntensity = 0.5;
     public int losing = -1;
-    private int lostTimer;
-    private boolean allowArmogeddon = true;
-    private int loseSongLength = 20*60*8;
+    public int lostTimer;
+    public boolean allowArmogeddon = true;
+    public int loseSongLength = 20*60*8;
     public int secretWaiting = -1;
     private static final int secrets = 1;
     private static final int maxSecretTime = 20*60*60*6;//6 hours
@@ -169,6 +164,7 @@ public class Game extends Menu{
     private boolean tickingEnemies = false;
     public Queue<GameObject> thingsToAdd = new Queue<>();
     private final WorldGenerator worldGenerator;
+    public final Story story;
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -176,37 +172,18 @@ public class Game extends Menu{
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
     }
-    public static Game generate(GUI gui, String name, int level, WorldGenerator worldGenerator){
-        Game game = new Game(gui, name, level, worldGenerator);
+    public static Game generate(String name, int level, WorldGenerator worldGenerator, Story story){
+        Game game = new Game(name, level, worldGenerator, story);
         game.generate();
         return game;
     }
-    public Game(GUI gui, String name, int level, WorldGenerator worldGenerator){
-        super(gui, null);
+    public Game(String name, int level, WorldGenerator worldGenerator, Story story){
         this.name = name;
         this.worldGenerator = worldGenerator;
         this.level = level;
         phase = 1;
+        this.story = story;
     }
-    @Override
-    public void onGUIOpened(){
-        paused = true;
-        //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
-        if(popPerFloor==-1){
-            int floorCount = 0;
-            for(Structure structure : structures){
-                if(structure instanceof Skyscraper){
-                    Skyscraper sky = (Skyscraper)structure;
-                    floorCount+=sky.floorCount;
-                }
-            }
-            double d = rand.nextDouble()/10+.7;
-            targetPopulation = (int) Math.round(100*floorCount*d);
-            popPerFloor = (int) Math.round(targetPopulation/(double)floorCount);
-        }
-        //</editor-fold>
-    }
-    @Override
     public void renderBackground(){
         for(Structure structure : structures){
             structure.mouseover = 0;
@@ -236,10 +213,7 @@ public class Game extends Menu{
             selectedStructure.mouseover+=.2;
         }
     }
-    @Override
-    public void render(int millisSinceLastTick){
-        super.render(millisSinceLastTick);
-    }
+    public void render(int millisSinceLastTick){}
     public synchronized void renderWorld(int millisSinceLastTick){
         drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(level));
         for(Structure structure : structures){
@@ -326,14 +300,8 @@ public class Game extends Menu{
         }
         drawDayNightCycle();
     }
-    @Override
     public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
-        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
-        for(MenuComponent c : components){
-            if(c instanceof MenuComponentButton){
-                if(Core.isPointWithinComponent(x, y, c))return;
-            }
-        }
+//        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
         if(pressed&&button==0){
             Structure structure = getMouseoverStructure(x, y);
             if(structure!=null){
@@ -356,99 +324,12 @@ public class Game extends Menu{
             actionUpdateRequired = 2;
         }
     }
-    @Override
     public synchronized void tick(){
-        //<editor-fold defaultstate="collapsed" desc="Discord">
-        Core.discordState = "";
-        Core.discordSmallImageKey = "";
-        Core.discordSmallImageText = "";
-        switch(phase){
-            case 1:
-                Core.discordDetails = "Phase 1 - Armogeddon";
-                Core.discordLargeImageKey = "base";
-                Core.discordLargeImageText = "Phase 1 - Armogeddon";
-                break;
-            case 2:
-                Core.discordDetails = "Phase 2 - Reconstruction";
-                Core.discordLargeImageKey = "skyscraper";
-                Core.discordLargeImageText = "Phase 2 - Reconstruction";
-                int maxPop = calculatePopulationCapacity();
-                Core.discordState = "Pop. Cap.: "+maxPop/1000+"k/"+targetPopulation/1000+"k ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)";
-                break;
-            case 3:
-                Core.discordDetails = "Phase 3 - Repopulation";
-                Core.discordLargeImageKey = "city";
-                Core.discordLargeImageText = "Phase 3 - Repopulation";
-                int pop = calculatePopulation();
-                maxPop = calculatePopulationCapacity();
-                Core.discordState = "Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)";
-                break;
-            case 4:
-                int mothershipPhase = 0;
-                for(Enemy e : enemies){
-                    if(e instanceof EnemyMothership){
-                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
-                    }
-                }
-                if(mothershipPhase>0){
-                    Core.discordDetails = "Boss Fight - Phase "+mothershipPhase;
-                    Core.discordLargeImageText = "Boss Fight - Phase "+mothershipPhase;
-                    switch(mothershipPhase){
-                        case 1:
-                            Core.discordLargeImageKey = "mothership_1";
-                            break;
-                        case 2:
-                            Core.discordLargeImageKey = "mothership_2";
-                            break;
-                        case 3:
-                            Core.discordLargeImageKey = "mothership_3";
-                            break;
-                        case 4:
-                            Core.discordLargeImageKey = "mothership_4";
-                            break;
-                    }
-                }
-                break;
-        }
-        if(meteorShower){
-            Core.discordState = "Meteor Shower!";
-            Core.discordSmallImageKey = "asteroid_stone";
-            Core.discordSmallImageText = "Meteor Shower!";
-        }
-        if(lost){
-            Core.discordState = "Game Over";
-        }
-        if(won){
-            Core.discordState = "Victory!";
-        }
-//</editor-fold>
-        if(fading){
-            blackScreenOpacity+=0.01;
-        }
-        if(paused){
-            return;
-        }
         saveTimer++;
         if(saveTimer>=saveInterval){
             save();
             saveTimer = 0;
         }
-        //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
-        if(lost&&phase>3){
-            lostTimer++;
-            if(lostTimer>loseSongLength/10){
-                if(Sounds.songTimer()<loseSongLength/20){
-                    allowArmogeddon = false;
-                    for(Particle particle : particles){
-                        particle.strength-=.1;
-                    }
-                    if(lostTimer>loseSongLength/20+20*5){
-                        if(Core.gui.menu==this)gui.open(new MenuLost(gui, this));
-                    }
-                }
-            }
-        }
-//</editor-fold>
         tick++;
         time++;
         if(hideSkyscrapers){
@@ -590,18 +471,12 @@ public class Game extends Menu{
             throw new IllegalArgumentException("I don't know how to add that!");
         }
         thingsToAdd.clear();
-        if(blackScreenOpacity>=1){
-            Epilogue g = new Epilogue(gui);
-            g.blackScreenOpacity = 1;
-            g.fading = false;
-            gui.open(new MenuGame(gui, g));
-        }
         if(winTimer>0){
             winTimer--;
             if(winTimer==0){
                 fading = true;
                 Sounds.stopSound("music");
-                Sounds.playSoundOneChannel("music", "VictoryMusic1");
+//                Sounds.playSoundOneChannel("music", "VictoryMusic1");
             }
         }
         if(phase<3){
@@ -828,7 +703,6 @@ public class Game extends Menu{
             //</editor-fold>
         }
         for(Notification n : notifications)n.tick();
-        super.tick();
     }
     public void addIronToFurnace(int amount){
         if(amount<=0)return;
@@ -1011,7 +885,7 @@ public class Game extends Menu{
     public void expedition(int workers){
         pendingExpedition = new Expedition(this, workers);
     }
-    private int calculatePopulationCapacity() {
+    public int calculatePopulationCapacity() {
         int pop = 0;
         for(Structure structure : structures){
             if(structure instanceof Skyscraper){
@@ -1021,7 +895,7 @@ public class Game extends Menu{
         }
         return pop;
     }
-    private int calculatePopulation(){
+    public int calculatePopulation(){
         int pop = 0;
         for(Structure structure : structures){
             if(structure instanceof Skyscraper){
@@ -1046,6 +920,8 @@ public class Game extends Menu{
         }
         Config config = Config.newConfig();
         config.set("level", 0);
+        config.set("WorldGenerator", worldGenerator.id);
+        config.set("Story", story.id);
         config.set("version", VersionManager.currentVersion);
         config.save(stream);
         config.set("meteor timer", meteorTimer);
@@ -1139,7 +1015,7 @@ public class Game extends Menu{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
         }
     }
-    public static Game load(GUI gui, String save){
+    public static Game load(String save){
         File file = new File(Main.getAppdataRoot()+"\\saves\\"+save+".dat");
         FileInputStream stream;
         try{
@@ -1158,7 +1034,7 @@ public class Game extends Menu{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
             return null;
         }
-        Game game = new Game(gui, save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")));
+        Game game = new Game(save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")), Story.getStory(level, config.get("Story")));
         game.meteorTimer = config.get("meteor timer", game.meteorTimer);
         int hp = config.get("mothership health", -1);
         if(hp!=-1){
@@ -1373,11 +1249,6 @@ public class Game extends Menu{
 //            if(!(building instanceof MenuComponentWreck))return false;
 //        }
 //        return true;
-    }
-    private void addAll(Iterable<MenuComponent> componentsToAdd){
-        for(MenuComponent c : componentsToAdd){
-            add(c);
-        }
     }
     public void phase(int i){
         phase(i, true);
@@ -1974,6 +1845,7 @@ public class Game extends Menu{
         if(!workers.isEmpty())return false;
         if(lost)return false;
         if(losing>-1)return false;
+        if(won)return false;
         for(Enemy e : enemies){
             if(e instanceof EnemyMothership){
                 return false;
@@ -1983,12 +1855,20 @@ public class Game extends Menu{
     }
     private void generate(){
         worldGenerator.generateCity(this);
-        switch(level){
-            case 1:
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown world generator for level "+level+"!");
+        //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
+        if(popPerFloor==-1){
+            int floorCount = 0;
+            for(Structure structure : structures){
+                if(structure instanceof Skyscraper){
+                    Skyscraper sky = (Skyscraper)structure;
+                    floorCount+=sky.floorCount;
+                }
+            }
+            double d = rand.nextDouble()/10+.7;
+            targetPopulation = (int) Math.round(100*floorCount*d);
+            popPerFloor = (int) Math.round(targetPopulation/(double)floorCount);
         }
+        //</editor-fold>
         addWorker();
     }
     public static enum Theme{
