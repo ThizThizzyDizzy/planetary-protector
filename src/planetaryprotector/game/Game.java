@@ -165,6 +165,7 @@ public class Game extends Renderer2D{
     public Queue<GameObject> thingsToAdd = new Queue<>();
     private final WorldGenerator worldGenerator;
     public final Story story;
+    public boolean tutorial = false;
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -172,17 +173,18 @@ public class Game extends Renderer2D{
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
     }
-    public static Game generate(String name, int level, WorldGenerator worldGenerator, Story story){
-        Game game = new Game(name, level, worldGenerator, story);
+    public static Game generate(String name, int level, WorldGenerator worldGenerator, Story story, boolean tutorial){
+        Game game = new Game(name, level, worldGenerator, story, tutorial);
         game.generate();
         return game;
     }
-    public Game(String name, int level, WorldGenerator worldGenerator, Story story){
+    public Game(String name, int level, WorldGenerator worldGenerator, Story story, boolean tutorial){
         this.name = name;
         this.worldGenerator = worldGenerator;
         this.level = level;
         phase = 1;
         this.story = story;
+        this.tutorial = tutorial;
     }
     public void renderBackground(){
         for(Structure structure : structures){
@@ -919,6 +921,7 @@ public class Game extends Renderer2D{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
         }
         Config config = Config.newConfig();
+        config.set("tutorial", tutorial);
         config.set("level", 0);
         config.set("WorldGenerator", worldGenerator.id);
         config.set("Story", story.id);
@@ -1034,7 +1037,7 @@ public class Game extends Renderer2D{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
             return null;
         }
-        Game game = new Game(save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")), Story.getStory(level, config.get("Story")));
+        Game game = new Game(save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")), Story.getStory(level, config.get("Story")), config.get("tutorial", false));
         game.meteorTimer = config.get("meteor timer", game.meteorTimer);
         int hp = config.get("mothership health", -1);
         if(hp!=-1){

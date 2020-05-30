@@ -70,6 +70,8 @@ public class VersionManager{
         breakBackCompatability();
         addVersion("1.12");
         addVersion("1.12.1");
+        breakBackCompatability();
+        addVersion("1.13");
         currentVersion = versions.get(versions.size()-1);
     }
     /**

@@ -32,8 +32,8 @@ public class Epilogue extends Game{
     private Queue<Point> w = new Queue<>();
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
-    public Epilogue(GUI gui){
-        super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0));
+    public Epilogue(){
+        super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0), false);
         int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
         for(int i = 0; i<buildingCount; i++){
             ArrayList<Building> buildings = new ArrayList<>();
@@ -85,8 +85,8 @@ public class Epilogue extends Game{
         }
         return new Skyscraper(game, buildingX, buildingY, game.rand.nextInt(40)+10);
     }
-    public Epilogue(GUI gui, int i){
-        this(gui);
+    public Epilogue(int i){
+        this();
         this.i = i;
     }
     @Override
@@ -247,7 +247,7 @@ public class Epilogue extends Game{
         return false;
     }
     private void restart(){
-        Core.gui.open(new MenuGame(Core.gui, new Epilogue(Core.gui, i+1)));
+        Core.gui.open(new MenuGame(Core.gui, new Epilogue(i+1)));
     }
     @Override
     public void addCloud(){

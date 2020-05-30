@@ -189,7 +189,7 @@ public class MenuMain extends Menu{
         loadGame(save.label);
     }
     private void loadGame(String name){
-        Core.loadGame(name, getLevel(name), null, null);
+        Core.loadGame(name, getLevel(name), null, null, false);
     }
     private HashMap<String, Integer> levels = new HashMap<>();
     private int getLevel(String name){

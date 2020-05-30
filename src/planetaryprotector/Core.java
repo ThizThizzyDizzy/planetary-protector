@@ -446,11 +446,11 @@ public class Core extends Renderer2D{
     public static void winLevel(int i){
         latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
     }
-    public static void loadGame(String name, int level, WorldGenerator gen, Story story){
+    public static void loadGame(String name, int level, WorldGenerator gen, Story story, boolean tutorial){
         Game g = Game.load(name);
         if(g==null){
             if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
-            gui.open(new MenuGame(gui, Game.generate(name, level, gen, story)));
+            gui.open(new MenuGame(gui, Game.generate(name, level, gen, story, tutorial)));
         }else{
             gui.open(new MenuGame(gui, g));
         }

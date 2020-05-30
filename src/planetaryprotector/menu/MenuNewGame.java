@@ -19,6 +19,7 @@ public class MenuNewGame extends Menu{
     private final MenuComponentTextBox name;
     private final MenuComponentSlider selectedLevel = new MenuComponentSlider(Display.getWidth()/2-200, 60, 400, 40, 1, Core.latestLevel, 1, true);
     private final MenuComponentOptionButton worldGenerator;
+    private final MenuComponentOptionButton tutorial;
     public MenuNewGame(GUI gui){
         super(gui, null);
         back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 500, 60, "Back", true));
@@ -28,7 +29,8 @@ public class MenuNewGame extends Menu{
         for(WorldGenerator gen : WorldGenerator.generators.get((int)selectedLevel.getValue())){
             gens.add(gen.getName());
         }
-        worldGenerator = add(new MenuComponentOptionButton(Display.getWidth()/2-300, Display.getHeight()/2+120, 600, 60, "World Generator", true, 0, gens.toArray(new String[gens.size()])));
+        worldGenerator = add(new MenuComponentOptionButton(Display.getWidth()/2-300, Display.getHeight()/2+100, 600, 60, "World Generator", true, 0, gens.toArray(new String[gens.size()])));
+        tutorial = /*add(*/new MenuComponentOptionButton(Display.getWidth()/2-300, Display.getHeight()/2+200, 600, 60, "Tutorial", true, 0, "Off", "On")/*)*/;//TODO add tutorial
         if(Core.latestLevel>1){
             add(selectedLevel);
         }
@@ -59,7 +61,7 @@ public class MenuNewGame extends Menu{
             if(fileExists()){
                 return;
             }
-            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue(), WorldGenerator.generators.get((int)selectedLevel.getValue()).get(worldGenerator.getIndex()), Story.stories.get((int)selectedLevel.getValue()).get(0));//TODO story selector
+            Core.loadGame(name.text.trim(), (int)selectedLevel.getValue(), WorldGenerator.generators.get((int)selectedLevel.getValue()).get(worldGenerator.getIndex()), Story.stories.get((int)selectedLevel.getValue()).get(0), tutorial.getIndex()==1);//TODO story selector
         }
     }
 }

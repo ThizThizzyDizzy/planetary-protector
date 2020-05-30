@@ -438,7 +438,7 @@ public class MenuGame extends Menu{
             }
         }
         if(game.blackScreenOpacity>=1){
-            Epilogue g = new Epilogue(gui);
+            Epilogue g = new Epilogue();
             g.blackScreenOpacity = 1;
             g.fading = false;
             gui.open(new MenuGame(gui, g));
