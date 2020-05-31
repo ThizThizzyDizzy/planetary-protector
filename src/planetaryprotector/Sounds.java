@@ -166,6 +166,7 @@ public class Sounds{
     public static HashMap<String, String> soundNames = new HashMap<>();
     public static HashMap<String, Integer> songSizes = new HashMap<>();
     public static HashMap<String, String> songURLs = new HashMap<>();
+    public static ArrayList<String> downloadOrder = new ArrayList<>();
     public static float vol = 1f;
     /**
      * Disables the sound system.
@@ -182,13 +183,14 @@ public class Sounds{
     public static void create() throws LWJGLException{
         soundNames.clear();
         songURLs.clear();
+        downloadOrder.clear();
         addMusic();
         soundSystem = new SoundSystem(10, "/sounds/", ".wav", "music");
         musicChannel = soundSystem.getChannel("music");
         running = true;
         Thread musicDownloader = new Thread(() -> {
             int downloadSize = 0;
-            for(String key : songURLs.keySet()){
+            for(String key : downloadOrder){
                 File file = new File(soundNames.get(key).replace(".wav", ".mp3"));
                 if(!file.exists()){
                     downloadSize+=songSizes.get(key);
@@ -198,7 +200,7 @@ public class Sounds{
                 return;
             }
             System.out.println("Starting Music Download...");
-            for(String key : songURLs.keySet()){
+            for(String key : downloadOrder){
                 if(!running){
                     return;
                 }
@@ -335,6 +337,7 @@ public class Sounds{
     private static void addSong(String name, String songName, String url, int kb){
         soundNames.put(name, Main.getAppdataRoot()+"\\Music\\"+songName+".mp3");
         songURLs.put(name, url);
+        downloadOrder.add(name);
         songSizes.put(name, kb);
     }
     private static void addSong(String name, String songName){
