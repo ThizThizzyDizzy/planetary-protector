@@ -4,8 +4,6 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.building.ShieldGenerator;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.BuildingType;
 import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;

@@ -3,8 +3,6 @@ import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.building.task.Task;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.BuildingType;
 import java.util.Iterator;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;

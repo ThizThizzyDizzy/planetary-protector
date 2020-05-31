@@ -74,6 +74,11 @@ public class MenuCredits extends Menu{
         credits.add("Java Discord RPC");
         credits.add("");
         credits.add("");
+        credits.add("Special Thanks");
+        credits.add("");
+        credits.add("computerneek");
+        credits.add("");
+        credits.add("");
         credits.add("");
         credits.add("The people and events in "+Main.applicationName+" are entirely fictional.");
         credits.add("Any similarity to actual people or events is unintentional.");

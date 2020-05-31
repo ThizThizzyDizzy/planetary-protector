@@ -24,7 +24,6 @@ import planetaryprotector.structure.Structure;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-import simplelibrary.opengl.gui.GUI;
 public class Epilogue extends Game{
     private int timer = 195;
     private int i;

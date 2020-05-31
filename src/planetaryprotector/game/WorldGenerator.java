@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
-import planetaryprotector.game.Game;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.building.Base;
