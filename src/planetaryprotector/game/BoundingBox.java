@@ -42,4 +42,25 @@ public class BoundingBox{
     public double area(){
         return width*height;
     }
+    public double[] getCenter(){
+        return new double[]{getCenterX(), getCenterY()};
+    }
+    public double getCenterX(){
+        return x+width/2;
+    }
+    public double getCenterY(){
+        return y+height/2;
+    }
+    public double getLeft(){
+        return x;
+    }
+    public double getTop(){
+        return y;
+    }
+    public double getRight(){
+        return x+width;
+    }
+    public double getBottom(){
+        return y+height;
+    }
 }

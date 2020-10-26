@@ -6,18 +6,15 @@ import planetaryprotector.game.Game;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.particle.ParticleEffectType;
 import java.awt.Color;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.game.Story;
@@ -36,7 +33,6 @@ import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.Renderer2D;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.components.MenuComponent;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 import simplelibrary.texture.TexturePack;
 import simplelibrary.texture.TexturePackManager;
 public class Core extends Renderer2D{
@@ -46,8 +42,6 @@ public class Core extends Renderer2D{
     public static boolean debugMode = false;
     public static final boolean is3D = false;
     public static boolean enableCullFace = true;
-    public static final boolean fullscreen = true;
-    public static final boolean supportTyping = true;
     public static final int LEVELS = 2;
     public static int latestLevel = 1;
     public static int speedMult = 1;
@@ -62,52 +56,175 @@ public class Core extends Renderer2D{
     private static int fpsLimit = 60;
     public static void main(String[] args) throws NoSuchMethodException{
         helper = new GameHelper();
-        helper.setBackground(new Color(0, 200, 255));
+        helper.setBackground(Color.gray);
         helper.setDisplaySize(800, 600);
         helper.setRenderInitMethod(Core.class.getDeclaredMethod("renderInit", new Class<?>[0]));
         helper.setTickInitMethod(Core.class.getDeclaredMethod("tickInit", new Class<?>[0]));
         helper.setFinalInitMethod(Core.class.getDeclaredMethod("finalInit", new Class<?>[0]));
-        helper.setMaximumFramerate(fpsLimit);
         helper.setRenderMethod(Core.class.getDeclaredMethod("render", int.class));
         helper.setTickMethod(Core.class.getDeclaredMethod("tick", boolean.class));
-        helper.setUsesControllers(true);
-        helper.setWindowTitle(Main.applicationName);
+        helper.setWindowTitle(Main.applicationName+" "+VersionManager.currentVersion);
         helper.setMode(is3D?GameHelper.MODE_HYBRID:GameHelper.MODE_2D);
-        if(fullscreen){
-            helper.setFullscreen(true);
-            helper.setAutoExitFullscreen(false);
-        }
-        helper.setRenderRange(0, 1000);
         helper.setFrameOfView(90);
         initDiscord();
-        Sys.initLWJGLGame(new File("/errors/"), new ErrorAdapter(){
+        Sys.initLWJGLGame(new File(Main.getAppdataRoot()+"/errors/"), new ErrorAdapter(){
+            private final Logger logger = Logger.getLogger(Core.class.getName());
             @Override
-            public void warningError(String message, Throwable error, ErrorCategory catagory){
-                if(message==null){
-                    return;
+            public void log(String message, Throwable error, ErrorCategory category){
+                System.err.println(Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Log");
+                logger.log(Level.INFO, message, error);
+            }
+            @Override
+            public void warningError(String message, Throwable error, ErrorCategory category){
+                System.err.println(Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Warning");
+                logger.log(Level.WARNING, message, error);
+            }
+            @Override
+            public void minorError(String message, Throwable error, ErrorCategory category){
+                System.err.println("Minor "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
+                logger.log(Level.SEVERE, message, error);
+                if(Main.hasAWT){
+                    String details = "";
+                    Throwable t = error;
+                    while(t!=null){
+                        details+=t.getClass().getName()+" "+t.getMessage();
+                        StackTraceElement[] stackTrace = t.getStackTrace();
+                        for(StackTraceElement e : stackTrace){
+                            if(e.getClassName().startsWith("net."))continue;
+                            if(e.getClassName().startsWith("com."))continue;
+                            String[] splitClassName = e.getClassName().split("\\Q.");
+                            String filename = splitClassName[splitClassName.length-1]+".java";
+                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
+                            if((details+nextLine).length()+4>1024){
+                                details+="\n...";
+                                break;
+                            }else details+=nextLine;
+                        }
+                        t = t.getCause();
+                        if(t!=null)details+="\nCaused by ";
+                    }
+                    String[] options = new String[]{"Ignore", "Exit"};
+                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Minor "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
+                        case 1:
+                            helper.running = false;
+                            break;
+                        case 0:
+                        default:
+                            break;
+                    }
                 }
-                if(message.contains(".png!")){
-                    System.err.println(message);
+            }
+            @Override
+            public void moderateError(String message, Throwable error, ErrorCategory category){
+                System.err.println("Moderate "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
+                logger.log(Level.SEVERE, message, error);
+                if(Main.hasAWT){
+                    String details = "";
+                    Throwable t = error;
+                    while(t!=null){
+                        details+=t.getClass().getName()+" "+t.getMessage();
+                        StackTraceElement[] stackTrace = t.getStackTrace();
+                        for(StackTraceElement e : stackTrace){
+                            if(e.getClassName().startsWith("net."))continue;
+                            if(e.getClassName().startsWith("com."))continue;
+                            String[] splitClassName = e.getClassName().split("\\Q.");
+                            String filename = splitClassName[splitClassName.length-1]+".java";
+                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
+                            if((details+nextLine).length()+4>1024){
+                                details+="\n...";
+                                break;
+                            }else details+=nextLine;
+                        }
+                        t = t.getCause();
+                        if(t!=null)details+="\nCaused by ";
+                    }
+                    String[] options = new String[]{"Ignore", "Exit"};
+                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Moderate "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
+                        case 1:
+                            helper.running = false;
+                            break;
+                        case 0:
+                        default:
+                            break;
+                    }
+                }
+            }
+            @Override
+            public void severeError(String message, Throwable error, ErrorCategory category){
+                System.err.println("Severe "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
+                logger.log(Level.SEVERE, message, error);
+                if(Main.hasAWT){
+                    String details = "";
+                    Throwable t = error;
+                    while(t!=null){
+                        details+=t.getClass().getName()+" "+t.getMessage();
+                        StackTraceElement[] stackTrace = t.getStackTrace();
+                        for(StackTraceElement e : stackTrace){
+                            if(e.getClassName().startsWith("net."))continue;
+                            if(e.getClassName().startsWith("com."))continue;
+                            String[] splitClassName = e.getClassName().split("\\Q.");
+                            String filename = splitClassName[splitClassName.length-1]+".java";
+                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
+                            if((details+nextLine).length()+4>1024){
+                                details+="\n...";
+                                break;
+                            }else details+=nextLine;
+                        }
+                        t = t.getCause();
+                        if(t!=null)details+="\nCaused by ";
+                    }
+                    String[] options = new String[]{"Ignore", "Exit"};
+                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Severe "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
+                        case 1:
+                            helper.running = false;
+                            break;
+                        case 0:
+                        default:
+                            break;
+                    }
+                }
+            }
+            @Override
+            public void criticalError(String message, Throwable error, ErrorCategory category){
+                System.err.println("Critical "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
+                logger.log(Level.SEVERE, message, error);
+                if(Main.hasAWT){
+                    String details = "";
+                    Throwable t = error;
+                    while(t!=null){
+                        details+=t.getClass().getName()+" "+t.getMessage();
+                        StackTraceElement[] stackTrace = t.getStackTrace();
+                        for(StackTraceElement e : stackTrace){
+                            if(e.getClassName().startsWith("net."))continue;
+                            if(e.getClassName().startsWith("com."))continue;
+                            String[] splitClassName = e.getClassName().split("\\Q.");
+                            String filename = splitClassName[splitClassName.length-1]+".java";
+                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
+                            if((details+nextLine).length()+4>1024){
+                                details+="\n...";
+                                break;
+                            }else details+=nextLine;
+                        }
+                        t = t.getCause();
+                        if(t!=null)details+="\nCaused by ";
+                    }
+                    String[] options = new String[]{"Exit"};
+                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Critical "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
+                        case 0:
+                        default:
+                            helper.running = false;
+                            break;
+                    }
                 }
             }
         }, null, helper);
     }
-    public static void setFPSLimit(int limit){
-        fpsLimit = limit;
-        helper.setMaximumFramerate(limit);
-    }
-    public static int getFPSLimit(){
-        return fpsLimit;
-    }
-    public static void renderInit() throws LWJGLException{
-        helper.frame.addWindowListener(new WindowAdapter(){
-            public void windowClosing(WindowEvent e){
-                helper.running = false;
-            }
-        });
+    public static void renderInit(){
+        System.out.println("Loading fonts");
         FontManager.addFont("/planetaryprotector/high resolution");
         FontManager.addFont("/planetaryprotector/slim");
         FontManager.setFont("high resolution");
+        System.out.println("Initializing render engine");
         GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -117,10 +234,8 @@ public class Core extends Renderer2D{
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             if(enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
         }
-        if(supportTyping){
-            Keyboard.enableRepeatEvents(true);
-        }
-        new TexturePackManager(new File(Main.getAppdataRoot()+"\\Texture packs"), new TexturePack(){
+        System.out.println("Creating texture pack manager");
+        new TexturePackManager(null, new TexturePack(){
             @Override
             public InputStream getResourceAsStream(String name){
                 if(name.startsWith("/")){
@@ -132,18 +247,21 @@ public class Core extends Renderer2D{
                 return super.getResourceAsStream(name);
             }
         });
+        System.out.println("Initializing GUI");
         gui = new GUI(is3D?GameHelper.MODE_HYBRID:GameHelper.MODE_2D, helper);
         gui.open(new MenuLoadTextures(gui));
+        System.out.println("Render initialization complete!");
     }
-    public static void tickInit() throws LWJGLException{
+    public static void tickInit(){
         loadOptions();
         for(Upgrade upgrade : Upgrade.values());//initialize upgrades to add them to building upgrade lists
     }
-    public static void finalInit() throws LWJGLException{
-        if(Main.jLayer){
-            Sounds.create();
-            Sounds.enableAutoplay();
-        }
+    public static void finalInit(){
+        System.out.println("Activating GUI");
+        helper.assignGUI(gui);
+        System.out.println("Initializing Sound System");
+        Sounds.create();
+        Sounds.enableAutoplay();
         Game.refreshTheme();
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             for(int i = 0; i<10; i++){
@@ -160,9 +278,7 @@ public class Core extends Renderer2D{
         }
     }
     public static void tick(boolean isLastTick){
-        if(Main.jLayer){
-            Sounds.tick(isLastTick);
-        }
+        Sounds.tick(isLastTick);
         if(!isLastTick){
             for(int i = 0; i<speedMult; i++){
                 gui.tick();
@@ -188,10 +304,10 @@ public class Core extends Renderer2D{
         }
         gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
-        if(Keyboard.isKeyDown(Keyboard.KEY_EQUALS)){
+        if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_EQUAL)){
             Sounds.vol+=0.01f;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_MINUS)){
+        if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_MINUS)){
             Sounds.vol-=0.01f;
         }
         FPStracker.add(System.currentTimeMillis());
@@ -231,44 +347,17 @@ public class Core extends Renderer2D{
     public static long getFPS(){
         return FPStracker.size()/5;
     }
-    public static double distance(MenuComponent o1, MenuComponent o2){
-        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
-    }
-    public static double distance(MenuComponent o1, GameObject o2){
-        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
-    }
-    public static double distance(GameObject o1, MenuComponent o2){
-        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
-    }
     public static double distance(GameObject o1, GameObject o2){
         return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
     }
-    public static double distance(MenuComponent component, double x, double y) {
-        return distance(component, new MenuComponentButton(x, y, 0, 0, "", false));
-    }
     public static double distance(GameObject object, double x, double y) {
-        return distance(object, new MenuComponentButton(x, y, 0, 0, "", false));
+        return Math.sqrt(Math.pow((object.x+object.width/2)-x, 2)+Math.pow((object.y+object.height/2)-y, 2));
     }
     public static double distance(double x1, double y1, double x2, double y2) {
-        return distance(new MenuComponentButton(x1, y1, 0, 0, "", false), new MenuComponentButton(x2, y2, 0, 0, "", false));
-    }
-    public static boolean isMouseWithinComponent(MenuComponent component){
-        return isClickWithinBounds(Mouse.getX(), Display.getHeight()-Mouse.getY(), component.x, component.y, component.x+component.width, component.y+component.height);
-    }
-    public static boolean isMouseWithinComponent(MenuComponent component, MenuComponent... parents){
-        double x = component.x;
-        double y = component.y;
-        for(MenuComponent c : parents){
-            x+=c.x;
-            y+=c.y;
-        }
-        return isClickWithinBounds(Mouse.getX(), Display.getHeight()-Mouse.getY(), x, y, x+component.width, y+component.height);
+        return Math.sqrt(Math.pow(x1-x2, 2)+Math.pow(y1-y2, 2));
     }
     public static boolean isPointWithinComponent(double x, double y, MenuComponent component){
         return isClickWithinBounds(x, y, component.x, component.y, component.x+component.width, component.y+component.height);
-    }
-    public static boolean isPointWithinComponent(double x, double y, GameObject object){
-        return isClickWithinBounds(x, y, object.x, object.y, object.x+object.width, object.y+object.height);
     }
     public static double getValueBetweenTwoValues(double pos1, double val1, double pos2, double val2, double pos){
         if(pos1>pos2){
@@ -463,5 +552,37 @@ public class Core extends Renderer2D{
     public static Game getGame(){
         if(gui.menu instanceof MenuGame)return ((MenuGame) gui.menu).game;
         return null;
+    }
+    public static String drawCenteredTextWithWordWrap(double leftPossibleEdge, double topEdge, double rightPossibleEdge, double bottomEdge, String text){
+        String[] words = text.split(" ");
+        String str = words[0];
+        double height = bottomEdge-topEdge;
+        double length = rightPossibleEdge-leftPossibleEdge;
+        for(int i = 1; i<words.length; i++){
+            String string = str+" "+words[i];
+            if(FontManager.getLengthForStringWithHeight(string.trim(), height)>=length){
+                drawCenteredTextWithWrap(leftPossibleEdge, topEdge, rightPossibleEdge, bottomEdge, str.trim());
+                return text.replaceFirst("\\Q"+str, "").trim();
+            }else{
+                str = string;
+            }
+        }
+        return drawCenteredTextWithWrap(leftPossibleEdge, topEdge, rightPossibleEdge, bottomEdge, text);
+    }
+    public static String drawTextWithWordWrap(double leftEdge, double topEdge, double rightPossibleEdge, double bottomEdge, String text){
+        String[] words = text.split(" ");
+        String str = words[0];
+        double height = bottomEdge-topEdge;
+        double length = rightPossibleEdge-leftEdge;
+        for(int i = 1; i<words.length; i++){
+            String string = str+" "+words[i];
+            if(FontManager.getLengthForStringWithHeight(string.trim(), height)>=length){
+                drawTextWithWrap(leftEdge, topEdge, rightPossibleEdge, bottomEdge, str.trim());
+                return text.replaceFirst("\\Q"+str, "").trim();
+            }else{
+                str = string;
+            }
+        }
+        return drawTextWithWrap(leftEdge, topEdge, rightPossibleEdge, bottomEdge, text);
     }
 }

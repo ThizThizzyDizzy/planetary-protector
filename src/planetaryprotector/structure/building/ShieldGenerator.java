@@ -1,7 +1,6 @@
 package planetaryprotector.structure.building;
 import java.util.ArrayList;
 import planetaryprotector.enemy.Enemy;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
@@ -9,6 +8,7 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.Particle;
 import simplelibrary.config2.Config;
 import planetaryprotector.event.StructureChangeEventListener;
+import planetaryprotector.game.BoundingBox;
 import planetaryprotector.structure.Structure;
 public class ShieldGenerator extends Building implements PowerConsumer, BuildingDamagable, BuildingDemolishable, StructureChangeEventListener{
     public double shieldSize = 0;
@@ -42,7 +42,8 @@ public class ShieldGenerator extends Building implements PowerConsumer, Building
         if(blastRecharge>0) blastRecharge--;
         if(blastRecharge<0){//<editor-fold defaultstate="collapsed" desc="Shield blast">
             blastRecharge++;
-            double size = (Display.getWidth()*1.8)-(((-blastRecharge)%10)*(Display.getWidth()/5));
+            BoundingBox city = game.getCityBoundingBox();
+            double size = (city.width*1.8)-(((-blastRecharge)%10)*(city.width/5));
             shieldSize = size;
             game.pushParticles(x+width/2, y+height/2, size, size/50, Particle.PushCause.SHEILD_BLAST);
             if(size==0){

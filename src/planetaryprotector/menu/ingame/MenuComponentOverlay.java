@@ -1,12 +1,12 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.gui.components.MenuComponent;
 public abstract class MenuComponentOverlay extends MenuComponent{
     protected final MenuGame menu;
     public MenuComponentOverlay(MenuGame menu){
-        super(0, 0, Display.getWidth(), Display.getHeight());
+        super(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight());
         this.menu = menu;
     }
     @Override

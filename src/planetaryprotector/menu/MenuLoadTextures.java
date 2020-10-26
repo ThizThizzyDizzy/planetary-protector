@@ -9,7 +9,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.building.Building.Upgrade;
@@ -171,11 +170,11 @@ public class MenuLoadTextures extends Menu{
     @Override
     public void render(int millisSinceLastTick){
         GL11.glColor4d(0, 0, 0, 1);
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0, Display.getHeight()*.49, Display.getWidth()*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(double)total, Display.getHeight()*.51, 0);
-        drawCenteredText(0, Display.getHeight()*.45-40, Display.getWidth(), Display.getHeight()*.45, loading);
-        drawText(0, Display.getHeight()*.51, Display.getWidth(), Display.getHeight()*.51+20, loading2);
+        drawRect(0, Core.helper.displayHeight()*.49, Core.helper.displayWidth()*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(double)total, Core.helper.displayHeight()*.51, 0);
+        drawCenteredText(0, Core.helper.displayHeight()*.45-40, Core.helper.displayWidth(), Core.helper.displayHeight()*.45, loading);
+        drawText(0, Core.helper.displayHeight()*.51, Core.helper.displayWidth(), Core.helper.displayHeight()*.51+20, loading2);
     }
     private ArrayList<File> getAllFiles(File file, String suffix){
         ArrayList<File> files = new ArrayList<>();

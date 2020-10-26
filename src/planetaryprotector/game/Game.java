@@ -44,7 +44,6 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.building.BuildingDamagable;
@@ -68,7 +67,6 @@ import simplelibrary.error.ErrorLevel;
 import simplelibrary.opengl.ImageStash;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.structure.building.Laboratory;
-import org.lwjgl.opengl.Display;
 import simplelibrary.opengl.Renderer2D;
 public class Game extends Renderer2D{
     //<editor-fold defaultstate="collapsed" desc="Variables">
@@ -207,7 +205,7 @@ public class Game extends Renderer2D{
             y2 += height2/2;
             return (int) Math.round(y1-y2);
         });
-        Structure structure = getMouseoverStructure(Mouse.getX(), Display.getHeight()-Mouse.getY());
+        Structure structure = getMouseoverStructure(Core.gui.mouseX, Core.gui.mouseY);
         if(structure!=null){
             structure.mouseover = .1;
         }
@@ -217,7 +215,7 @@ public class Game extends Renderer2D{
     }
     public void render(int millisSinceLastTick){}
     public synchronized void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(level));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(level));
         for(Structure structure : structures){
             structure.renderBackground();
         }
@@ -302,8 +300,7 @@ public class Game extends Renderer2D{
         }
         drawDayNightCycle();
     }
-    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
-//        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
+    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
         if(pressed&&button==0){
             Structure structure = getMouseoverStructure(x, y);
             if(structure!=null){
@@ -326,6 +323,8 @@ public class Game extends Renderer2D{
             actionUpdateRequired = 2;
         }
     }
+    public void onMouseMove(double x, double y){}
+    public void onMouseScrolled(double x, double y, double dx, double dy){}
     public synchronized void tick(){
         saveTimer++;
         if(saveTimer>=saveInterval){
@@ -1595,7 +1594,7 @@ public class Game extends Renderer2D{
             double a = Core.getValueBetweenTwoValues(0, night.getAlpha(), 1, noon.getAlpha(), percent)/255d;
             GL11.glColor4d(r, g, b, a);
         }
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
     }
     private Worker getAvailableWorker(double x, double y){
@@ -1738,7 +1737,7 @@ public class Game extends Renderer2D{
             research.event(event);
         }
     }
-    private Structure getMouseoverStructure(float x, float y){
+    private Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
             int h = structure.getStructureHeight();
@@ -1967,6 +1966,7 @@ public class Game extends Renderer2D{
         return actions;
     }
     public BoundingBox getCityBoundingBox(){
+        if(structures.isEmpty())return new BoundingBox(0, 0, 0, 0);
         return BoundingBox.enclosing(structures).expand(100);
     }
 }

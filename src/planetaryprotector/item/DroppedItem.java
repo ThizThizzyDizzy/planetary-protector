@@ -1,5 +1,4 @@
 package planetaryprotector.item;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.game.Game;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
@@ -32,9 +31,6 @@ public class DroppedItem extends GameObject{
         GL11.glColor4d(1, 1, 1, 1);
     }
     public void tick() {
-        if(x<0||x>Display.getWidth()||y<0||y>Display.getHeight()){
-            life = 1;
-        }
         if(life==-1){
             return;
         }

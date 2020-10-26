@@ -1,8 +1,8 @@
 package planetaryprotector.menu;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.Main;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
@@ -85,7 +85,7 @@ public class MenuCredits extends Menu{
     }
     public MenuCredits(GUI gui){
         super(gui, null);
-        back = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 400, 40, "Back", true));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 540, 400, 40, "Back", true));
     }
     @Override
     public void buttonClicked(MenuComponentButton button){
@@ -95,10 +95,10 @@ public class MenuCredits extends Menu{
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
-        back.x = Display.getWidth()/2-back.width/2;
-        back.y = Display.getHeight()-80;
-        drawRect(Display.getWidth()/4-100, 40, (Display.getWidth()-Display.getWidth()/4)-100+200, 200, ImageStash.instance.getTexture("/textures/logo.png"));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
+        back.x = Core.helper.displayWidth()/2-back.width/2;
+        back.y = Core.helper.displayHeight()-80;
+        drawRect(Core.helper.displayWidth()/4-100, 40, (Core.helper.displayWidth()-Core.helper.displayWidth()/4)-100+200, 200, ImageStash.instance.getTexture("/textures/logo.png"));
         yOffset = 240;
         totalTextHeight = 0;
         if(Game.theme==Game.Theme.SNOWY)GL11.glColor4d(0, 0, 0, 1);
@@ -114,7 +114,7 @@ public class MenuCredits extends Menu{
     private double scroll = Integer.MAX_VALUE;
     private double textHeight = 20;
     private double totalTextHeight = 0;
-    private double textWidth = Display.getWidth()-400;
+    private double textWidth = Core.helper.displayWidth()-400;
     public void text(String text){
         if(text==null||text.isEmpty()){
             text();
@@ -123,7 +123,7 @@ public class MenuCredits extends Menu{
         String[] texts = text.split("&");
         double wide = textWidth/(double)texts.length;
         for(int i = 0; i<texts.length; i++){
-            drawCenteredTextWithBounds(200+wide*i, yOffset-scroll, 200+wide*(i+1), yOffset+textHeight-scroll, Display.getWidth()/2-textWidth/2, 240, Display.getWidth()/2+textWidth/2, back.y-40, texts[i]);
+            drawCenteredTextWithBounds(200+wide*i, yOffset-scroll, 200+wide*(i+1), yOffset+textHeight-scroll, Core.helper.displayWidth()/2-textWidth/2, 240, Core.helper.displayWidth()/2+textWidth/2, back.y-40, texts[i]);
         }
         totalTextHeight += textHeight;
         yOffset+=textHeight;

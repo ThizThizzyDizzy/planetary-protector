@@ -1,7 +1,7 @@
 package planetaryprotector.menu.component;
 import planetaryprotector.item.ItemStack;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
@@ -27,7 +27,7 @@ public class MenuComponentActionButton extends MenuComponentButton{
             double H = height/2;
             for(ItemStack stack : action.tooltip){
                 drawRect(x+width, Y, x+width+H, Y+H, stack.item.getTexture());
-                drawText(x+width+H, Y, Display.getWidth()+x, Y+H, stack.count+"");
+                drawText(x+width+H, Y, Core.helper.displayWidth()+x, Y+H, stack.count+"");
                 Y+=H;
             }
         }

@@ -1,6 +1,6 @@
 package planetaryprotector.menu.options;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.game.Game;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.GUI;
@@ -17,7 +17,7 @@ public class MenuOptionsGraphics extends Menu{
     private final MenuComponentSlider cloudIntensitySlider, fogIntensitySlider;
     public MenuOptionsGraphics(GUI gui, Menu parent){
         super(gui, parent);
-        back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 400, 40, "Back", true));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
         double yOffset = 120;
         cloudsToggle = add(new MenuComponentOptionButton(back.x, yOffset, back.width, back.height, "Clouds", true, true, clouds?0:1, "On", "Off"));
         yOffset+=back.height*2;
@@ -44,7 +44,7 @@ public class MenuOptionsGraphics extends Menu{
     @Override
     public void renderBackground(){
         GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         fog = fogToggle.getIndex()==0;
         clouds = cloudsToggle.getIndex()==0;
         particulateMeteors = particleMeteorsToggle.getIndex()==0;

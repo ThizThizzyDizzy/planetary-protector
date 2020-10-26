@@ -3,7 +3,6 @@ import planetaryprotector.Core;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
@@ -45,8 +44,8 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
             double fallProgress = (frame-1)/(double)twelve;
             double landX = x+width/2;
             double landY = y+height/2;
-            double startX = landX-Display.getWidth()*.7;
-            double startY = landY-Display.getHeight();
+            double startX = landX-game.getCityBoundingBox().width*.7;//TODO something more reasonable
+            double startY = landY-game.getCityBoundingBox().height;
             double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);
             double Y = Core.getValueBetweenTwoValues(0, startY, 1, landY, fallProgress);
             GL11.glColor4d(1, 1, 1, 1);
@@ -75,8 +74,8 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
             double fallProgress = frame/(double)twelve;
             double landX = x+width/2;
             double landY = y+height/2;
-            double startX = landX-Display.getWidth()*.7;
-            double startY = landY-Display.getHeight();
+            double startX = landX-game.getCityBoundingBox().width*.7;
+            double startY = landY-game.getCityBoundingBox().height;
             double frameDistanceX = (landX-startX)/(double)twelve;
             double frameDistanceY = (landY-startY)/(double)twelve;
             double dX = frameDistanceX/particleResolution;

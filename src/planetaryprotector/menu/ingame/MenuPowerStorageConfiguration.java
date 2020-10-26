@@ -1,7 +1,7 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
+import planetaryprotector.Core;
 import planetaryprotector.structure.building.PowerStorage;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.component.MenuComponentCheckbox;
@@ -80,18 +80,18 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
             if(powerStorage.daylightControl){
                 daylightThreshold.y = Y+spacing;
                 daylightThreshold.x = text("Daylight Threshold:");
-                int X = drawText(spacing, Y+spacing, Display.getWidth(), Y+spacing+textHeight*2+spacing*2, "During daylight:", textHeight);
+                int X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "During daylight:", textHeight);
                 daylightRecharge.y = Y+spacing;
                 daylightRecharge.x = X+text(X+spacing, "Recharge:");
                 daylightDischarge.y = Y+spacing;
                 daylightDischarge.x = X+text(X+spacing, "Discharge:");
-                X = drawText(spacing, Y+spacing, Display.getWidth(), Y+spacing+textHeight*2+spacing*2, "During night:", textHeight);
+                X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "During night:", textHeight);
                 nightRecharge.y = Y+spacing;
                 nightRecharge.x = X+text(X+spacing, "Recharge:");
                 nightDischarge.y = Y+spacing;
                 nightDischarge.x = X+text(X+spacing, "Discharge:");
             }else{
-                int X = drawText(spacing, Y+spacing, Display.getWidth(), Y+spacing+textHeight*2+spacing*2, "Neutral settings:", textHeight);
+                int X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "Neutral settings:", textHeight);
                 neutralRecharge.y = Y+spacing;
                 neutralRecharge.x = X+text(X+spacing, "Recharge:");
                 neutralDischarge.y = Y+spacing;
@@ -116,8 +116,8 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
         }
     }
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
-        if(key==Controls.menu&&pressed&&!repeat){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        if(key==Controls.menu&&isPress&&!isRepeat){
             close();
         }
     }
@@ -131,7 +131,7 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
         return text(0, text, textHeight);
     }
     private int text(int X, String text, double textHeight){
-        drawText(spacing+X, Y+spacing, Display.getWidth(), Y+spacing+textHeight, text);
+        drawText(spacing+X, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight, text);
         Y+=spacing*2+textHeight;
         return (int) Math.round(FontManager.getLengthForStringWithHeight(text, textHeight));
     }

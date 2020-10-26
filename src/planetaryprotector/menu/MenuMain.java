@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
@@ -35,14 +33,14 @@ public class MenuMain extends Menu{
     private double blackOpacity = 1;
     public MenuMain(GUI gui, boolean blackScreen){
         super(gui, null);
-        back = add(new MenuComponentButton(Display.getWidth()/4-200, Display.getHeight()-80, 300, 60, "Exit", true));
-        newSave = add(new MenuComponentButton(Display.getWidth()/2-200, 540, 500, 60, "New Game", true));
-        play = add(new MenuComponentButton(Display.getWidth()/4-100, Display.getHeight()-160, 300, 60, "Play", false));
-        rename = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-160, 300, 60, "Rename", true));
-        delete = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 300, 60, "Delete", true));
-        credits = add(new MenuComponentButton(Display.getWidth()/2+200, Display.getHeight()-80, 300, 60, "Credits", true));
-        options = add(new MenuComponentButton(0, Display.getHeight()-80, 300, 60, "Options", true));
-        saveList = add(new MenuComponentList(Display.getWidth()/2-200, 120+500, newSave.width, Display.getHeight()-360-500, 50));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/4-200, Core.helper.displayHeight()-80, 300, 60, "Exit", true));
+        newSave = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 540, 500, 60, "New Game", true));
+        play = add(new MenuComponentButton(Core.helper.displayWidth()/4-100, Core.helper.displayHeight()-160, 300, 60, "Play", false));
+        rename = add(new MenuComponentButton(Core.helper.displayWidth()/2+200, Core.helper.displayHeight()-160, 300, 60, "Rename", true));
+        delete = add(new MenuComponentButton(Core.helper.displayWidth()/2+200, Core.helper.displayHeight()-80, 300, 60, "Delete", true));
+        credits = add(new MenuComponentButton(Core.helper.displayWidth()/2+200, Core.helper.displayHeight()-80, 300, 60, "Credits", true));
+        options = add(new MenuComponentButton(0, Core.helper.displayHeight()-80, 300, 60, "Options", true));
+        saveList = add(new MenuComponentList(Core.helper.displayWidth()/2-200, 120+500, newSave.width, Core.helper.displayHeight()-360-500, 50));
         File file = new File(Main.getAppdataRoot()+"\\saves");
         if(!file.exists()){
             file.mkdirs();
@@ -80,7 +78,7 @@ public class MenuMain extends Menu{
         for(MenuComponent c : saveList.components){
             if(c.isMouseOver&&badVersions.containsKey(c)){
                 GL11.glColor4d(0,0,0,0.5);
-                drawRect(Mouse.getX(), Display.getHeight()-Mouse.getY(), Math.min(Mouse.getX()+FontManager.getLengthForStringWithHeight(badVersions.get(c), 46)+2, Display.getWidth()), Display.getHeight()-Mouse.getY()+50, 0);
+                drawRect(gui.mouseX, gui.mouseY, Math.min(gui.mouseX+FontManager.getLengthForStringWithHeight(badVersions.get(c), 46)+2, Core.helper.displayWidth()), gui.mouseY+50, 0);
                 if(badVersions.get(c).contains("<")){
                     if(VersionManager.isCompatible(badVersions.get(c).replaceFirst("<", ""))){
                         GL11.glColor4d(1,1,0,1);
@@ -90,12 +88,12 @@ public class MenuMain extends Menu{
                 }else{
                     GL11.glColor4d(1,0,0,1);
                 }
-                drawText(Mouse.getX()+2, Display.getHeight()-Mouse.getY()+2, Display.getWidth()-2, Display.getHeight()-Mouse.getY()+48, badVersions.get(c));
+                drawText(gui.mouseX+2, gui.mouseY+2, Core.helper.displayWidth()-2, gui.mouseY+48, badVersions.get(c));
                 GL11.glColor4d(1,1,1,1);
             }
         }
         GL11.glColor4d(0, 0, 0, blackOpacity);
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -125,9 +123,9 @@ public class MenuMain extends Menu{
     @Override
     public void renderBackground(){
         if(saveList.getSelectedIndex()==-1){
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         }else{
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(getLevel(((MenuComponentButton)saveList.components.get(saveList.getSelectedIndex())).label)));
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(getLevel(((MenuComponentButton)saveList.components.get(saveList.getSelectedIndex())).label)));
         }
         if(saveList.getSelectedIndex()>-1){
             play.enabled=true;
@@ -147,21 +145,21 @@ public class MenuMain extends Menu{
                 b.enabled = saveList.components.get(saveList.getSelectedIndex()) != b;
             }
         }
-        back.x = Display.getWidth()/4-back.width/2;
-        back.y = Display.getHeight()-60-back.height/2;
-        delete.x = (Display.getWidth()-Display.getWidth()/4)-delete.width/2;
+        back.x = Core.helper.displayWidth()/4-back.width/2;
+        back.y = Core.helper.displayHeight()-60-back.height/2;
+        delete.x = (Core.helper.displayWidth()-Core.helper.displayWidth()/4)-delete.width/2;
         delete.y = back.y;
         play.x = back.x;
         play.y = back.y-80;
         rename.x = delete.x;
         rename.y = delete.y-80;
-        newSave.x = Display.getWidth()/2-newSave.width/2;
+        newSave.x = Core.helper.displayWidth()/2-newSave.width/2;
         newSave.y = 240;
         saveList.x = newSave.x;
         saveList.y = newSave.y+80;
         saveList.height = (play.y-80)-(newSave.y+80);
-        credits.x = Display.getWidth()-credits.width;
-        options.y = credits.y = Display.getHeight()-credits.height;
+        credits.x = Core.helper.displayWidth()-credits.width;
+        options.y = credits.y = Core.helper.displayHeight()-credits.height;
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(play.x, 40, rename.x+rename.width, newSave.y-40, ImageStash.instance.getTexture("/textures/logo.png"));
     }

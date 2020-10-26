@@ -1,5 +1,4 @@
 package planetaryprotector.enemy;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
 public class MothershipAsteroidLaser extends GameObject{
@@ -8,7 +7,7 @@ public class MothershipAsteroidLaser extends GameObject{
     int speed = 1;
     int damageMult = 1;
     public MothershipAsteroidLaser(Game game){
-        super(game, -150, Display.getHeight()/2, 0, 0);
+        super(game, game.getCityBoundingBox().x-150, game.getCityBoundingBox().getCenterY(), 0, 0);
         target = new double[]{x,y};
     }
     public void tick(){

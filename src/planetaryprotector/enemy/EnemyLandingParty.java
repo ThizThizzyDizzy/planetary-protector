@@ -5,7 +5,6 @@ import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.building.ShieldGenerator;
 import java.util.ArrayList;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
@@ -19,7 +18,7 @@ public class EnemyLandingParty extends Enemy{
         super(game, 0, 0, 50, 50, 250);
         double[] location = getFurthestCorner(game);
         if(location==null){
-            location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
+            location = game.getCityBoundingBox().getCenter();
         }
         x=location[0];
         y=location[1];
@@ -151,16 +150,16 @@ public class EnemyLandingParty extends Enemy{
                 shieldGen.add((ShieldGenerator) structure);
             }
         }
-        ArrayList<Double[]> possibleStrikes = new ArrayList<>();
+        ArrayList<Double[]> possibleStrikes = new ArrayList<>();//TODO redo!
         for(ShieldGenerator gen : shieldGen){
             double dist = Core.distance(gen,25d,25d);
             possibleStrikes.add(new Double[]{25d,25d,dist});
-            dist = Core.distance(gen,Display.getWidth()-25d,25d);
-            possibleStrikes.add(new Double[]{Display.getWidth()-25d,25d,dist});
-            dist = Core.distance(gen,25d,Display.getHeight()-25d);
-            possibleStrikes.add(new Double[]{25d,Display.getHeight()-25d,dist});
-            dist = Core.distance(gen,Display.getWidth()-25d,Display.getHeight()-25d);
-            possibleStrikes.add(new Double[]{Display.getWidth()-25d,Display.getHeight()-25d,dist});
+            dist = Core.distance(gen,game.getCityBoundingBox().width-25d,25d);
+            possibleStrikes.add(new Double[]{game.getCityBoundingBox().width-25d,25d,dist});
+            dist = Core.distance(gen,25d,game.getCityBoundingBox().height-25d);
+            possibleStrikes.add(new Double[]{25d,game.getCityBoundingBox().height-25d,dist});
+            dist = Core.distance(gen,game.getCityBoundingBox().width-25d,game.getCityBoundingBox().height-25d);
+            possibleStrikes.add(new Double[]{game.getCityBoundingBox().width-25d,game.getCityBoundingBox().height-25d,dist});
         }
         double max = Double.NEGATIVE_INFINITY;
         for(Double[] strike : possibleStrikes){

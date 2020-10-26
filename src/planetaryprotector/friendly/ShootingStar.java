@@ -3,7 +3,6 @@ import planetaryprotector.Core;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.item.DroppedItem;
@@ -23,9 +22,9 @@ public class ShootingStar extends GameObject implements ZComponent{
         if(dead)return;
         double fallProgress = landing/(double)landTime;
         double landX = x+width/2;
-        double landY = y+height/2;
-        double startX = landX-Display.getWidth()*.7;
-        double startY = landY-Display.getHeight();
+        double landY = y+height/2;//TODO something better
+        double startX = landX-Core.helper.displayWidth()*.7;
+        double startY = landY-Core.helper.displayHeight();
         double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);
         double Y = Core.getValueBetweenTwoValues(0, startY, 1, landY, fallProgress);
         GL11.glColor4d(1, 1, 1, 1);
@@ -45,8 +44,8 @@ public class ShootingStar extends GameObject implements ZComponent{
         double fallProgress = landing/(double)landTime;
         double landX = x+width/2;
         double landY = y+height/2;
-        double startX = landX-Display.getWidth()*.7;
-        double startY = landY-Display.getHeight();
+        double startX = landX-Core.helper.displayWidth()*.7;
+        double startY = landY-Core.helper.displayHeight();
         double frameDistanceX = (landX-startX)/(double)landTime;
         double frameDistanceY = (landY-startY)/(double)landTime;
         double dX = frameDistanceX/particleResolution;

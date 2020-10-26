@@ -36,8 +36,8 @@ public class MenuComponentResearch extends MenuComponent{
         drawRect(x, y+border, x+borderThickness, y+height-border, 0);
     }
     @Override
-    public void mouseEvent(double x, double y, int button, boolean isDown){
-        super.mouseEvent(x, y, button, isDown);
-        if(button==0&&isDown)menu.selected.research = research;
+    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
+        super.onMouseButton(x, y, button, pressed, mods);
+        if(button==0&&pressed)menu.selected.research = research;
     }
 }

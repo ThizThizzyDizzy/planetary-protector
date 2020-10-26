@@ -5,7 +5,6 @@ import planetaryprotector.structure.building.ShieldGenerator;
 import planetaryprotector.structure.building.Wreck;
 import planetaryprotector.structure.building.Skyscraper;
 import java.util.ArrayList;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.Structure;
 public class EnemyMeteorStrike extends Enemy{
@@ -18,7 +17,7 @@ public class EnemyMeteorStrike extends Enemy{
         if(location==null){
             location = Enemy.getBestStrike(game);
             if(location==null){
-                location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
+                location = game.getCityBoundingBox().getCenter();
             }
             if(Enemy.strength<2.5){
                 Enemy.strength+=.25;
@@ -31,7 +30,7 @@ public class EnemyMeteorStrike extends Enemy{
     @Override
     public void render(){
         GL11.glColor4d(1, 1, 0, .25);
-        drawRect(x-width/2, y-Display.getHeight(), x+width/2, y+height/2, 0);
+        drawRect(x-width/2, y-game.getCityBoundingBox().height, x+width/2, y+height/2, 0);//TODO redo
         drawRect(x-width/2, y-height/2, x+width/2, y+height/2, 0);
         GL11.glColor4d(1, 1, 1, 1);
     }

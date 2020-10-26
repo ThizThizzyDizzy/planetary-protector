@@ -3,7 +3,6 @@ import planetaryprotector.Core;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
@@ -216,7 +215,7 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.CLOUD){
             strength+=rateOfChange;
             rotation+=rotSpeed;
-            if(x>Display.getWidth()){
+            if(x>Core.helper.displayWidth()){
                 dead = true;
             }
             x+=speed;

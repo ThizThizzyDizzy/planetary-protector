@@ -11,7 +11,6 @@ import planetaryprotector.particle.Particle;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.building.ShieldGenerator;
@@ -24,7 +23,7 @@ import planetaryprotector.structure.Structure;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class Epilogue extends Game{
+public class Epilogue extends Game{//TODO no Display
     private int timer = 195;
     private int i;
     private String[] texts = new String[]{"All of the other cities on the planet are still in ruins.", "Let the people of the city set out and rebuild.", "Thanks for playing!"};
@@ -33,7 +32,7 @@ public class Epilogue extends Game{
     private ArrayList<Particle> clouds = new ArrayList<>();
     public Epilogue(){
         super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0), false);
-        int buildingCount = (Display.getWidth()/100)*(Display.getHeight()/100);
+        int buildingCount = (Core.helper.displayWidth()/100)*(Core.helper.displayHeight()/100);
         for(int i = 0; i<buildingCount; i++){
             ArrayList<Building> buildings = new ArrayList<>();
             for(Structure s : structures){
@@ -66,8 +65,8 @@ public class Epilogue extends Game{
             if(i>1000){
                 return null;
             }
-            buildingX = game.rand.nextInt(Display.getWidth()-100);
-            buildingY = game.rand.nextInt(Display.getHeight()-100);
+            buildingX = game.rand.nextInt(Core.helper.displayWidth()-100);
+            buildingY = game.rand.nextInt(Core.helper.displayHeight()-100);
             for(Building building : buildings){
                 double Y = building.y;
                 if(building instanceof Skyscraper){
@@ -116,7 +115,7 @@ public class Epilogue extends Game{
                 Core.gui.open(new MenuEpilogue2(Core.gui));
             }
         }
-        if(offset>=Display.getHeight())return;
+        if(offset>=Core.helper.displayHeight())return;
         if((Sounds.songTimer()>576&&i>1)||i>=10){
             for(Particle p : clouds){
                 p.tick();
@@ -125,11 +124,11 @@ public class Epilogue extends Game{
                 addCloud();
             }
             for(Point p : w){
-                p.x = rand.nextInt(Display.getWidth());
-                p.y = rand.nextInt(Display.getHeight());
+                p.x = rand.nextInt(Core.helper.displayWidth());
+                p.y = rand.nextInt(Core.helper.displayHeight());
             }
-            for(int i = 0; i<Display.getHeight()/100; i++){
-                w.enqueue(new Point(rand.nextInt(Display.getWidth()), rand.nextInt(Display.getHeight())));
+            for(int i = 0; i<Core.helper.displayHeight()/100; i++){
+                w.enqueue(new Point(rand.nextInt(Core.helper.displayWidth()), rand.nextInt(Core.helper.displayHeight())));
             }
             for(Structure structure : structures){
                 if(structure instanceof Wreck&&rand.nextInt(25)==1){
@@ -162,7 +161,7 @@ public class Epilogue extends Game{
     }
     @Override
     public void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         for(Structure structure : structures){
             structure.renderBackground();
         }
@@ -225,20 +224,24 @@ public class Epilogue extends Game{
     }
     @Override
     public void render(int millisSinceLastTick){
-        GL11.glTranslated(0, -Display.getHeight()*offset, 0);
+        GL11.glTranslated(0, -Core.helper.displayHeight()*offset, 0);
         renderWorld(millisSinceLastTick);
-        drawRect(0, Display.getHeight(), Display.getWidth(), Display.getHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+Game.theme.tex()+".png"));
-        drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
+        drawRect(0, Core.helper.displayHeight(), Core.helper.displayWidth(), Core.helper.displayHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+Game.theme.tex()+".png"));
+        drawRect(0, Core.helper.displayHeight()*2, Core.helper.displayWidth(), Core.helper.displayHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
         if(blackScreenOpacity>0&&i<10){
             blackScreenOpacity-=.01;
         }
         if(i<texts.length){
-            centeredTextWithBackground(0, 0, Display.getWidth(), 50, texts[i]);
+            centeredTextWithBackground(0, 0, Core.helper.displayWidth(), 50, texts[i]);
         }
-        GL11.glTranslated(0, Display.getHeight()*offset, 0);
+        GL11.glTranslated(0, Core.helper.displayHeight()*offset, 0);
     }
     @Override
-    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){}
+    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){}
+    @Override
+    public void onMouseMove(double x, double y){}
+    @Override
+    public void onMouseScrolled(double x, double y, double dx, double dy){}
     @Override
     public void save(){}
     @Override
@@ -256,7 +259,7 @@ public class Epilogue extends Game{
         double speed = rand.nextGaussian()/10+1;
         speed*=250;
         rateOfChange*=250;
-        double y = rand.nextInt(Display.getHeight());
+        double y = rand.nextInt(Core.helper.displayHeight());
         int wide = rand.nextInt(25)+5;
         int high = rand.nextInt(wide/5)+2;
         int height = 1;

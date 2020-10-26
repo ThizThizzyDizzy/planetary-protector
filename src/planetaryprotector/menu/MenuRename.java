@@ -2,7 +2,7 @@ package planetaryprotector.menu;
 import planetaryprotector.game.Game;
 import planetaryprotector.Main;
 import java.io.File;
-import org.lwjgl.opengl.Display;
+import planetaryprotector.Core;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
@@ -14,22 +14,22 @@ public class MenuRename extends Menu{
     private final MenuComponentButton rename;
     public MenuRename(GUI gui, MenuComponentButton save){
         super(gui, null);
-        back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 400, 40, "Back", true));
-        rename = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-160, 400, 40, "Rename", false));
-        name = add(new MenuComponentTextBox(Display.getWidth()/2-200, 120, 400, 40, "", true));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
+        rename = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-160, 400, 40, "Rename", false));
+        name = add(new MenuComponentTextBox(Core.helper.displayWidth()/2-200, 120, 400, 40, "", true));
         this.save=save;
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         File file = new File(Main.getAppdataRoot()+"\\"+name.text);
         if(!file.exists()){
             rename.enabled = true;
         }else{
             rename.enabled = false;
         }
-        back.x = Display.getWidth()/2-200;
-        back.y = Display.getHeight()-80;
+        back.x = Core.helper.displayWidth()/2-200;
+        back.y = Core.helper.displayHeight()-80;
         rename.x = back.x;
         rename.y = back.y-80;
         name.x = rename.x;

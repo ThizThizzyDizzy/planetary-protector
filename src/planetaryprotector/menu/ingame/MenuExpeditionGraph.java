@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -18,20 +18,20 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
     private final Expedition e;
     public MenuExpeditionGraph(MenuGame menu, Expedition e){
         super(menu);
-        back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-80, 800, 80, "Back", true));
-        recall = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, e.recalled?"Cancel Recall":"Recall", !e.returned));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-80, 800, 80, "Back", true));
+        recall = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, e.recalled?"Cancel Recall":"Recall", !e.returned));
         this.e = e;
         menu.game.paused = e.returned;
     }
     @Override
     public void render(){
         recall.enabled = !e.returned;
-        drawGraphs(e,0,1,Display.getWidth(),Display.getHeight()-200);
+        drawGraphs(e,0,1,Core.helper.displayWidth(),Core.helper.displayHeight()-200);
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
-        if(key==Controls.menu&&pressed&&!repeat){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        if(key==Controls.menu&&isPress&&!isRepeat){
             buttonClicked(back);
         }
     }

@@ -4,8 +4,8 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.building.CoalGenerator;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.game.BoundingBox;
 import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
 import planetaryprotector.structure.building.PowerConsumer;
@@ -25,7 +25,7 @@ public class EnemyMothership extends Enemy{
     public boolean leaving = false;
     public boolean dying = false;
     public EnemyMothership(Game game){
-        super(game, Display.getWidth()/2, 100, 250, 175, maxHealth);
+        super(game, game.getCityBoundingBox().getCenterX(), 100, 250, 175, maxHealth);
     }
     @Override
     public void render(){
@@ -77,9 +77,9 @@ public class EnemyMothership extends Enemy{
         }
         width = height = 250*((initialDelay/20D)+1);
         double opacity = 1;
-        if(width>Display.getWidth()*(3/4D)){
-            double d = width-Display.getWidth()*(3/4D);
-            opacity = 1-(d/(Display.getWidth()*(1/4D)));
+        if(width>game.getCityBoundingBox().width*(3/4D)){//TODO redo
+            double d = width-game.getCityBoundingBox().width*(3/4D);
+            opacity = 1-(d/(game.getCityBoundingBox().width*(1/4D)));
         }
         GL11.glColor4d(1, 1, 1, opacity);
         drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/mothership "+phase+".png"));
@@ -247,8 +247,9 @@ public class EnemyMothership extends Enemy{
             laserFiring = null;
             randomLaserTimer--;
             if(randomLaserTimer==0){
-                begin = new int[]{game.rand.nextInt(Display.getWidth()),game.rand.nextInt(Display.getHeight())};
-                end = new int[]{game.rand.nextInt(Display.getWidth()),game.rand.nextInt(Display.getHeight())};
+                BoundingBox bbox = game.getCityBoundingBox();
+                begin = new int[]{(int)bbox.randX(game.rand),(int)bbox.randY(game.rand)};
+                end = new int[]{(int)bbox.randX(game.rand),(int)bbox.randY(game.rand)};
                 randomLaserTimer = -randomLaserTime;
             }
         }else{

@@ -8,7 +8,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import org.lwjgl.LWJGLException;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Game;
@@ -178,9 +177,8 @@ public class Sounds{
     }
     /**
      * Starts the sound system, music thread, and music downloading thread.
-     * Equivalent to AL.destroy();
      */
-    public static void create() throws LWJGLException{
+    public static void create(){
         soundNames.clear();
         songURLs.clear();
         downloadOrder.clear();
@@ -213,11 +211,11 @@ public class Sounds{
                     System.out.println("Song Downloaded: "+key+"...");
                 }
             }
+            System.out.println("All songs are up to date.");
         });
         musicDownloader.setName("Music Downloader");
         musicDownloader.start();
     }
-    static int j =0;
     static void tick(boolean lastTick){
         if(!running)return;
         if(lastTick){
@@ -241,7 +239,7 @@ public class Sounds{
             soundSystem.getChannel(source).fadeTo(120, soundSystem.getSong(soundNames.get(sound)));
             enableAutoplay();
         }
-        soundSystem.getChannel(source).play(soundSystem.getSong(soundNames.get(sound)));
+        soundSystem.getChannel(source).play(soundNames.get(sound));
     }
     @Deprecated
     public static synchronized void playSoundOneChannel(String source, String sound){

@@ -1,7 +1,7 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
+import planetaryprotector.Core;
 import planetaryprotector.structure.building.Laboratory;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.research.Research;
@@ -19,10 +19,10 @@ public class MenuResearch extends MenuComponentOverlayBuilding{
     public MenuResearch(MenuGame menu, Laboratory laboratory){
         super(menu, laboratory);
         this.laboratory = laboratory;
-        undiscovered = add(new MenuComponentMulticolumnList(spacing, spacing+textSize, Display.getWidth()/2-spacing*2, (Display.getHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
-        available = add(new MenuComponentMulticolumnList(spacing, undiscovered.y+undiscovered.height+textSize, Display.getWidth()/2-spacing*2, (Display.getHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
-        finished = add(new MenuComponentMulticolumnList(spacing, available.y+available.height+textSize, Display.getWidth()/2-spacing*2, (Display.getHeight()-spacing*2)/3-textSize, researchSize, researchSize, researchSize/10, false));
-        selected = add(new MenuComponentSelectedResearch(laboratory, Display.getWidth()/2+spacing, spacing, Display.getWidth()/2-spacing*2, Display.getHeight()-spacing*2));
+        undiscovered = add(new MenuComponentMulticolumnList(spacing, spacing+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
+        available = add(new MenuComponentMulticolumnList(spacing, undiscovered.y+undiscovered.height+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
+        finished = add(new MenuComponentMulticolumnList(spacing, available.y+available.height+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, researchSize/10, false));
+        selected = add(new MenuComponentSelectedResearch(laboratory, Core.helper.displayWidth()/2+spacing, spacing, Core.helper.displayWidth()/2-spacing*2, Core.helper.displayHeight()-spacing*2));
         for(Research research : Research.values()){
             if(research.isCompleted())finished.add(new MenuComponentResearch(this, research));
             else if(research.isDiscovered())available.add(new MenuComponentResearch(this, research));
@@ -60,13 +60,13 @@ public class MenuResearch extends MenuComponentOverlayBuilding{
     @Override
     public void render(){
         GL11.glColor4d(1, 1, 1, 1);
-        drawText(spacing, undiscovered.y-textSize, Display.getWidth()/2-spacing, undiscovered.y, "Undiscovered Research");
-        drawText(spacing, available.y-textSize, Display.getWidth()/2-spacing, available.y, "Available Research");
-        drawText(spacing, finished.y-textSize, Display.getWidth()/2-spacing, finished.y, "Finished Research");
+        drawText(spacing, undiscovered.y-textSize, Core.helper.displayWidth()/2-spacing, undiscovered.y, "Undiscovered Research");
+        drawText(spacing, available.y-textSize, Core.helper.displayWidth()/2-spacing, available.y, "Available Research");
+        drawText(spacing, finished.y-textSize, Core.helper.displayWidth()/2-spacing, finished.y, "Finished Research");
     }
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
-        if(key==Controls.menu&&pressed&&!repeat){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        if(key==Controls.menu&&isPress&&!isRepeat){
             close();
         }
     }

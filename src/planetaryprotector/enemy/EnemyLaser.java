@@ -1,5 +1,4 @@
 package planetaryprotector.enemy;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
@@ -18,7 +17,7 @@ public class EnemyLaser extends Enemy{
         super(game, 0, 0, 50, 50, 100);
         double[] location = getBestStrike(game);
         if(location==null){
-            location = new double[]{Display.getWidth()/2, Display.getHeight()/2};
+            location = game.getCityBoundingBox().getCenter();
         }
         x=location[0];
         y=location[1];

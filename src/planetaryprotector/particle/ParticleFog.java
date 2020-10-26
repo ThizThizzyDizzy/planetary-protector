@@ -1,5 +1,4 @@
 package planetaryprotector.particle;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
@@ -83,7 +82,7 @@ public class ParticleFog extends Particle{
     public void tick(){
         rotation+=rotSpeed;
         x+=5;
-        if(x>Display.getWidth()){
+        if(x>game.getCityBoundingBox().getRight()){
             dead = true;
         }
     }

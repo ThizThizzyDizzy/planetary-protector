@@ -39,8 +39,8 @@ import planetaryprotector.research.horizontal.verb.VerbInfuse;
 import planetaryprotector.research.horizontal.verb.VerbOperate;
 import planetaryprotector.research.horizontal.verb.VerbProject;
 import planetaryprotector.research.horizontal.verb.VerbUnknown;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 public class HorizontalLang extends Lang{
     @Override
     public void drawTranslation(double startX, double startY, double size, String english){
@@ -48,7 +48,7 @@ public class HorizontalLang extends Lang{
         try{
             p = getPhrase(english);
         }catch(Exception ex){
-            drawCenteredText(0, startY-size/6, Display.getWidth(), startY+size/6, ex.getMessage().split("\n")[0]);
+            drawCenteredText(0, startY-size/6, Core.helper.displayWidth(), startY+size/6, ex.getMessage().split("\n")[0]);
             return;
         }
         x = 0;

@@ -1,6 +1,5 @@
 package planetaryprotector.friendly;
 import java.util.Random;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
@@ -82,7 +81,7 @@ public class Drone extends GameObject{
         for(Drone drone : silo.droneList){
             if(drone==this)continue;
             if(drone.x==this.x&&drone.y==this.y){
-                target = new double[]{new Random().nextInt(Display.getWidth()),new Random().nextInt(Display.getHeight())};
+                target = new double[]{game.getCityBoundingBox().randX(game.rand),game.getCityBoundingBox().randY(game.rand)};
             }else{
                 double dist = Core.distance(drone, this);
                 if(dist<width){

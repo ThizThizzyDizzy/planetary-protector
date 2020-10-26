@@ -2,8 +2,8 @@ package planetaryprotector.menu;
 import planetaryprotector.Sounds;
 import java.awt.Color;
 import java.util.Random;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
@@ -23,8 +23,8 @@ public class MenuEpilogue2 extends Menu{
         super.tick();
         if(Sounds.songTimer()>=1921){
             yOffset+=speed;
-            if(yOffset>Display.getHeight()*2){
-                yOffset-=Display.getHeight()*2;
+            if(yOffset>Core.helper.displayHeight()*2){
+                yOffset-=Core.helper.displayHeight()*2;
             }
             for(MenuComponent c : components){
                 c.y-=speed;
@@ -55,16 +55,16 @@ public class MenuEpilogue2 extends Menu{
     public void renderBackground(){
         percent = ((Sounds.songTimer()-1921)/1152d)*1.05;
         GL11.glTranslated(0, -yOffset, 0);
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/background/stone.png"));
-        drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight(), ImageStash.instance.getTexture("/textures/background/stone.png"));
-        drawRect(0, Display.getHeight()*2, Display.getWidth(), Display.getHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), ImageStash.instance.getTexture("/textures/background/stone.png"));
+        drawRect(0, Core.helper.displayHeight()*2, Core.helper.displayWidth(), Core.helper.displayHeight(), ImageStash.instance.getTexture("/textures/background/stone.png"));
+        drawRect(0, Core.helper.displayHeight()*2, Core.helper.displayWidth(), Core.helper.displayHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
         GL11.glTranslated(0, yOffset, 0);
     }
     @Override
     public void render(int millisSinceLastTick){
         super.render(millisSinceLastTick);
         GL11.glColor4d(0, 0, 0, opacity);
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
         for(MenuComponent c : components){
             if(c instanceof MenuComponentCreditsText)c.render(0);
@@ -76,8 +76,8 @@ public class MenuEpilogue2 extends Menu{
         public MenuComponentPrologueMineShaft(){
             super(0, 0, 0, 0);
             right = new Random().nextBoolean();
-            x = right?Display.getWidth()-new Random().nextInt(400):-new Random().nextInt(400);
-            y = new Random().nextInt(Display.getHeight());
+            x = right?Core.helper.displayWidth()-new Random().nextInt(400):-new Random().nextInt(400);
+            y = new Random().nextInt(Core.helper.displayHeight());
             width = 400;
             height = 300;
         }
@@ -92,7 +92,7 @@ public class MenuEpilogue2 extends Menu{
         @Override
         public void tick(){
             super.tick();
-            if(y<0||x<-400||x>Display.getWidth()+400||added)return;
+            if(y<0||x<-400||x>Core.helper.displayWidth()+400||added)return;
             if(new Random().nextDouble()<.02*speed){
                 added = true;
                 add(new MenuComponentPrologueMineShaft(this));
@@ -122,7 +122,7 @@ public class MenuEpilogue2 extends Menu{
         private static final int textHeight = 30;
         private final String text;
         public MenuComponentCreditsText(int line){
-            super(0, Display.getHeight(), Display.getWidth(), textHeight);
+            super(0, Core.helper.displayHeight(), Core.helper.displayWidth(), textHeight);
             text = MenuCredits.credits.get(line);
             color = selectedColor = Color.BLACK;
         }

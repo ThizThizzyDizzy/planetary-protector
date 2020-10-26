@@ -4,7 +4,6 @@ import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.building.task.Task;
 import java.util.Iterator;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.building.Base;
@@ -47,7 +46,7 @@ public class Worker extends GameObject{
         Base base = getClosestBase();
         double baseDist = getClosestBaseDistance();
         runningFrom = null;
-        if(base==null)runningFrom = new double[]{Display.getWidth()/2, Display.getHeight()/2};
+        if(base==null)runningFrom = game.getCityBoundingBox().getCenter();
         for(Asteroid asteroid : game.asteroids){
             if(Core.distance(asteroid, this)<50){
                 if(!game.superSafe(this)){
@@ -193,22 +192,6 @@ public class Worker extends GameObject{
                 targetItem = null;
                 target = null;
             }
-        }
-        if(y+width>Display.getHeight()){
-            if(base==null)dead = true;
-            y = Display.getHeight()-height;
-        }
-        if(x+height>Display.getWidth()){
-            if(base==null)dead = true;
-            x = Display.getWidth()-width;
-        }
-        if(x<0){
-            if(base==null)dead = true;
-            x=0;
-        }
-        if(y<0){
-            if(base==null)dead = true;
-            y=0;
         }
     }
     public void task(Task task){

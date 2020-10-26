@@ -1,6 +1,6 @@
 package planetaryprotector.menu.ingame;
 import planetaryprotector.Controls;
-import org.lwjgl.opengl.Display;
+import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuMain;
 import planetaryprotector.menu.MenuSaveAs;
@@ -15,19 +15,19 @@ public class MenuIngame extends MenuComponentOverlay{
     private final MenuComponentButton exitNosave;
     public MenuIngame(MenuGame menu){
         super(menu);
-        controls = add(new MenuComponentButton(Display.getWidth()/2-400, 240, 800, 80, "Controls", true));
-        back = add(new MenuComponentButton(Display.getWidth()/2-400, 80, 800, 80, "Back to game", true));
-        saveAs = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-320, 800, 80, "Save As...", true));
-        save = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-240, 800, 80, "Save Game", true));
-        exit = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, "Exit to menu", true));
-        exitSave = add(new MenuComponentButton(Display.getWidth()/2-600, Display.getHeight()-80, 600, 80, "Save and Exit", false));
-        exitNosave = add(new MenuComponentButton(Display.getWidth()/2, Display.getHeight()-80, 600, 80, "Don't save", false));
+        controls = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 240, 800, 80, "Controls", true));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 80, 800, 80, "Back to game", true));
+        saveAs = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-320, 800, 80, "Save As...", true));
+        save = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-240, 800, 80, "Save Game", true));
+        exit = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, "Exit to menu", true));
+        exitSave = add(new MenuComponentButton(Core.helper.displayWidth()/2-600, Core.helper.displayHeight()-80, 600, 80, "Save and Exit", false));
+        exitNosave = add(new MenuComponentButton(Core.helper.displayWidth()/2, Core.helper.displayHeight()-80, 600, 80, "Don't save", false));
     }
     @Override
     public void render(){}
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
-        if(key==Controls.menu&&pressed&&!repeat){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        if(key==Controls.menu&&isPress&&!isRepeat){
             close();
         }
     }

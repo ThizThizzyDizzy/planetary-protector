@@ -1,6 +1,5 @@
 package planetaryprotector.menu.options;
 import planetaryprotector.Core;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuMain;
 import static simplelibrary.opengl.Renderer2D.drawRect;
@@ -14,10 +13,10 @@ public class MenuOptions extends Menu{
     private final MenuComponentOptionButton autosaveButton;
     public MenuOptions(GUI gui){
         super(gui, null);
-        graphics = add(new MenuComponentButton(Display.getWidth()/2-200, 120, 400, 40, "Graphics", true, true));
-        discord = add(new MenuComponentButton(Display.getWidth()/2-200, 200, 400, 40, "Discord", true, true));
-        autosaveButton = add(new MenuComponentOptionButton(Display.getWidth()/2-200, 280, 400, 40, "Autosave", true, true, autosave?0:1, "On", "Off"));
-        back = add(new MenuComponentButton(Display.getWidth()/2-200, Display.getHeight()-80, 400, 40, "Back", true));
+        graphics = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 120, 400, 40, "Graphics", true, true));
+        discord = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 200, 400, 40, "Discord", true, true));
+        autosaveButton = add(new MenuComponentOptionButton(Core.helper.displayWidth()/2-200, 280, 400, 40, "Autosave", true, true, autosave?0:1, "On", "Off"));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
     }
     @Override
     public void buttonClicked(MenuComponentButton button){
@@ -34,7 +33,7 @@ public class MenuOptions extends Menu{
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Display.getWidth(), Display.getHeight(), Game.theme.getBackgroundTexture(1));
+        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         autosave = autosaveButton.getIndex()==0;
     }
 }

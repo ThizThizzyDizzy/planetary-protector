@@ -1,6 +1,6 @@
 package planetaryprotector.menu.ingame;
 import java.util.Random;
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.building.Laboratory;
@@ -14,7 +14,6 @@ import simplelibrary.game.Framebuffer;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.components.MenuComponent;
-import simplelibraryextended.opengl.AdvancedRenderer2D;
 public class MenuComponentSelectedResearch extends MenuComponent{
     public Research research = null;
     public HorizontalLang title = new HorizontalLang();
@@ -98,9 +97,9 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         }
     }
     @Override
-    public void mouseEvent(int button, boolean pressed, float x, float y, float xChange, float yChange, int wheelChange){
-        super.mouseEvent(button, pressed, x, y, xChange, yChange, wheelChange);
-        if(button==0&&pressed&&game.cheats&&Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)&&Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)){
+    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
+        super.onMouseButton(x, y, button, pressed, mods);
+        if(button==0&&pressed&&game.cheats&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             if(!research.isDiscovered()){
                 research.cheatDiscover();
@@ -118,7 +117,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         double Y = top;
         description = description.replace("\n", "                                                                                                    ");
         while(description!=null&&!description.trim().isEmpty()){
-            description = AdvancedRenderer2D.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
+            description = Core.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
             Y+=textHeight*1.2;
             if(Y>=bottom)break;
         }

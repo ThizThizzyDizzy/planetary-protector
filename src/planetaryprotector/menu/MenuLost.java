@@ -2,8 +2,7 @@ package planetaryprotector.menu;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.Random;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
@@ -28,7 +27,7 @@ public class MenuLost extends Menu{
         this.game = game;
         Random rand = new Random();
         for(int i = 0; i<1000; i++){
-            stars.add(new double[]{rand.nextInt(Display.getWidth()), rand.nextInt(Display.getHeight()), rand.nextInt(105*20), rand.nextDouble()/4+.2, 0});
+            stars.add(new double[]{rand.nextInt(Core.helper.displayWidth()), rand.nextInt(Core.helper.displayHeight()), rand.nextInt(105*20), rand.nextDouble()/4+.2, 0});
         }
     }
     @Override
@@ -40,8 +39,8 @@ public class MenuLost extends Menu{
         game.renderWorld(0);
     }
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat){
-        if(key==Keyboard.KEY_ESCAPE){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        if(key==GLFW.GLFW_KEY_ESCAPE){
             gui.open(new MenuMain(gui, true));
         }
     }
@@ -75,9 +74,9 @@ public class MenuLost extends Menu{
                         }
                     });
                 }
-                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth(), 50, 2, Particle.PushCause.EXPLOSION);
+                game.pushParticles(laserFiring[0], laserFiring[1], Core.helper.displayWidth(), 50, 2, Particle.PushCause.EXPLOSION);
             }else{
-                game.pushParticles(laserFiring[0], laserFiring[1], Display.getWidth()/8, 4, .2, Particle.PushCause.EXPLOSION);
+                game.pushParticles(laserFiring[0], laserFiring[1], Core.helper.displayWidth()/8, 4, .2, Particle.PushCause.EXPLOSION);
             }
         }
     }
@@ -88,7 +87,7 @@ public class MenuLost extends Menu{
     @Override//sun appear, slowly move into distance until it dies at around 03:15.75
     public void render(int millisSinceLastTick){
         GL11.glColor4d(0, 0, 0, 1);
-        drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         GL11.glColor4d(1, 1, 1, 1);
         if(tick<20*34){//on the planet
             //<editor-fold defaultstate="collapsed" desc="Planet surface">
@@ -103,16 +102,16 @@ public class MenuLost extends Menu{
                 double mothershipOpacity = tick/200d;
                 GL11.glColor4d(1, 1, 1, mothershipOpacity);
                 GL11.glPushMatrix();
-                GL11.glTranslated(Display.getWidth()/2, mothershipY, 0);
+                GL11.glTranslated(Core.helper.displayWidth()/2, mothershipY, 0);
                 GL11.glScaled(mothershipScale, mothershipScale, mothershipScale);
                 drawRect(-125, -125, 125, 125, ImageStash.instance.getTexture("/textures/enemies/mothership 1.png"));
                 GL11.glPopMatrix();
                 GL11.glColor4d(1, 1, 1, 1);
             }else{
                 GL11.glColor4d(1, 1, 1, 1);
-                laserFiring = new double[]{Display.getWidth()/2,Display.getHeight()/2};
+                laserFiring = new double[]{Core.helper.displayWidth()/2,Core.helper.displayHeight()/2};
                 if(laserFiring!=null){
-                    int x = Display.getWidth()/2;
+                    int x = Core.helper.displayWidth()/2;
                     int y = 100;
                     if(tick>20*33)laserBig = true;
                     laserSize = laserBig?50+(tick-20*33)*10:20+Math.sin(tick/40d)*5;
@@ -136,21 +135,21 @@ public class MenuLost extends Menu{
                         GL11.glColor4d(1, 1, 1, 1);
                     }
                 }
-                drawRect(Display.getWidth()/2-250, 100-250, Display.getWidth()/2+250, 100+250, ImageStash.instance.getTexture("/textures/enemies/mothership 1.png"));
+                drawRect(Core.helper.displayWidth()/2-250, 100-250, Core.helper.displayWidth()/2+250, 100+250, ImageStash.instance.getTexture("/textures/enemies/mothership 1.png"));
             }
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Transitions and planet exploding">
         }else if(tick<20*50){//transition
             if(tick<20*35){//white
                 GL11.glColor4d(1, 1, 1, 1);
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+                drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
             }else if(tick<20*45){//changing
                 double x = (tick-20*35)/(20d*10);
                 GL11.glColor4d(1-x, 1-x, 1-x, 1);
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+                drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
             }else{//black
                 GL11.glColor4d(0, 0, 0, 1);
-                drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+                drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
             }
         }else if(tick<20*55){//space image and planet fades in
             double x = (tick-20*50)/(20d*5);
@@ -163,14 +162,14 @@ public class MenuLost extends Menu{
             drawSpace(1);
             double x = (tick-20*60)/(20d*5);
             GL11.glColor4d(1, 1, 1, 1-x);
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         }else if(tick<20*(60+18)){
             drawSpace(1);
         }else if(tick<20*(60+22)){//fade to black
             drawSpace(1);
             double x = (tick-20*(60+18))/(20d*5);
             GL11.glColor4d(0, 0, 0, x);
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
 //</editor-fold>
         }else{//fade to space, sun activity in space
             drawStars();
@@ -179,17 +178,17 @@ public class MenuLost extends Menu{
 //            int boomTick = 20*(60*3+15);
 //            double percent = Math.min(1,(tick-startTick)/(double)(boomTick-startTick));
 //            int sizeMin = 3;
-//            int sizeMax = Display.getHeight()/20;
+//            int sizeMax = Core.helper.displayHeight()/20;
 //            int sizeDiff = sizeMax-sizeMin;
 //            double size = (1-percent)*sizeDiff+sizeMin;
 //            double opacity = tick<boomTick?1:1-((tick-boomTick)/(20*5d));//5 seconds to fade
-//            double boomRadius = (1-opacity)*Display.getHeight()/2;
+//            double boomRadius = (1-opacity)*Core.helper.displayHeight()/2;
 //            int I = 25;
 //            for(int i = 0; i<=I; i++){
 //                double radius = size/2+i*(1-percent);
 //                double instOpacity = (I-i)/(double)I;
 //                GL11.glColor4d(1, 1, .75, opacity*instOpacity);
-//                MenuGame.drawRegularPolygon(Display.getWidth()/2, Display.getHeight()/2, radius, 100, 0);
+//                MenuGame.drawRegularPolygon(Core.helper.displayWidth()/2, Core.helper.displayHeight()/2, radius, 100, 0);
 //            }
 //            if(tick>boomTick){
 //                //smoke
@@ -197,8 +196,8 @@ public class MenuLost extends Menu{
 //                    double radius = boomRadius+2*j;
 //                    int c = 180;
 //                    for(int i = 0; i<c; i++){
-//                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+Display.getWidth()/2;
-//                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+Display.getHeight()/2;
+//                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+Core.helper.displayWidth()/2;
+//                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+Core.helper.displayHeight()/2;
 //                        GL11.glColor4d(1, 1, .9, opacity);
 //                        drawRect(X-5, Y-5, X+5, Y+5, ParticleEffectType.SMOKE.images[0]);
 //                        GL11.glColor4d(1, 1, 1, 1);
@@ -209,8 +208,8 @@ public class MenuLost extends Menu{
 //                    double radius = boomRadius/10D+j;
 //                    int c = 45;
 //                    for(int i = 0; i<c; i++){
-//                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+Display.getWidth()/2;
-//                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+Display.getHeight()/2;
+//                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+Core.helper.displayWidth()/2;
+//                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+Core.helper.displayHeight()/2;
 //                        GL11.glColor4d(1, 1, .9, opacity);
 //                        drawRect(X-5, Y-5, X+5, Y+5, ParticleEffectType.EXPLOSION.images[0]);
 //                        GL11.glColor4d(1, 1, 1, 1);
@@ -220,7 +219,7 @@ public class MenuLost extends Menu{
 //</editor-fold>
             double x = (tick-20*(60+22))/(20d*5);
             GL11.glColor4d(0, 0, 0, 1-x);
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), 0);
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
         }
         GL11.glColor4d(1, 1, 1, 1);
     }
@@ -238,15 +237,15 @@ public class MenuLost extends Menu{
             boolean d = false;
             if(space==null){
                 d = true;
-                space = new Framebuffer(Core.helper, "Space"+tick, Display.getWidth(), Display.getHeight());
+                space = new Framebuffer(Core.helper, "Space"+tick, Core.helper.displayWidth(), Core.helper.displayHeight());
                 space.bindRenderTarget2D();
             }
-            double planetSize = Display.getHeight()*.65;
+            double planetSize = Core.helper.displayHeight()*.65;
             GL11.glColor4d(0, 0, 0, 1);
-            double left = Display.getWidth()/2-planetSize/2;
-            double top = Display.getHeight()/2-planetSize/2;
-            double right = Display.getWidth()/2+planetSize/2;
-            double bottom = Display.getHeight()/2+planetSize/2;
+            double left = Core.helper.displayWidth()/2-planetSize/2;
+            double top = Core.helper.displayHeight()/2-planetSize/2;
+            double right = Core.helper.displayWidth()/2+planetSize/2;
+            double bottom = Core.helper.displayHeight()/2+planetSize/2;
             drawStars();
             GL11.glColor4d(1, 1, 1, 1);
             if(boom==1){
@@ -275,7 +274,7 @@ public class MenuLost extends Menu{
                 space.releaseRenderTarget();
             }
         }else{
-            drawRect(0, 0, Display.getWidth(), Display.getHeight(), space.getTexture());
+            drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), space.getTexture());
         }
     }
 }

@@ -13,88 +13,85 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
+import java.util.List;
+import java.util.Locale;
 public class Main{
-    private static String requiredSimpleLibraryVersion = "10.2.1";
-    private static int simplelibrarySize = 561;
-    private static int simplelibraryExtendedSize = 628;
-    /**
-     * Set to "" for latest, otherwise exact version #
-     */
-    private static String requiredSimpleLibraryExtendedVersion = "2.0";
-    private static String versionListURL = "https://www.dropbox.com/s/capgobag47srs17/versions.txt?dl=1";
+    private static final String versionListURL = "https://raw.githubusercontent.com/ThizThizzyDizzy/planetary-protector/master/versions.txt";
     public static final String applicationName = "Planetary Protector";
     public static final String discordAppID = "592509210277838848";
-    private static HashMap<String[], Integer> requiredLibraries = new HashMap<>();
-    public static final boolean jLayer = true;
-    public static final boolean webcam = false;
-    public static final boolean textToSpeech = false;
-    public static final boolean intellitype = false;
-    public static final boolean audioTagger = false;
-    private static int downloadSize = 0;
+    public static final String issueTrackerLink = "https://github.com/ThizThizzyDizzy/planetary-protector/issues";
+    private static final ArrayList<String[]> requiredLibraries = new ArrayList<>();
     //Download details
     private static int total;
     private static int current;
-    private static JFrame frame;
-    private static JProgressBar bar;
-    private static boolean allowDownload = false;
-    static{
-        if(jLayer){
-            addRequiredLibrary("https://www.dropbox.com/s/phv29x1suv4i4b0/jl1.0.1.jar?dl=1", "jl1.0.1.jar", 103);
-        }
-        if(webcam){
-            addRequiredLibrary("https://www.dropbox.com/s/t09a8brz3i5nl9c/bridj-0.6.2.jar?dl=1", "bridj-0.6.2.jar", 859);
-            addRequiredLibrary("https://www.dropbox.com/s/bvyy19zh5vvibrq/slf4j-api-1.7.2.jar?dl=1", "slf4j-api-1.7.2.jar", 26);
-            addRequiredLibrary("https://www.dropbox.com/s/1idoft8jafnr1x1/webcam-capture-0.3.10.jar?dl=1", "webcam-capture-0.3.10.jar", 400);
-        }
-        if(intellitype){
-            addRequiredLibrary("https://www.dropbox.com/s/kjwuh8poofqk36k/jintellitype-1.3.9.jar?dl=1", "jintellitype-1.3.9.jar", 16);
-        }
-        if(textToSpeech){
-            addRequiredLibrary("https://www.dropbox.com/s/y3skf4runw20h6w/cmu_time_awb.jar?dl=1", "cmu_time_awb.jar", 1684);
-            addRequiredLibrary("https://www.dropbox.com/s/il7apy01wk4f8g9/cmu_us_kal.jar?dl=1", "cmu_us_kal.jar", 4785);
-            addRequiredLibrary("https://www.dropbox.com/s/9s1rdcvknjwctc5/cmudict04.jar?dl=1", "cmudict04.jar", 874);
-            addRequiredLibrary("https://www.dropbox.com/s/pn9q7dnkfhpx0xk/cmulex.jar?dl=1", "cmulex.jar", 586);
-            addRequiredLibrary("https://www.dropbox.com/s/ibg7wq65yzounuu/cmutimelex.jar?dl=1", "cmutimelex.jar", 2);
-            addRequiredLibrary("https://www.dropbox.com/s/9b7e8sa4sqf1tju/en_us.jar?dl=1", "en_us.jar", 847);
-            addRequiredLibrary("https://www.dropbox.com/s/n9zh5p8gvb1aao9/freetts.jar?dl=1", "freetts.jar", 204);
-            addRequiredLibrary("https://www.dropbox.com/s/srssz73x0hiqf6h/freetts-jsapi10.jar?dl=1", "freetts-jsapi10.jar", 55);
-            addRequiredLibrary("https://www.dropbox.com/s/f369vf69mkjmwxd/jsapi.jar?dl=1", "jsapi.jar", 51);
-            addRequiredLibrary("https://www.dropbox.com/s/tfsvbdkvvy41v8h/mbrola.jar?dl=1", "mbrola.jar", 12);
-        }
-        if(discordAppID!=null){
-            addRequiredLibrary("https://www.dropbox.com/s/ml0rg2ze9ks4xbe/jna-5.3.1.jar?dl=1", "jna-5.3.1.jar", 1470);
-            addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar", 8);
-        }
-        if(audioTagger){
-            addRequiredLibrary("https://www.dropbox.com/s/ehp6dwzjsfvsgj1/jaudiotagger-2.2.3.jar?dl=1", "jaudiotagger-2.2.3.jar", 920);
-        }
+    //OS details
+    public static boolean hasAWT = true;
+    public static boolean hasAWTAfterStartup = false;
+    private static final int OS_UNKNOWN = -1;
+    static final int OS_WINDOWS = 0;
+    private static final int OS_MACOS = 1;
+    private static final int OS_LINUX = 2;
+    static int os = OS_UNKNOWN;//Should not be directly referenced from other classes, as there are always better ways of handling OS-compatibility
+    private static void addRequiredLibrary(String url, String filename){
+        requiredLibraries.add(new String[]{url,filename});
     }
-    public static int os;
-    public static final int OS_WINDOWS = 0;
-    public static final int OS_SOLARIS = 1;
-    public static final int OS_MACOSX = 2;
-    public static final int OS_LINUX = 3;
-    private static void addRequiredLibrary(String url, String filename, int sizeKB){
-        requiredLibraries.put(new String[]{url,filename}, sizeKB);
+    private static void addRequiredLibraries(){
+        addRequiredLibrary("https://www.dropbox.com/s/phv29x1suv4i4b0/jl1.0.1.jar?dl=1", "jl1.0.1.jar");
+        addRequiredLibrary("https://www.dropbox.com/s/ml0rg2ze9ks4xbe/jna-5.3.1.jar?dl=1", "jna-5.3.1.jar");
+        addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar");
     }
-    public static void main(String[] args) throws NoSuchMethodException, IOException, InterruptedException, URISyntaxException{
-        args = update(args);
-        if(args==null){
-            return;
+    public static void main(String[] args){
+        List<String> argses = Arrays.asList(args);
+        try{
+            if(argses.contains("noAWT")){
+                hasAWT = false;
+            }
+            if(argses.contains("noAWTDuringStartup")){
+                hasAWT = false;
+                hasAWTAfterStartup = true;
+            }
+            System.out.println("Initializing...");
+            args = update(args);
+            if(args==null){
+                return;
+            }
+            Core.main(args);
+        }catch(Exception ex){
+            if(hasAWT){
+                String trace = "";
+                for(StackTraceElement e : ex.getStackTrace()){
+                    trace+="\n"+e.toString();
+                }
+                trace = trace.isEmpty()?trace:trace.substring(1);
+                javax.swing.JOptionPane.showMessageDialog(null, ex.getMessage()+"\n"+trace, "CAUGHT ERROR: "+ex.getClass().getName()+" on main thread!", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }else{
+                throw new RuntimeException("Exception on main thread!", ex);
+            }
         }
-        Core.main(args);
     }
     public static String getAppdataRoot(){
-        return System.getenv("APPDATA")+"\\Thizzy'z Games\\"+applicationName;
+        switch(os){
+            case OS_LINUX:
+                return System.getProperty("user.home")+File.separatorChar+"ThizzyGames"+File.separatorChar+applicationName;
+            case OS_MACOS:
+                return System.getProperty("user.home")+File.separatorChar+"Library"+File.separatorChar+"Application Support"+File.separatorChar+"ThizzyGames"+File.separatorChar+applicationName;
+            case OS_WINDOWS:
+                return System.getenv("APPDATA")+File.separatorChar+"ThizzyGames"+File.separatorChar+applicationName;
+            default:
+                return "ThizzyGames"+File.separatorChar+applicationName;
+        }
     }
     private static String getLibraryRoot(){
-        return System.getenv("APPDATA")+"\\Thizzy'z Games\\Libraries";
+        switch(os){
+            case OS_LINUX:
+                return System.getProperty("user.home")+File.separatorChar+"ThizzyGames"+File.separatorChar+"Libraries";
+            case OS_MACOS:
+                return System.getProperty("user.home")+File.separatorChar+"Library"+File.separatorChar+"Application Support"+File.separatorChar+"ThizzyGames"+File.separatorChar+"Libraries";
+            case OS_WINDOWS:
+                return System.getenv("APPDATA")+File.separatorChar+"ThizzyGames"+File.separatorChar+"Libraries";
+            default:
+                return "ThizzyGames"+File.separatorChar+"Libraries";
+        }
     }
     private static String[] update(String[] args) throws URISyntaxException, IOException, InterruptedException{
         ArrayList<String> theargs = new ArrayList<>(Arrays.asList(args));
@@ -102,170 +99,245 @@ public class Main{
             if(versionListURL.isEmpty()){
                 System.err.println("Version list URL is empty! assuming latest version.");
             }else{
-            Updater updater = Updater.read(versionListURL, VersionManager.currentVersion, applicationName);
-            if(updater!=null&&updater.getVersionsBehindLatestDownloadable()>0&&JOptionPane.showConfirmDialog(null, "Version "+updater.getLatestDownloadableVersion()+" is out!  Would you like to update "+applicationName+" now?", applicationName+" "+VersionManager.currentVersion+"- Update Available", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
-                startJava(new String[0], new String[]{"justUpdated"}, updater.update(updater.getLatestDownloadableVersion()));
-                System.exit(0);
-            }
-            }
-            int BIT_32 = 0;
-            int BIT_64 = 1;
-            String[][] nativesPaths = {
-                {"https://dl.dropboxusercontent.com/s/1nt1g7ui7p4eb54/windows32natives.zip?dl=1&token_hash=AAFsOnqBqipIOxc4sNr138FnlZIjHBf-KPwMTNe8F5lqOQ",
-                 "https://dl.dropboxusercontent.com/s/y41peavuls3ptzu/windows64natives.zip?dl=1&token_hash=AAEJ6Ih8HGEsla1tJmIB7R-YBCTC8LVq_D4OFcFWDCEZ5Q"},
-                {"https://dl.dropboxusercontent.com/s/h4z3j2pspuos15l/solaris32natives.zip?dl=1&token_hash=AAEmlE84CzHRTqya3xPN9xRh_1_v0nGccJFp-bfru4jSRw",
-                 "https://dl.dropboxusercontent.com/s/vq3x3n81x0qvc3u/solaris64natives.zip?dl=1&token_hash=AAEyl6swuFIukpTNZjrgv96TGwSnMYxWt0hdQ71_KiqQqw"},
-                {"https://dl.dropboxusercontent.com/s/ljvgoccqz33bcq1/macosx32natives.zip?dl=1&token_hash=AAGezz3pNxqa6Fi_O-xGCZdI2923D7b-ZsrWZ61HlFROYw",
-                 null},
-                {"https://dl.dropboxusercontent.com/s/nfv4ra6n68lna9n/linux32natives.zip?dl=1&token_hash=AAGzHZLGp9S4HAjzpzNZp9-YixYw4H56D6_DJ3dG5GDeFA",
-                 "https://dl.dropboxusercontent.com/s/rp6uhdmec7697ty/linux64natives.zip?dl=1&token_hash=AAHl6tcg11VwWr31WtqMUlozabCSpr0LfS5MLS2MpmWnEA"}
-            };
-            String OS = System.getenv("OS");
-            int whichOS = -1;
-            switch(OS){
-                case "Windows_NT":
-                    whichOS = OS_WINDOWS;
-                    break;
-//                    whichOS = OS_SOLARIS;
-//                    break;
-//                    whichOS = OS_MACOSX;
-//                    break;
-//                    whichOS = OS_LINUX;
-//                    break;
-                default:
-                    whichOS = JOptionPane.showOptionDialog(null, "Unrecognized OS \""+OS+"\"!\nPlease report this problem on the "+applicationName+" issue tracker.\nIn the meantime, which natives should I load?", "Unrecognized Operating System", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[]{"Windows", "Solaris", "Mac OSX", "Linux"}, "Windows");
-                    if(whichOS<0||whichOS>3){
+                System.out.println("Checking for updates...");
+                Updater updater = Updater.read(versionListURL, VersionManager.currentVersion, applicationName);
+                if(updater!=null&&updater.getVersionsBehindLatestDownloadable()>0){
+                    boolean allowUpdate = false;
+                    if(hasAWT){
+                        allowUpdate = javax.swing.JOptionPane.showConfirmDialog(null, "Version "+updater.getLatestDownloadableVersion()+" is out!  Would you like to update "+applicationName+" now?", applicationName+" "+VersionManager.currentVersion+"- Update Available", javax.swing.JOptionPane.YES_NO_OPTION)==javax.swing.JOptionPane.YES_OPTION;
+                    }else{
+                        System.out.println("Version "+updater.getLatestDownloadableVersion()+" is out! Would you like to update "+applicationName+" now? (Y/N)");
+                        BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                        String s = r.readLine();
+                        if(s==null)s = "";
+                        s = s.trim();
+                        r.close();
+                        allowUpdate = s.equalsIgnoreCase("Y")||s.equalsIgnoreCase("Yes");
+                    }
+                    if(allowUpdate){
+                        System.out.println("Updating...");
+                        startJava(new String[0], new String[]{"justUpdated"}, updater.update(updater.getLatestDownloadableVersion()));
                         System.exit(0);
                     }
-            }
-            os = whichOS;
-            String version = System.getenv("PROCESSOR_ARCHITECTURE");
-            int whichBitDepth = -1;
-            switch(version){
-                case "x86":
-                    whichBitDepth = BIT_32;
-                    break;
-                case "AMD64":
-                    whichBitDepth = BIT_64;
-                    break;
-                default:
-                    whichBitDepth = JOptionPane.showOptionDialog(null, "Unrecognized processor architecture \""+version+"\"!\nPlease report this problem on the "+applicationName+" issue tracker.\nIn the meantime, should I load the 64 bit binaries with the 32 bit ones?", "Unrecognized Processor Architecture", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[]{"No, treat it as a 32 bit system", "Yes, treat it as a 64 bit system"}, "Yes, treat it as a 64 bit system");
-                    if(whichBitDepth<0||whichBitDepth>1){
-                        System.exit(0);
-                    }
-            }
-            if(whichBitDepth==BIT_32){
-                current++;
-            }
-            String[] osPaths = nativesPaths[whichOS];
-            //32 bit
-            if(!new File(getLibraryRoot()+"\\natives32.zip").exists()){
-                downloadSize += 303;
-            }
-            if((!new File(getLibraryRoot()+"\\natives64.zip").exists())&&whichBitDepth==BIT_64){
-                downloadSize += 338;
-            }
-            addRequiredLibrary("https://dl.dropboxusercontent.com/s/p7v72lix4gl96co/lwjgl.jar?dl=1&token_hash=AAG5TMAYw0Oq1_xwgVjKoE8FkKXMaWOfpj5cau1UuWKZlA", "lwjgl.jar", 912);
-            addRequiredLibrary("https://dl.dropboxusercontent.com/s/9ylaq5w5vzj1lgi/jinput.jar?dl=1&token_hash=AAHILxU3uc-UU5vXj7N4i5s1huBKYSzKGgKq3MawNJB05w", "jinput.jar", 210);
-            addRequiredLibrary("https://dl.dropboxusercontent.com/s/fog6w5pcxqf4zd9/lwjgl_util.jar?dl=1&token_hash=AAHwYq0uL4zeuTrLoi8EiG_RiUeMDZDsnlm4KYNScpy0Sw", "lwjgl_util.jar", 170);
-            addRequiredLibrary("https://dl.dropboxusercontent.com/s/60en1x8in11leqn/lzma.jar?dl=1&token_hash=AAGUFJwmD9jKmk7j4M53Xr0_6Sisf5RSRW3JAjRgsml4gg", "lzma.jar", 6);
-            for(String[] lib : requiredLibraries.keySet()){
-                if(!new File(getLibraryRoot()+"\\"+lib[1]).exists()){
-                    downloadSize+=requiredLibraries.get(lib);
                 }
+                System.out.println("Update Check Complete.");
             }
-            if(!new File(getLibraryRoot()+"\\Simplelibrary "+requiredSimpleLibraryVersion+".jar").exists()){
-                downloadSize+=simplelibrarySize+2;//2 kb for the versions file
-            }
-            if(requiredSimpleLibraryExtendedVersion!=null&&(!new File(getLibraryRoot()+"\\Simplelibrary_extended "+requiredSimpleLibraryExtendedVersion+".jar").exists())){
-                downloadSize+=simplelibraryExtendedSize+1;//1 kb for the versions file
-            }
-            if(downloadSize>0){
-                if(JOptionPane.showConfirmDialog(null, applicationName+" has a few dependencies that must be downloaded before play.\nThere is up to about "+(downloadSize>=1000?(downloadSize/1000+"MB"):(downloadSize+" KB"))+" to download.\nDownload them now?", applicationName+" - Dependencies", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
-                        !=JOptionPane.YES_OPTION){
-                    //no download
-                    JOptionPane.showMessageDialog(null, applicationName+" will now exit.", "Exit", JOptionPane.OK_OPTION);
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-assimp.jar", "lwjgl-assimp.jar");
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-glfw.jar", "lwjgl-glfw.jar");
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-openal.jar", "lwjgl-openal.jar");
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-opengl.jar", "lwjgl-opengl.jar");
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-stb.jar", "lwjgl-stb.jar");
+            addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl.jar", "lwjgl.jar");
+            String osName = System.getProperty("os.name");
+            if(osName==null)osName = "null";
+            osName = osName.toLowerCase(Locale.ENGLISH);
+            if(osName.contains("win"))os = OS_WINDOWS;
+            if(osName.contains("mac"))os = OS_MACOS;
+            if(osName.contains("nix")||osName.contains("nux")||osName.contains("aix"))os = OS_LINUX;
+            if(os==OS_UNKNOWN){
+                System.out.println("Unknown OS: "+osName);
+                if(hasAWT){
+                    os = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized OS \""+osName+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, which OS are you using?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"Windows", "Mac OS", "Linux"}, "Windows");
+                }else{
+                    System.out.println("Unrecognized OS \""+osName+"\"! Please report this problem at "+issueTrackerLink+"\nWhich OS are you using? (Windows|Mac|Linux)");
+                    BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                    String s = r.readLine();
+                    if(s==null)s = "";
+                    s = s.trim();
+                    r.close();
+                    if(s.equalsIgnoreCase("Windows"))os = OS_WINDOWS;
+                    if(s.equalsIgnoreCase("Mac")||s.equalsIgnoreCase("MacOS")||s.equalsIgnoreCase("Mac OS"))os = OS_MACOS;
+                    if(s.equalsIgnoreCase("Linux"))os = OS_LINUX;
+                }
+                if(os<0||os>2){
                     System.exit(0);
                 }
             }
-            allowDownload = true;
-            total = 8+requiredLibraries.size();
-            frame = new JFrame("Download Progress");
-            bar = new JProgressBar(0, total);
-            frame.add(bar);
-            frame.setSize(300, 70);
-            bar.setBounds(0, 0, 300, 70);
-            if(downloadSize>0){
-                frame.setVisible(true);
+            switch(os){
+                case OS_WINDOWS:
+                    {
+                        final int ARCH_UNKNOWN = -1;
+                        final int ARCH_X86 = 0;
+                        final int ARCH_X64 = 1;
+                        int arch = ARCH_UNKNOWN;
+                        String osArch = System.getProperty("os.arch");
+                        if(osArch==null)osArch = "null";
+                        osArch = osArch.toLowerCase(Locale.ENGLISH);
+                        if(osArch.equals("amd64"))arch = ARCH_X64;
+                        if(osArch.equals("x86"))arch = ARCH_X86;
+                        System.out.println("OS: Windows");
+                        if(arch==ARCH_UNKNOWN){
+                            System.out.println("Unknown Architecture: "+osArch);
+                            if(hasAWT){
+                                arch = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized Architecture \""+osArch+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, what is your OS architecture?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"x86", "x64"}, "x64");
+                            }else{
+                                System.out.println("Unrecognized Architecture \""+osArch+"\"! Please report this problem at "+issueTrackerLink+"\nWhat is your OS architecture? (x86|x64)");
+                                BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                                String s = r.readLine();
+                                if(s==null)s = "";
+                                s = s.trim();
+                                r.close();
+                                if(s.equalsIgnoreCase("x86")||s.equalsIgnoreCase("86")||s.equalsIgnoreCase("x32")||s.equalsIgnoreCase("32"))arch = ARCH_X86;
+                                if(s.equalsIgnoreCase("x64")||s.equalsIgnoreCase("64"))arch = ARCH_X64;
+                            }
+                            if(arch<0||arch>1){
+                                System.exit(0);
+                            }
+                        }
+                        switch(arch){
+                            case ARCH_X86:
+                                System.out.println("OS Architecture: x86");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-assimp-natives-windows-x86.jar", "lwjgl-assimp-natives-windows-x86.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-glfw-natives-windows-x86.jar", "lwjgl-glfw-natives-windows-x86.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-natives-windows-x86.jar", "lwjgl-natives-windows-x86.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-openal-natives-windows-x86.jar", "lwjgl-openal-natives-windows-x86.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-opengl-natives-windows-x86.jar", "lwjgl-opengl-natives-windows-x86.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/x86/lwjgl-stb-natives-windows-x86.jar", "lwjgl-stb-natives-windows-x86.jar");
+                                break;
+                            case ARCH_X64:
+                                System.out.println("OS Architecture: x64");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-assimp-natives-windows.jar", "lwjgl-assimp-natives-windows.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-glfw-natives-windows.jar", "lwjgl-glfw-natives-windows.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-natives-windows.jar", "lwjgl-natives-windows.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-openal-natives-windows.jar", "lwjgl-openal-natives-windows.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-opengl-natives-windows.jar", "lwjgl-opengl-natives-windows.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/windows/lwjgl-stb-natives-windows.jar", "lwjgl-stb-natives-windows.jar");
+                                break;
+                        }
+                    }
+                    break;
+                case OS_MACOS:
+                    System.out.println("OS: Mac OS");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-assimp-natives-macos.jar", "lwjgl-assimp-natives-macos.jar");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-glfw-natives-macos.jar", "lwjgl-glfw-natives-macos.jar");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-natives-macos.jar", "lwjgl-natives-macos.jar");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-openal-natives-macos.jar", "lwjgl-openal-natives-macos.jar");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-opengl-natives-macos.jar", "lwjgl-opengl-natives-macos.jar");
+                    addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/macos/lwjgl-stb-natives-macos.jar", "lwjgl-stb-natives-macos.jar");
+                    break;
+                case OS_LINUX:
+                    {
+                        final int ARCH_UNKNOWN = -1;
+                        final int ARCH_X64 = 0;
+                        final int ARCH_ARM32 = 1;
+                        final int ARCH_ARM64 = 2;
+                        int arch = ARCH_UNKNOWN;
+                        String osArch = System.getProperty("os.arch");
+                        if(osArch==null)osArch = "null";
+                        osArch = osArch.toLowerCase(Locale.ENGLISH);
+                        if(osArch.equals("amd64"))arch = ARCH_X64;
+                        if(osArch.equals("x64"))arch = ARCH_X64;
+                        if(osArch.equals("arm32"))arch = ARCH_ARM32;
+                        if(osArch.equals("arm64"))arch = ARCH_ARM64;
+                        System.out.println("OS: Linux");
+                        if(arch==ARCH_UNKNOWN){
+                            System.out.println("Unknown Architecture: "+osArch);
+                            if(hasAWT){
+                                arch = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized Architecture \""+osArch+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, what is your OS architecture?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"x64", "arm32", "arm64"}, "x64");
+                            }else{
+                                System.out.println("Unrecognized Architecture \""+osArch+"\"! Please report this problem at "+issueTrackerLink+"\nWhat is your OS architecture? (x64|arm32|arm64)");
+                                BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                                String s = r.readLine();
+                                if(s==null)s = "";
+                                s = s.trim();
+                                r.close();
+                                if(s.equalsIgnoreCase("x64")||s.equalsIgnoreCase("64"))arch = ARCH_X64;
+                                if(s.equalsIgnoreCase("arm32"))arch = ARCH_ARM32;
+                                if(s.equalsIgnoreCase("arm64"))arch = ARCH_ARM64;
+                            }
+                            if(arch<0||arch>2){
+                                System.exit(0);
+                            }
+                        }
+                        switch(arch){
+                            case ARCH_X64:
+                                System.out.println("OS Architecture: x64");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-assimp-natives-linux.jar", "lwjgl-assimp-natives-linux.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-glfw-natives-linux.jar", "lwjgl-glfw-natives-linux.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-natives-linux.jar", "lwjgl-natives-linux.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-openal-natives-linux.jar", "lwjgl-openal-natives-linux.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-opengl-natives-linux.jar", "lwjgl-opengl-natives-linux.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/lwjgl-stb-natives-linux.jar", "lwjgl-stb-natives-linux.jar");
+                                break;
+                            case ARCH_ARM32:
+                                System.out.println("OS Architecture: arm32");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-assimp-natives-linux-arm32.jar", "lwjgl-assimp-natives-linux-arm32.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-glfw-natives-linux-arm32.jar", "lwjgl-glfw-natives-linux-arm32.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-natives-linux-arm32.jar", "lwjgl-natives-linux-arm32.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-openal-natives-linux-arm32.jar", "lwjgl-openal-natives-linux-arm32.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-opengl-natives-linux-arm32.jar", "lwjgl-opengl-natives-linux-arm32.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm32/lwjgl-stb-natives-linux-arm32.jar", "lwjgl-stb-natives-linux-arm32.jar");
+                                break;
+                            case ARCH_ARM64:
+                                System.out.println("OS Architecture: arm64");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-assimp-natives-linux-arm64.jar", "lwjgl-assimp-natives-linux-arm64.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-glfw-natives-linux-arm64.jar", "lwjgl-glfw-natives-linux-arm64.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-natives-linux-arm64.jar", "lwjgl-natives-linux-arm64.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-openal-natives-linux-arm64.jar", "lwjgl-openal-natives-linux-arm64.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-opengl-natives-linux-arm64.jar", "lwjgl-opengl-natives-linux-arm64.jar");
+                                addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/native/linux/arm64/lwjgl-stb-natives-linux-arm64.jar", "lwjgl-stb-natives-linux-arm64.jar");
+                                break;
+                        }
+                    }
+                    break;
             }
-            File bit32 = downloadFile(osPaths[BIT_32], new File(getLibraryRoot()+"\\natives32.zip"));
-            File bit64 = whichBitDepth==BIT_64?downloadFile(osPaths[BIT_64], new File(getLibraryRoot()+"\\natives64.zip")):null;
-            File nativesDir = new File(getLibraryRoot()+"\\natives");
-            if(bit32==null||(whichBitDepth==BIT_64&&bit64==null&&osPaths[BIT_64]!=null)){
-                JOptionPane.showMessageDialog(null, "Could not download the required natives!  "+applicationName+" will now exit.", "Native Download Failed", JOptionPane.OK_OPTION);
-                System.exit(0);
-            }
-            extractFile(bit32, nativesDir);
-            if(bit64!=null){
-                extractFile(bit64, nativesDir);
-            }
-            File simplibVersions = forceDownloadFile("https://www.dropbox.com/s/as5y1ik7gb8gp6k/versions.dat?dl=1", new File("C:\\temp\\simplib.versions"));
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(simplibVersions)));
-            ArrayList<String> versions = new ArrayList<>();
-            HashMap<String, String> simplib = new HashMap<>();
-            String line;
-            while((line = reader.readLine())!=null){
-                if(line.isEmpty())continue;
-                versions.add(line.split("=", 2)[0]);
-                simplib.put(line.split("=", 2)[0], line.split("=", 2)[1]);
-            }
-            reader.close();
-            if(!versions.contains(requiredSimpleLibraryVersion)){
-                System.err.println("Unknown simplelibrary version "+requiredSimpleLibraryVersion+"! Downloading latest version");
-                requiredSimpleLibraryVersion = versions.get(versions.size()-1);
-            }
-            addRequiredLibrary(simplib.get(requiredSimpleLibraryVersion), "Simplelibrary "+requiredSimpleLibraryVersion+".jar", simplelibrarySize);
-            if(requiredSimpleLibraryExtendedVersion!=null){
-                File simpLibExtendedVersions = forceDownloadFile("https://www.dropbox.com/s/7k4ri81to8hc9n2/versions.dat?dl=1", new File("C:\\temp\\simplibextended.versions"));
-                reader = new BufferedReader(new InputStreamReader(new FileInputStream(simpLibExtendedVersions)));
-                versions = new ArrayList<>();
-                HashMap<String, String> simpLibExtended = new HashMap<>();
-                while((line = reader.readLine())!=null){
-                    if(line.isEmpty())continue;
-                    versions.add(line.split("=", 2)[0]);
-                    simpLibExtended.put(line.split("=", 2)[0], line.split("=", 2)[1]);
+            addRequiredLibraries();
+            boolean hasAnythingToDownload = false;
+            for(String[] lib : requiredLibraries){
+                if(!new File(getLibraryRoot()+File.separatorChar+lib[1]).exists()){
+                    hasAnythingToDownload = true;
                 }
-                reader.close();
-                if(!versions.contains(requiredSimpleLibraryExtendedVersion)){
-                    System.err.println("Unknown Simplelibrary_extended version "+requiredSimpleLibraryExtendedVersion+"! Downloading latest version");
-                    requiredSimpleLibraryExtendedVersion = versions.get(versions.size()-1);
-                }
-                addRequiredLibrary(simpLibExtended.get(requiredSimpleLibraryExtendedVersion), "Simplelibrary_extended "+requiredSimpleLibraryExtendedVersion+".jar", simplelibraryExtendedSize);
-                simpLibExtendedVersions.delete();
             }
-            simplibVersions.delete();
+            total = requiredLibraries.size();
             File[] requiredLibs = new File[requiredLibraries.size()];
-            int n = 0;
-            for(String[] lib : requiredLibraries.keySet()){
-                String url = lib[0];
-                String filename = lib[1];
-                requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+"\\"+filename));
-                n++;
+            if(hasAWT){
+                javax.swing.JFrame frame = new javax.swing.JFrame("Download Progress");
+                javax.swing.JProgressBar bar = new javax.swing.JProgressBar(0, total);
+                frame.add(bar);
+                frame.setSize(300, 70);
+                bar.setBounds(0, 0, 300, 70);
+                if(hasAnythingToDownload){
+                    frame.setVisible(true);
+                }
+                int n = 0;
+                System.out.println("Checking Libraries...");
+                for(String[] lib : requiredLibraries){
+                    String url = lib[0];
+                    String filename = lib[1];
+                    requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+File.separatorChar+filename));
+                    bar.setValue(current);
+                    n++;
+                }
+                System.out.println("Libraries OK");
+                frame.dispose();
+            }else{
+                int n = 0;
+                System.out.println("Checking Libraries...");
+                for(String[] lib : requiredLibraries){
+                    String url = lib[0];
+                    String filename = lib[1];
+                    requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+File.separatorChar+filename));
+                    System.out.println("Checking... "+Math.round(100d*current/total)+"% ("+current+"/"+total+")");
+                    n++;
+                }
+                System.out.println("Libraries OK");
             }
-            frame.dispose();
             String[] additionalClasspathElements = new String[requiredLibs.length+4];
             for(int i = 0; i<requiredLibs.length; i++){
                 if(requiredLibs[i]==null){
-                    JOptionPane.showMessageDialog(null, "Failed to download dependencies!\n"+applicationName+" will now exit.", "Exit", JOptionPane.OK_OPTION);
+                    if(hasAWT){
+                        javax.swing.JOptionPane.showMessageDialog(null, "Failed to download dependencies!\n"+applicationName+" will now exit.", "Exit", javax.swing.JOptionPane.OK_OPTION);
+                    }else{
+                        System.err.println("Failed to download dependencies!");//TODO yes, but WHAT dependencies?
+                    }
                     System.exit(0);
                 }
                 additionalClasspathElements[i] = requiredLibs[i].getAbsolutePath();
             }
-            System.out.println("Loading...");
             theargs.add(0, "Skip Dependencies");
-            final Process p = restart(new String[]{"-Djava.library.path="+nativesDir.getAbsolutePath()}, theargs.toArray(new String[theargs.size()]), additionalClasspathElements, Main.class);
+            final Process p = restart(new String[0], theargs.toArray(new String[theargs.size()]), additionalClasspathElements, Main.class);
             final int[] finished = {0};
-            new Thread(){
+            new Thread("System.out transfer"){
                 public void run(){
                     BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
                     String line;
@@ -282,7 +354,7 @@ public class Main{
                     }
                 }
             }.start();
-            new Thread(){
+            new Thread("System.err transfer"){
                 public void run(){
                     BufferedReader in = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                     String line;
@@ -299,7 +371,7 @@ public class Main{
                     }
                 }
             }.start();
-            new Thread(){
+            Thread inTransfer = new Thread("System.in transfer"){
                 public void run(){
                     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
                     PrintWriter out = new PrintWriter(p.getOutputStream());
@@ -313,7 +385,9 @@ public class Main{
                         throw new RuntimeException(ex);
                     }
                 }
-            }.start();
+            };
+            inTransfer.setDaemon(true);
+            inTransfer.start();
             return null;
         }
         theargs.remove(0);
@@ -321,15 +395,11 @@ public class Main{
     }
     private static File downloadFile(String link, File destinationFile){
         current++;
-        bar.setValue(current);
         if(destinationFile.exists()||link==null){
             return destinationFile;
         }
-        if(!allowDownload){
-            System.err.println("Failed to download file!\nDownload has not been allowed!");
-            return null;
-        }
-        destinationFile.getParentFile().mkdirs();
+        System.out.println("Downloading "+destinationFile.getName()+"...");
+        if(destinationFile.getParentFile()!=null)destinationFile.getParentFile().mkdirs();
         try {
             URL url = new URL(link);
             int fileSize;
@@ -382,10 +452,6 @@ public class Main{
             return null;
         }
     }
-    private static File forceDownloadFile(String link, File destinationFile){
-        if(destinationFile.exists())destinationFile.delete();
-        return downloadFile(link, destinationFile);
-    }
     public static InputStream getRemoteInputStream(String currentFile, final URLConnection urlconnection) throws Exception {
         final InputStream[] is = new InputStream[1];
         for (int j = 0; (j < 3) && (is[0] == null); j++) {
@@ -419,44 +485,6 @@ public class Main{
         }
         return is[0];
     }
-    private static void extractFile(File fromZip, File toDir){
-        if(!fromZip.exists()){
-            return;
-        }
-        toDir.mkdirs();
-        try(ZipInputStream in = new ZipInputStream(new FileInputStream(fromZip))){
-            ZipEntry entry;
-            while((entry = in.getNextEntry())!=null){
-                File destFile = new File(toDir.getAbsolutePath()+"\\"+entry.getName().replaceAll("/", "\\"));
-                delete(destFile);
-                try(FileOutputStream out = new FileOutputStream(destFile)){
-                    byte[] buffer = new byte[1024];
-                    int read = 0;
-                    while((read=in.read(buffer))>=0){
-                        out.write(buffer, 0, read);
-                    }
-                }
-            }
-        }catch(IOException ex){
-            throw new RuntimeException(ex);
-        }
-    }
-    private static void delete(File file){
-        if(!file.exists()){
-            return;
-        }
-        if(file.isDirectory()){
-            File[] files = file.listFiles();
-            if(files!=null){
-                for(File afile : files){
-                    delete(afile);
-                }
-            }
-            file.delete();
-        }else{
-            file.delete();
-        }
-    }
     /**
      * Restarts the program.  This method will return normally if the program was properly restarted or throw an exception if it could not be restarted.
      * @param vmArgs The VM arguments for the new instance
@@ -469,11 +497,13 @@ public class Main{
     public static Process restart(String[] vmArgs, String[] applicationArgs, String[] additionalFiles, Class<?> mainClass) throws URISyntaxException, IOException{
         ArrayList<String> params = new ArrayList<>();
         params.add("java");
+        if(os==OS_MACOS)params.add("-XstartOnFirstThread");
         params.addAll(Arrays.asList(vmArgs));
         params.add("-classpath");
         String filepath = mainClass.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+        String separator = System.getProperty("path.separator");
         for(String str : additionalFiles){
-            filepath+=";"+str;
+            filepath+=separator+str;
         }
         params.add(filepath);
         params.add(mainClass.getName());
@@ -492,6 +522,7 @@ public class Main{
     public static Process startJava(String[] vmArgs, String[] applicationArgs, File file) throws URISyntaxException, IOException{
         ArrayList<String> params = new ArrayList<>();
         params.add("java");
+        if(os==OS_MACOS)params.add("-XstartOnFirstThread");
         params.addAll(Arrays.asList(vmArgs));
         params.add("-jar");
         params.add(file.getAbsolutePath());

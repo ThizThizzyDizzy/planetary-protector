@@ -1,7 +1,6 @@
 package planetaryprotector.game;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.Core;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Tree;
@@ -19,12 +18,12 @@ public abstract class WorldGenerator{
             private static final int FAILS = 10;
             @Override
             public void generateCity(Game game){
-                game.structures.add(new Base(game, Display.getWidth()/2-50, Display.getHeight()/2-50));
+                game.structures.add(new Base(game, Core.helper.displayWidth()/2-50, Core.helper.displayHeight()/2-50));
                 int fails = 0;
                 while(fails<FAILS){
                     //<editor-fold defaultstate="collapsed" desc="Generate building">
                     FOR:for(int i = 0; i<TRIES; i++){
-                        Skyscraper scraper = new Skyscraper(game, game.rand.nextInt(Display.getWidth()-100), game.rand.nextInt(Display.getHeight()-100), game.rand.nextInt(40)+10);
+                        Skyscraper scraper = new Skyscraper(game, game.rand.nextInt(Core.helper.displayWidth()-100), game.rand.nextInt(Core.helper.displayHeight()-100), game.rand.nextInt(40)+10);
                         for(Structure structure : game.structures){
                             double Y = structure.y;
                             if(structure instanceof Skyscraper){
@@ -43,7 +42,7 @@ public abstract class WorldGenerator{
                     fails++;
                 }
                 GEN:for(int i = 0; i<TRIES; i++){
-                    Tree tree = new Tree(game, game.rand.nextInt(Display.getWidth()-10), game.rand.nextInt(Display.getHeight()-4));
+                    Tree tree = new Tree(game, game.rand.nextInt(Core.helper.displayWidth()-10), game.rand.nextInt(Core.helper.displayHeight()-4));
                     for(Structure structure : game.structures){
                         double Y = structure.y;
                         if(structure instanceof Skyscraper){
@@ -69,19 +68,19 @@ public abstract class WorldGenerator{
             @Override
             public void generateCity(Game game){
                 int width = 1;
-                while(width*100+GAP*(width+1)<Display.getWidth()){
+                while(width*100+GAP*(width+1)<Core.helper.displayWidth()){
                     width+=2;
                 }
                 width-=2;
                 int height = 1;
-                while(height*100+GAP*(height+1)<Display.getHeight()){
+                while(height*100+GAP*(height+1)<Core.helper.displayHeight()){
                     height+=2;
                 }
                 height-=2;
                 int w = width*100+(GAP*(width-1));
                 int h = height*100+(GAP*(height-1));
-                int top = Display.getHeight()/2-h/2;
-                int left = Display.getWidth()/2-w/2;
+                int top = Core.helper.displayHeight()/2-h/2;
+                int left = Core.helper.displayWidth()/2-w/2;
                 for(int x = 0; x<width; x++){
                     for(int y = 0; y<height; y++){
                         int X = left+(x*(GAP+100));
@@ -91,7 +90,7 @@ public abstract class WorldGenerator{
                     }
                 }
                 GEN:for(int i = 0; i<1000; i++){
-                    Tree tree = new Tree(game, game.rand.nextInt(Display.getWidth()-10), game.rand.nextInt(Display.getHeight()-4));
+                    Tree tree = new Tree(game, game.rand.nextInt(Core.helper.displayWidth()-10), game.rand.nextInt(Core.helper.displayHeight()-4));
                     for(Structure structure : game.structures){
                         double Y = structure.y;
                         if(structure instanceof Skyscraper){

@@ -1,7 +1,7 @@
 package planetaryprotector.menu;
 import planetaryprotector.game.Game;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import simplelibrary.opengl.gui.components.MenuComponent;
@@ -9,15 +9,15 @@ public class MenuComponentPhaseMarker extends MenuComponent{
     private final Game game;
     private final int phase;
     public MenuComponentPhaseMarker(MenuGame menu){
-        super(0, 0, Display.getWidth(), Display.getHeight());
+        super(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight());
         game = menu.game;
         this.phase = menu.game.phase;
     }
     public double opacity = .2;
     private boolean opacitizing = true;
     @Override
-    public void mouseEvent(double x, double y, int button, boolean isDown) {
-        if(!isDown)return;
+    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
+        if(!pressed)return;
         if(opacitizing){
             if(opacity<.8)return;
             opacitizing = false;

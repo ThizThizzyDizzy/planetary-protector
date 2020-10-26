@@ -1,8 +1,8 @@
 package planetaryprotector.menu.ingame;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.Controls;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuControls extends MenuComponentOverlay{
@@ -11,7 +11,7 @@ public class MenuControls extends MenuComponentOverlay{
     private final int textHeight = 40;
     public MenuControls(MenuGame menu){
         super(menu);
-        back = add(new MenuComponentButton(Display.getWidth()/2-400, Display.getHeight()-160, 800, 80, "Back", true));
+        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, "Back", true));
     }
     @Override
     public void render(){
@@ -35,8 +35,9 @@ public class MenuControls extends MenuComponentOverlay{
         }
     }
     @Override
-    public void keyboardEvent(char character, int key, boolean pressed, boolean repeat) {
-        if(key==Controls.menu&&pressed&&!repeat){
+    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+        super.keyEvent(key, scancode, isPress, isRepeat, modifiers);
+        if(key==Controls.menu&&isPress&&!isRepeat){
             buttonClicked(back);
         }
     }
@@ -59,10 +60,10 @@ public class MenuControls extends MenuComponentOverlay{
         drawText(left,top,right,bottom, str);
     }
     private String getKeyName(int key){
-        return key==-1?"NONE":Keyboard.getKeyName(key);
+        return key==-1?"NONE":GLFW.glfwGetKeyName(key, GLFW.glfwGetKeyScancode(key));
     }
     private void text(String string){
-        textWithBackground(0, yOffset, Display.getWidth(), yOffset+textHeight, string);
+        textWithBackground(0, yOffset, Core.helper.displayWidth(), yOffset+textHeight, string);
         yOffset+=textHeight;
     }
 }

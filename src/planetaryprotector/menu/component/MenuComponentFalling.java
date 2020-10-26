@@ -1,6 +1,6 @@
 package planetaryprotector.menu.component;
+import planetaryprotector.Core;
 import planetaryprotector.item.Item;
-import org.lwjgl.opengl.Display;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.opengl.gui.components.MenuComponent;
@@ -19,7 +19,7 @@ public class MenuComponentFalling extends MenuComponent{
             return;
         }
         if(!game.paused){
-            if(y>Display.getHeight()){
+            if(y>Core.helper.displayHeight()){
                 return;
             }
         }
@@ -29,7 +29,7 @@ public class MenuComponentFalling extends MenuComponent{
     @Override
     public void tick(){
         if(!game.paused){
-            if(y>Display.getHeight()){
+            if(y>Core.helper.displayHeight()){
                 return;
             }
             yVelocity+= 0.981;
