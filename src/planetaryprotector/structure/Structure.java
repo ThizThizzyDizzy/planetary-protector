@@ -393,9 +393,8 @@ public abstract class Structure extends GameObject{
         return ((int)x)%getVariants();
     }//TODO random, not linear. Also use X and Y
     public void getActions(MenuGame menu, ArrayList<Action> actions){}
-    @Deprecated
     public void drawDamage(StructureDamage damage){
-        drawRectWithBounds(damage.x-x, damage.y-y, damage.x+damage.size-x, damage.y+damage.size-y, 0, 0, width, height, type.getDamageTexture());
+        drawRectWithBounds(damage.x-x, damage.y-y, damage.x+damage.size-x, damage.y+damage.size-y, 0, -getStructureHeight(), width, height, type.getDamageTexture());
     }
     public void setTask(Task task){
         if(game.selectedStructure==this)game.actionUpdateRequired = 2;

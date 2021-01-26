@@ -112,11 +112,4 @@ public class Base extends Structure{
             }));
         }
     }
-    @Override
-    public void drawDamage(StructureDamage damage){
-        if(deathTick>100){
-            return;
-        }
-        drawRectWithBounds(damage.x-x, damage.y-y, damage.x+damage.size-x, damage.y+damage.size-y, 0, -25, width, height, type.getDamageTexture());
-    }
 }

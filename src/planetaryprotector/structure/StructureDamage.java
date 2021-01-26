@@ -13,7 +13,7 @@ public class StructureDamage extends Renderer2D{
     }
     public void render(){
         GL11.glColor4d(1, 1, 1, opacity);
-        structure.drawDamage(this);//TODO maybe actually do the rendering HERE
+        structure.drawDamage(this);
         GL11.glColor4d(1, 1, 1, 1);
     }
 }

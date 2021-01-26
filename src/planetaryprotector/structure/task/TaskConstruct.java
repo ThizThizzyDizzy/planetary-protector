@@ -53,7 +53,7 @@ public class TaskConstruct extends TaskAnimated{
     @Override
     public void work(){
         progress++;
-        if(target.type==StructureType.MINE){//TODO put in StructureType
+        if(target.type==StructureType.MINE){
             if(game.rand.nextDouble()<=0.05){
                 int itemX = target.x+game.rand.nextInt(79)+11;
                 int itemY = target.y+game.rand.nextInt(79)+11;
@@ -72,7 +72,7 @@ public class TaskConstruct extends TaskAnimated{
         for(ItemStack stack : target.type.getConstructionCosts()){
             game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
-        if(target.type==StructureType.SKYSCRAPER){//TODO put in StructureType
+        if(target.type==StructureType.SKYSCRAPER){
             Skyscraper sky = (Skyscraper) target;
             sky.floorCount = 10;
         }
