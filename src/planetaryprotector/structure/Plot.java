@@ -28,7 +28,7 @@ public class Plot extends Structure implements StructureDamagable{
     public void getActions(MenuGame menu, ArrayList<Action> actions){
         for(StructureType type : StructureType.structureTypes){
             if(type.isConstructible(game)){
-                actions.add(new Action("Build "+type.name, new TaskConstruct(this, type.createStructure(game, x, y))));
+                actions.add(new Action("Build "+type.getDisplayName(), new TaskConstruct(this, type.createStructure(game, x, y))));
             }
         }
     }

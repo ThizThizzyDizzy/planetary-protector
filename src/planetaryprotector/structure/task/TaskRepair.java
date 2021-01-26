@@ -52,7 +52,7 @@ public class TaskRepair extends Task{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Repairing "+structure.type.name);
+            strs.add("Repairing "+structure.type.getDisplayName());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }

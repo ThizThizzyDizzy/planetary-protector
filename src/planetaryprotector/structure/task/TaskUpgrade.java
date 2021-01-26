@@ -19,7 +19,7 @@ public class TaskUpgrade extends Task{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            strs.add("Upgrading "+structure.type.name);
+            strs.add("Upgrading "+structure.type.getDisplayName());
             strs.add("- "+Math.round(progress()*100)+"% completed");
         }else{
             int ticks = time-progress;
@@ -34,7 +34,7 @@ public class TaskUpgrade extends Task{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Upgrading "+structure.type.name);
+            strs.add("Upgrading "+structure.type.getDisplayName());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }

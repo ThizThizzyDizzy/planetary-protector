@@ -17,7 +17,7 @@ public class TaskWreckClean extends TaskAnimated{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            strs.add("Cleaning "+structure.type.name);
+            strs.add("Cleaning "+structure.type.getDisplayName());
             strs.add("- "+Math.round(progress()*100)+"% completed");
         }else{
             int ticks = time-progress;
@@ -32,7 +32,7 @@ public class TaskWreckClean extends TaskAnimated{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Cleaning "+structure.type.name);
+            strs.add("Cleaning "+structure.type.getDisplayName());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }

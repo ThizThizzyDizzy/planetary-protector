@@ -23,7 +23,7 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            strs.add("Adding "+floors+" floor"+(floors==1?"":"s")+" to "+structure.type.name);
+            strs.add("Adding "+floors+" floor"+(floors==1?"":"s")+" to "+structure.type.getDisplayName());
             strs.add("- "+Math.round(progress()*100)+"% completed");
         }else{
             int ticks = time-progress;
@@ -38,7 +38,7 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Adding "+floors+" floor"+(floors==1?"":"s")+" to "+structure.type.name);
+            strs.add("Adding "+floors+" floor"+(floors==1?"":"s")+" to "+structure.type.getDisplayName());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }

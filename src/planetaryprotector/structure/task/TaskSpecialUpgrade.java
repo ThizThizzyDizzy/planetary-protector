@@ -21,7 +21,7 @@ public class TaskSpecialUpgrade extends TaskAnimated{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            strs.add("Upgrading "+structure.type.name+" with "+upgrade.toString());
+            strs.add("Upgrading "+structure.type.getDisplayName()+" with "+upgrade.toString());
             strs.add("- "+Math.round(progress()*100)+"% completed");
         }else{
             int ticks = time-progress;
@@ -36,7 +36,7 @@ public class TaskSpecialUpgrade extends TaskAnimated{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Upgrading "+structure.type.name+" with "+upgrade.toString());
+            strs.add("Upgrading "+structure.type.getDisplayName()+" with "+upgrade.toString());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }

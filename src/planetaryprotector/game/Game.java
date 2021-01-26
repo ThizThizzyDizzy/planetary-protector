@@ -1823,7 +1823,7 @@ public class Game extends Renderer2D{
         debug.add("Structures: "+structures.size());
         for(StructureType structure : theStructures.keySet()){
             int amount = theStructures.get(structure);
-            debug.add(" - "+amount+" "+structure.name+" ("+Math.round(amount/(double)structures.size()*100)+"%)");
+            debug.add(" - "+amount+" "+structure.getDisplayName()+" ("+Math.round(amount/(double)structures.size()*100)+"%)");
         }
         if(selectedStructure!=null){
             debug.add("Selected structure: ");

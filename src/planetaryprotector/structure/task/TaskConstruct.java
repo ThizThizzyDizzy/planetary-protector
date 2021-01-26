@@ -24,7 +24,7 @@ public class TaskConstruct extends TaskAnimated{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            strs.add("Constructing "+target.type.name);
+            strs.add("Constructing "+target.type.getDisplayName());
             strs.add("- "+Math.round(progress()*100)+"% completed");
         }else{
             int ticks = time-progress;
@@ -39,7 +39,7 @@ public class TaskConstruct extends TaskAnimated{
                 minutes++;
                 seconds-=60;
             }
-            strs.add("Constructing "+target.type.name);
+            strs.add("Constructing "+target.type.getDisplayName());
             if(minutes>0){
                 strs.add("- "+minutes+" minute"+(minutes==1?"":"s"));
             }
