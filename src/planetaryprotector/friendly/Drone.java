@@ -6,7 +6,7 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.structure.building.Silo;
+import planetaryprotector.structure.Silo;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.enemy.EnemyMothership;
@@ -136,7 +136,7 @@ public class Drone extends GameObject{
         laserFiring = new double[]{en.x,en.y};
     }
     @Override
-    public void render(){
+    public void draw(){
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(0, 0, 0, 0, 0);
         if(laserFiring!=null){

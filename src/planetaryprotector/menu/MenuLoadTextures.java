@@ -11,15 +11,15 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import planetaryprotector.structure.building.Building.Upgrade;
-import planetaryprotector.structure.building.BuildingType;
-import planetaryprotector.structure.building.task.TaskAnimated;
-import planetaryprotector.structure.building.task.TaskType;
+import planetaryprotector.structure.task.TaskAnimated;
+import planetaryprotector.structure.task.TaskType;
 import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.item.Item;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
+import planetaryprotector.structure.Structure.Upgrade;
+import planetaryprotector.structure.StructureType;
 import simplelibrary.Queue;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
@@ -72,9 +72,9 @@ public class MenuLoadTextures extends Menu{
             for(Game.Theme t : Game.Theme.values()){
                 Game.theme = t;
                 for(int i = 0; i<=16; i++){
-                    verifyTextures.enqueue("/textures/buildings/base/door/"+i+".png");
+                    verifyTextures.enqueue("/textures/structures/base/door/"+i+".png");
                 }
-                for(BuildingType type : BuildingType.values()){
+                for(StructureType type : StructureType.structureTypes){
                     verifyTextures.enqueue(type.getTextureS());
                     for(Upgrade u : type.upgrades){
                         for(int i = 1; i<=u.max; i++){
@@ -83,14 +83,14 @@ public class MenuLoadTextures extends Menu{
                         }
                     }
                     verifyTextures.enqueue(type.getDamageTextureS());
-                    if(type.isConstructable()){
+                    if(type.isConstructible()){
                         verifyAnimations.enqueue(type.getAnimationS());
                     }
                 }
                 verifyAnimations.enqueue("/textures/tasks/skyscraper/add 1/"+t.tex());
                 verifyAnimations.enqueue("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+t.tex());
-                verifyTextures.enqueue("/textures/buildings/shield.png");
-                verifyTextures.enqueue("/textures/buildings/shield outline.png");
+                verifyTextures.enqueue("/textures/structures/shield.png");
+                verifyTextures.enqueue("/textures/structures/shield outline.png");
                 verifyTextures.enqueue("/textures/enemies/alien.png");
                 verifyTextures.enqueue("/textures/worker.png");
                 verifyTextures.enqueue("/textures/enemies/ship.png");
@@ -105,7 +105,6 @@ public class MenuLoadTextures extends Menu{
                 verifyTextures.enqueue("/textures/logo.png");
                 verifyTextures.enqueue("/textures/background/dirt normal.png");
                 verifyTextures.enqueue("/textures/background/dirt snowy.png");
-                verifyTextures.enqueue("/textures/background/cave.png");
                 verifyTextures.enqueue("/textures/background/stone.png");
                 for(Game.Theme theme : Game.Theme.values()){
                     for(int i = 1; i<=Core.LEVELS; i++){

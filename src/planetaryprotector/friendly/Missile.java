@@ -4,7 +4,7 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyLandingParty;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.structure.building.Silo;
+import planetaryprotector.structure.Silo;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
 public class Missile extends Drone{
@@ -43,7 +43,7 @@ public class Missile extends Drone{
         }
     }
     @Override
-    public void render(){
+    public void draw(){
         int texture = ImageStash.instance.getTexture("/textures/missile.png");
         if(speed<0){
             drawRect(x, y+height, x+width, y, texture);

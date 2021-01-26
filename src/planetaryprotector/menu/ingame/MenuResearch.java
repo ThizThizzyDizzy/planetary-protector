@@ -2,12 +2,12 @@ package planetaryprotector.menu.ingame;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
 import planetaryprotector.Core;
-import planetaryprotector.structure.building.Laboratory;
+import planetaryprotector.structure.Laboratory;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.research.Research;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentMulticolumnList;
-public class MenuResearch extends MenuComponentOverlayBuilding{
+public class MenuResearch extends MenuComponentOverlayStructure{
     private final Laboratory laboratory;
     private final MenuComponentMulticolumnList undiscovered;
     private final MenuComponentMulticolumnList available;

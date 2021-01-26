@@ -3,7 +3,7 @@ import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.ShieldGenerator;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.Structure;
@@ -16,7 +16,7 @@ public class EnemyLandingParty extends Enemy{
     public double laserSizing = 1/3D;
     public EnemyLandingParty(Game game){
         super(game, 0, 0, 50, 50, 250);
-        double[] location = getFurthestCorner(game);
+        int[] location = getFurthestCorner(game);
         if(location==null){
             location = game.getCityBoundingBox().getCenter();
         }
@@ -28,7 +28,7 @@ public class EnemyLandingParty extends Enemy{
         }
     }
     @Override
-    public void render(){
+    public void draw(){
         if(laserFiring!=null){
             double xDiff = laserFiring[0]-x;
             double yDiff = laserFiring[1]-y;
@@ -50,7 +50,7 @@ public class EnemyLandingParty extends Enemy{
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
-        width = height = 50*((initialDelay/20D)+1);
+        width = height = (int)(50*((initialDelay/20D)+1));
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/ship.png"));
         GL11.glColor4d(1, 1, 1, 1);
@@ -143,31 +143,31 @@ public class EnemyLandingParty extends Enemy{
         laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
         gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
-    public static double[] getFurthestCorner(Game game){
+    public static int[] getFurthestCorner(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
         for(Structure structure : game.structures){
             if(structure instanceof ShieldGenerator){
                 shieldGen.add((ShieldGenerator) structure);
             }
         }
-        ArrayList<Double[]> possibleStrikes = new ArrayList<>();//TODO redo!
+        ArrayList<int[]> possibleStrikes = new ArrayList<>();//TODO redo!
         for(ShieldGenerator gen : shieldGen){
-            double dist = Core.distance(gen,25d,25d);
-            possibleStrikes.add(new Double[]{25d,25d,dist});
-            dist = Core.distance(gen,game.getCityBoundingBox().width-25d,25d);
-            possibleStrikes.add(new Double[]{game.getCityBoundingBox().width-25d,25d,dist});
-            dist = Core.distance(gen,25d,game.getCityBoundingBox().height-25d);
-            possibleStrikes.add(new Double[]{25d,game.getCityBoundingBox().height-25d,dist});
-            dist = Core.distance(gen,game.getCityBoundingBox().width-25d,game.getCityBoundingBox().height-25d);
-            possibleStrikes.add(new Double[]{game.getCityBoundingBox().width-25d,game.getCityBoundingBox().height-25d,dist});
+            int dist = (int)Core.distance(gen,25,25);
+            possibleStrikes.add(new int[]{25,25,dist});
+            dist = (int)Core.distance(gen,game.getCityBoundingBox().width-25,25);
+            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25,25,dist});
+            dist = (int)Core.distance(gen,25,game.getCityBoundingBox().height-25);
+            possibleStrikes.add(new int[]{25,game.getCityBoundingBox().height-25,dist});
+            dist = (int)Core.distance(gen,game.getCityBoundingBox().width-25,game.getCityBoundingBox().height-25);
+            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25,game.getCityBoundingBox().height-25,dist});
         }
-        double max = Double.NEGATIVE_INFINITY;
-        for(Double[] strike : possibleStrikes){
+        int max = Integer.MIN_VALUE;
+        for(int[] strike : possibleStrikes){
             max = Math.max(strike[2], max);
         }
-        for(Double[] strike : possibleStrikes){
+        for(int[] strike : possibleStrikes){
             if(strike[2]==max){
-                return new double[]{strike[0],strike[1]};
+                return new int[]{strike[0],strike[1]};
             }
         }
         return null;

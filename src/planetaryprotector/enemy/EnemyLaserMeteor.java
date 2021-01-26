@@ -2,7 +2,7 @@ package planetaryprotector.enemy;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.ShieldGenerator;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.Structure;
@@ -13,11 +13,11 @@ public class EnemyLaserMeteor extends Enemy{
     public double laserTime = 20*30;
     public double laserSize = 20;
     public double laserSizing = 1/3D;
-    double[] loc = null;
+    int[] loc = null;
     boolean incrase = false;
     public EnemyLaserMeteor(Game game){
         super(game, 0, 0, 50, 50, 150);
-        double[] location = EnemyMeteorStrike.getMeteorStrike(game);
+        int[] location = EnemyMeteorStrike.getMeteorStrike(game);
         if(location==null){
             location = EnemyMeteorStrike.getBestStrike(game);
             if(location==null){
@@ -30,7 +30,7 @@ public class EnemyLaserMeteor extends Enemy{
         laserPower*=strength;
     }
     @Override
-    public void render(){
+    public void draw(){
         if(laserFiring!=null){
             double xDiff = laserFiring[0]-x;
             double yDiff = laserFiring[1]-y;
@@ -52,7 +52,7 @@ public class EnemyLaserMeteor extends Enemy{
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
-        width = height = 50*((initialDelay/20D)+1);
+        width = height = (int)(50*((initialDelay/20D)+1));
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/ship.png"));
         GL11.glColor4d(1, 1, 1, 1);

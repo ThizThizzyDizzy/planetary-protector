@@ -10,13 +10,13 @@ public class DroppedItem extends GameObject{
     private double opacity = 1;
     private double rot;
     public boolean dead = false;
-    public DroppedItem(Game game, double x, double y, Item item){
+    public DroppedItem(Game game, int x, int y, Item item){
         super(game, x,y,10,10);
         this.item=item;
         rot = game.rand.nextDouble()*360;
     }
     @Override
-    public void render(){
+    public void draw(){
         GL11.glColor4d(1, 1, 1, opacity);
         if(item==Item.star){
             rot+=.75;

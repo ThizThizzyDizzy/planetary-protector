@@ -1,6 +1,6 @@
 package planetaryprotector.game;
 import java.awt.event.ActionListener;
-import planetaryprotector.structure.building.task.Task;
+import planetaryprotector.structure.task.Task;
 import planetaryprotector.item.ItemStack;
 public class Action{
     public int divider = 0;

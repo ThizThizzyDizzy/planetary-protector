@@ -1,7 +1,6 @@
 package planetaryprotector;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +40,12 @@ public class Main{
         addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar");
     }
     public static void main(String[] args){
+        String osName = System.getProperty("os.name");
+        if(osName==null)osName = "null";
+        osName = osName.toLowerCase(Locale.ENGLISH);
+        if(osName.contains("win"))os = OS_WINDOWS;
+        if(osName.contains("mac"))os = OS_MACOS;
+        if(osName.contains("nix")||osName.contains("nux")||osName.contains("aix"))os = OS_LINUX;
         List<String> argses = Arrays.asList(args);
         try{
             if(argses.contains("noAWT")){
@@ -131,9 +136,6 @@ public class Main{
             String osName = System.getProperty("os.name");
             if(osName==null)osName = "null";
             osName = osName.toLowerCase(Locale.ENGLISH);
-            if(osName.contains("win"))os = OS_WINDOWS;
-            if(osName.contains("mac"))os = OS_MACOS;
-            if(osName.contains("nix")||osName.contains("nux")||osName.contains("aix"))os = OS_LINUX;
             if(os==OS_UNKNOWN){
                 System.out.println("Unknown OS: "+osName);
                 if(hasAWT){

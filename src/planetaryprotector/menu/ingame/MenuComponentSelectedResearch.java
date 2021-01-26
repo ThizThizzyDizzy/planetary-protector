@@ -3,7 +3,7 @@ import java.util.Random;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import planetaryprotector.structure.building.Laboratory;
+import planetaryprotector.structure.Laboratory;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
 import planetaryprotector.research.DiscoveryPrerequisite;

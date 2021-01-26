@@ -2,13 +2,13 @@ package planetaryprotector.menu.ingame;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Controls;
 import planetaryprotector.Core;
-import planetaryprotector.structure.building.PowerStorage;
+import planetaryprotector.structure.PowerStorage;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.component.MenuComponentCheckbox;
 import simplelibrary.font.FontManager;
 import simplelibrary.opengl.gui.components.MenuComponent;
 import simplelibrary.opengl.gui.components.MenuComponentSlider;
-public class MenuPowerStorageConfiguration extends MenuComponentOverlayBuilding{
+public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure{
     private static final int spacing = 3;
     private static final int textHeight = 40;
     private static final int dividerHeight = textHeight/2;

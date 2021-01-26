@@ -166,7 +166,7 @@ public class Sounds{
     public static HashMap<String, Integer> songSizes = new HashMap<>();
     public static HashMap<String, String> songURLs = new HashMap<>();
     public static ArrayList<String> downloadOrder = new ArrayList<>();
-    public static float vol = 1f;
+    private static float vol = 1f;
     /**
      * Disables the sound system.
      * Equivalent to AL.destroy();
@@ -225,7 +225,9 @@ public class Sounds{
         if(musicChannel.isStopped()){
             enableAutoplay();
         }
-        vol = Math.max(0,Math.min(1,vol));
+    }
+    public static void setVolume(float volume){
+        vol = Math.max(0,Math.min(1,volume));
         soundSystem.setMasterVolume(Math.max(0.0001f,vol));
     }
     /**
@@ -374,5 +376,8 @@ public class Sounds{
             }
         }
         return null;
+    }
+    public static float getVolume(){
+        return vol;
     }
 }

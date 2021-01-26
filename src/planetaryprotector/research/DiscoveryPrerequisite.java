@@ -1,14 +1,13 @@
 package planetaryprotector.research;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.BuildingType;
 import planetaryprotector.item.Item;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.StructureType;
 import simplelibrary.config2.Config;
 public class DiscoveryPrerequisite{
     private final Type type;
     private int phase;
-    private BuildingType building;
+    private StructureType structure;
     private int level;
     private int count;
     private int ticks;
@@ -23,9 +22,9 @@ public class DiscoveryPrerequisite{
         this.type = type;
         this.phase = phase;
     }
-    private DiscoveryPrerequisite(Type type, BuildingType building, int level, int count){
+    private DiscoveryPrerequisite(Type type, StructureType structure, int level, int count){
         this.type = type;
-        this.building = building;
+        this.structure = structure;
         this.level = level;
         this.count = count;
     }
@@ -48,14 +47,14 @@ public class DiscoveryPrerequisite{
     public static DiscoveryPrerequisite phase(int phase){
         return new DiscoveryPrerequisite(Type.PHASE, phase);
     }
-    public static DiscoveryPrerequisite building(BuildingType building){
-        return building(building, 1);
+    public static DiscoveryPrerequisite structure(StructureType structure){
+        return structure(structure, 1);
     }
-    public static DiscoveryPrerequisite building(BuildingType building, int level){
-        return building(building, level, 1);
+    public static DiscoveryPrerequisite structure(StructureType structure, int level){
+        return structure(structure, level, 1);
     }
-    public static DiscoveryPrerequisite building(BuildingType building, int level, int count){
-        return new DiscoveryPrerequisite(Type.BUILDING, building, level, count);
+    public static DiscoveryPrerequisite structure(StructureType structure, int level, int count){
+        return new DiscoveryPrerequisite(Type.BUILDING, structure, level, count);
     }
     public static DiscoveryPrerequisite time(int ticks, DiscoveryPrerequisite... prerequisites){
         return new DiscoveryPrerequisite(Type.TIME, ticks, prerequisites);
@@ -95,11 +94,8 @@ public class DiscoveryPrerequisite{
             case BUILDING:
                 double found = 0;
                 for(Structure s : game.structures){
-                    if(s instanceof Building){
-                        Building b = (Building) s;
-                        if(b.type==building){
-                            found += Math.min(level, b.getLevel())/(double)level;
-                        }
+                    if(s.type==structure){
+                        found += Math.min(level, s.getLevel())/(double)level;
                     }
                 }
                 progress = found/count;
@@ -142,7 +138,7 @@ public class DiscoveryPrerequisite{
     public String getProgressDescription(Game game){
         switch(type){
             case BUILDING:
-                return count+"x"+building.toString()+" "+level+": ("+toPercent(progress)+"%)";
+                return count+"x"+structure.toString()+" "+level+": ("+toPercent(progress)+"%)";
             case GAIN_RESOURCE:
                 return "Gain "+item.name+": "+discovery+"/"+count+" ("+toPercent(progress)+"%)";
             case PHASE:

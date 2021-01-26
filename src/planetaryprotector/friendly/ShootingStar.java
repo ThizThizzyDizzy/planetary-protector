@@ -14,11 +14,11 @@ public class ShootingStar extends GameObject implements ZComponent{
     public int speed = 10;
     public int landing = 0;
     public int landTime = 48;
-    public ShootingStar(Game game, double x, double y){
+    public ShootingStar(Game game, int x, int y){
         super(game, x,y, 25, 25);
     }
     @Override
-    public void render(){
+    public void draw(){
         if(dead)return;
         double fallProgress = landing/(double)landTime;
         double landX = x+width/2;
@@ -55,7 +55,7 @@ public class ShootingStar extends GameObject implements ZComponent{
         for(int i = 0; i<particleResolution; i++){
             X-=dX;
             Y-=dY;
-            Particle particle = new Particle(game, X, Y, ParticleEffectType.SMOKE, 1, true);
+            Particle particle = new Particle(game, (int)X, (int)Y, ParticleEffectType.SMOKE, 1, true);
             particle.width = particle.height = 25;
             game.addParticleEffect(particle);
         }

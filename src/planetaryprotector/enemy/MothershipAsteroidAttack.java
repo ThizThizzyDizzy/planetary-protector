@@ -31,8 +31,8 @@ public class MothershipAsteroidAttack extends GameObject{
                         while(r>=c){
                             r-=c;
                         }
-                        double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
-                        double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
+                        int X = (int)(Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2);
+                        int Y = (int)(Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2);
                         Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
                         game.addAsteroid(a);
@@ -56,8 +56,8 @@ public class MothershipAsteroidAttack extends GameObject{
                         while(r>=c){
                             r-=c;
                         }
-                        double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
-                        double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
+                        int X = (int)(Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2);
+                        int Y = (int)(Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2);
                         Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
                         a.drop = false;
                         game.addAsteroid(a);
@@ -66,5 +66,5 @@ public class MothershipAsteroidAttack extends GameObject{
         }
     }
     @Override
-    public void render(){}
+    public void draw(){}
 }

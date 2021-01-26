@@ -11,11 +11,12 @@ import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Particle extends GameObjectAnimated{
     public final ParticleEffectType type;
-    protected int rotation;
+    protected double rotation;
     public double opacity = 1;
     protected int radius;
     private final int size;
     public boolean air = false;
+    private double xing = 0;//used to smooth out double-based movements over longer X distance
     //clouds
     public double strength;
     private double rateOfChange;
@@ -28,13 +29,13 @@ public class Particle extends GameObjectAnimated{
     public boolean fading;
     public Lightning lightning = null;
     private ArrayList<double[]> snow = new ArrayList<>();
-    public Particle(Game game, double x, double y, ParticleEffectType type){
+    public Particle(Game game, int x, int y, ParticleEffectType type){
         this(game, x, y, type, 1);
     }
-    public Particle(Game game, double x, double y, ParticleEffectType type, int size){
+    public Particle(Game game, int x, int y, ParticleEffectType type, int size){
         this(game, x, y, type, size, false);
     }
-    public Particle(Game game, double x, double y, ParticleEffectType type, int size, boolean air){
+    public Particle(Game game, int x, int y, ParticleEffectType type, int size, boolean air){
         super(game, x, y, 50, 50, type.images);
         this.type = type;
         this.size = size;
@@ -46,20 +47,21 @@ public class Particle extends GameObjectAnimated{
             this.air = true;
         }
     }
-    public Particle(Game game, double x, double y, double cloudStrength, double cloudRateOfChange, double speed){
+    public Particle(Game game, int x, int y, double cloudStrength, double cloudRateOfChange, double speed){
         this(game, x, y, ParticleEffectType.CLOUD);
         strength = cloudStrength;
         rateOfChange = cloudRateOfChange;
         this.speed = speed;
     }
     @Override
-    public void render(){
+    public void draw(){
         if(opacity<=0){
             dead = true;
         }
         if(dead){
             return;
         }
+        double x = this.x+xing;
         switch(type){
             case EXPLOSION:
                 //smoke
@@ -215,10 +217,13 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.CLOUD){
             strength+=rateOfChange;
             rotation+=rotSpeed;
-            if(x>Core.helper.displayWidth()){
+            if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
                 dead = true;
             }
-            x+=speed;
+            xing+=speed;
+            int actualX = (int)xing;
+            x+=actualX;
+            xing-=actualX;
             for (Iterator<double[]> it = snow.iterator(); it.hasNext();) {
                 double[] i = it.next();
                 if(game.rand.nextBoolean()){

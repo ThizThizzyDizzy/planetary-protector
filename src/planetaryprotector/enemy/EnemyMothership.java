@@ -3,12 +3,12 @@ import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.building.CoalGenerator;
+import planetaryprotector.structure.CoalGenerator;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.BoundingBox;
 import planetaryprotector.structure.Structure;
 import simplelibrary.opengl.ImageStash;
-import planetaryprotector.structure.building.PowerConsumer;
+import planetaryprotector.structure.PowerConsumer;
 public class EnemyMothership extends Enemy{
     public int initialDelay = 20*10;
     public double laserPower = 15;
@@ -28,7 +28,7 @@ public class EnemyMothership extends Enemy{
         super(game, game.getCityBoundingBox().getCenterX(), 100, 250, 175, maxHealth);
     }
     @Override
-    public void render(){
+    public void draw(){
         GL11.glColor4d(1, 0, 1, 1);
         drawRect(0, 0, 0, 0, 0);
         if(powerLaserFiring!=null){
@@ -75,7 +75,7 @@ public class EnemyMothership extends Enemy{
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }
-        width = height = 250*((initialDelay/20D)+1);
+        width = height = (int)(250*((initialDelay/20D)+1));
         double opacity = 1;
         if(width>game.getCityBoundingBox().width*(3/4D)){//TODO redo
             double d = width-game.getCityBoundingBox().width*(3/4D);
@@ -229,7 +229,7 @@ public class EnemyMothership extends Enemy{
     int repairTimer = 0;
     int[] laserTimers = new int[]{20*60};
     int[] landingPartyTimers = new int[]{};
-    double[] laserFiring = null;
+    int[] laserFiring = null;
     double randomLaserTimer = 100;
     double randomLaserTime = 40;
     double randomLaserDelay = 50;
@@ -255,8 +255,8 @@ public class EnemyMothership extends Enemy{
         }else{
             randomLaserTimer++;
             double percent = (-randomLaserTimer)/randomLaserTime;
-            double[] diff = new double[]{end[0]-begin[0],end[1]-begin[1]};
-            laserFiring = new double[]{diff[0]*percent+begin[0],diff[1]*percent+begin[1]};
+            int[] diff = new int[]{end[0]-begin[0],end[1]-begin[1]};
+            laserFiring = new int[]{(int)(diff[0]*percent+begin[0]),(int)(diff[1]*percent+begin[1])};
             fireLaser();
             if(randomLaserTimer==0){
                 randomLaserTimer = randomLaserDelay;

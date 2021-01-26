@@ -14,7 +14,7 @@ import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;
 public class MenuLost extends Menu{
     private int tick;
-    private double[] laserFiring;
+    private int[] laserFiring;
     private Framebuffer space;
     private boolean gottenFar = false;
     private static final double SPEED = 1.5;//planet break speed modifier
@@ -109,7 +109,7 @@ public class MenuLost extends Menu{
                 GL11.glColor4d(1, 1, 1, 1);
             }else{
                 GL11.glColor4d(1, 1, 1, 1);
-                laserFiring = new double[]{Core.helper.displayWidth()/2,Core.helper.displayHeight()/2};
+                laserFiring = new int[]{0, 0};
                 if(laserFiring!=null){
                     int x = Core.helper.displayWidth()/2;
                     int y = 100;

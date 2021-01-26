@@ -1,6 +1,10 @@
 package planetaryprotector;
 import org.lwjgl.glfw.GLFW;
 public class Controls{
+    public static final int up = GLFW.GLFW_KEY_W;
+    public static final int left = GLFW.GLFW_KEY_A;
+    public static final int down = GLFW.GLFW_KEY_S;
+    public static final int right = GLFW.GLFW_KEY_D;
     public static final int menu = GLFW.GLFW_KEY_ESCAPE;
     public static final int deselect = GLFW.GLFW_KEY_SPACE;
     public static final int pause = GLFW.GLFW_KEY_PAUSE;

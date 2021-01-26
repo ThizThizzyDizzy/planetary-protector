@@ -1,11 +1,10 @@
 package planetaryprotector.game;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.Wreck;
-import planetaryprotector.structure.building.Plot;
-import planetaryprotector.structure.building.Skyscraper;
-import planetaryprotector.structure.building.Base;
+import planetaryprotector.structure.Wreck;
+import planetaryprotector.structure.Plot;
+import planetaryprotector.structure.Skyscraper;
+import planetaryprotector.structure.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import java.awt.Point;
@@ -13,8 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
-import planetaryprotector.structure.building.ShieldGenerator;
-import planetaryprotector.structure.building.task.TaskAnimation;
+import planetaryprotector.structure.ShieldGenerator;
+import planetaryprotector.structure.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuEpilogue2;
@@ -34,20 +33,16 @@ public class Epilogue extends Game{//TODO no Display
         super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0), false);
         int buildingCount = (Core.helper.displayWidth()/100)*(Core.helper.displayHeight()/100);
         for(int i = 0; i<buildingCount; i++){
-            ArrayList<Building> buildings = new ArrayList<>();
-            for(Structure s : structures){
-                if(s instanceof Building)buildings.add((Building) s);
-            }
-            Building building = genBuilding(this, buildings);
-            if(building==null){
+            Structure structure = genBuilding(this, structures);
+            if(structure==null){
                 continue;
             }
-            structures.add(new Wreck(this, building.x, building.y, i));
+            structures.add(new Wreck(this, structure.x, structure.y, i));
         }
         phase = 0;
         for(Structure structure : structures){
             if(structure instanceof Base)continue;
-            if(structure instanceof Building)replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));
+            replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));//TODO but the trees lol
         }
         doNotDisturb = true;
         offset = 0;
@@ -55,8 +50,9 @@ public class Epilogue extends Game{//TODO no Display
         meteorShowerTimer = Integer.MAX_VALUE;
         paused = false;
         updatePhaseMarker = false;
+        generatedBBox = getWorldBoundingBox();
     }
-    private static Building genBuilding(Game game, ArrayList<Building> buildings){
+    private static Structure genBuilding(Game game, ArrayList<Structure> structures){
         int buildingX;
         int buildingY;
         int i = 0;
@@ -67,15 +63,15 @@ public class Epilogue extends Game{//TODO no Display
             }
             buildingX = game.rand.nextInt(Core.helper.displayWidth()-100);
             buildingY = game.rand.nextInt(Core.helper.displayHeight()-100);
-            for(Building building : buildings){
-                double Y = building.y;
-                if(building instanceof Skyscraper){
-                    Y-=((Skyscraper) building).fallen;
+            for(Structure structure : structures){
+                double Y = structure.y;
+                if(structure instanceof Skyscraper){
+                    Y-=((Skyscraper) structure).fallen;
                 }
-                if(isClickWithinBounds(buildingX, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX+100, buildingY, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)||
-                     isClickWithinBounds(buildingX+100, buildingY+100, building.x, Y, building.x+building.width, Y+building.height)){
+                if(isClickWithinBounds(buildingX, buildingY, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                     isClickWithinBounds(buildingX+100, buildingY, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                     isClickWithinBounds(buildingX, buildingY+100, structure.x, Y, structure.x+structure.width, Y+structure.height)||
+                     isClickWithinBounds(buildingX+100, buildingY+100, structure.x, Y, structure.x+structure.width, Y+structure.height)){
                     continue WHILE;
                 }
             }
@@ -169,7 +165,7 @@ public class Epilogue extends Game{//TODO no Display
             drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/worker.png"));
         }
         for(TaskAnimation anim : taskAnimations){
-            if(anim.task.isInBackground())anim.render();
+            if(anim.task.isInBackground())anim.draw();
         }
         ArrayList<Particle> groundParticles = new ArrayList<>();
         for(Particle particle : particles){
@@ -201,10 +197,10 @@ public class Epilogue extends Game{//TODO no Display
             return y1-y2;
         });
         for(GameObject o : mainLayer){
-            o.render();
+            o.draw();
         }
         for(Particle particle : particles){
-            if(particle.air)particle.render();
+            if(particle.air)particle.draw();
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Structure structure : structures){
@@ -215,10 +211,10 @@ public class Epilogue extends Game{//TODO no Display
         }
         //</editor-fold>
         for(Asteroid asteroid : asteroids){
-            asteroid.render();
+            asteroid.draw();
         }
         for(ShootingStar star : shootingStars){
-            star.render();
+            star.draw();
         }
         drawDayNightCycle();
     }
@@ -237,12 +233,6 @@ public class Epilogue extends Game{//TODO no Display
         GL11.glTranslated(0, Core.helper.displayHeight()*offset, 0);
     }
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){}
-    @Override
-    public void onMouseMove(double x, double y){}
-    @Override
-    public void onMouseScrolled(double x, double y, double dx, double dy){}
-    @Override
     public void save(){}
     @Override
     public boolean isDestroyed(){
@@ -259,7 +249,7 @@ public class Epilogue extends Game{//TODO no Display
         double speed = rand.nextGaussian()/10+1;
         speed*=250;
         rateOfChange*=250;
-        double y = rand.nextInt(Core.helper.displayHeight());
+        int y = rand.nextInt(Core.helper.displayHeight());
         int wide = rand.nextInt(25)+5;
         int high = rand.nextInt(wide/5)+2;
         int height = 1;
@@ -274,9 +264,9 @@ public class Epilogue extends Game{//TODO no Display
                     height++;
                 }
             }
-            double x = -(X*25)-50;
+            int x = (int)(-(X*25)-50);
             if(Math.round(X)==Math.round(X*10)/10d){
-                double Y = y;
+                int Y = y;
                 for(int i = 0; i<height; i++){
                     Particle p = new Particle(this, x, y, strength, rateOfChange, speed);
                     clouds.add(p);
@@ -285,7 +275,7 @@ public class Epilogue extends Game{//TODO no Display
                 }
                 y = Y;
             }else{
-                double Y = y;
+                int Y = y;
                 for(int i = 0; i<height; i++){
                     Particle p = new Particle(this, x, y-20, strength, rateOfChange, speed);
                     clouds.add(p);

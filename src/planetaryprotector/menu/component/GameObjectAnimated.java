@@ -8,12 +8,12 @@ import simplelibrary.opengl.ImageStash;
     public int delay = 3;
     public int timeWaited = 0;
     public boolean loop = false;
-    public GameObjectAnimated(Game game, double x, double y, double width, double height, String[] images){
+    public GameObjectAnimated(Game game, int x, int y, int width, int height, String[] images){
         super(game, x,y,width,height);
         this.images=images;
     }
     @Override
-    public void render(){
+    public void draw(){
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(images[frame]));
     }
     public void tick(){

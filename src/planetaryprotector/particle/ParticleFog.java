@@ -6,8 +6,8 @@ import planetaryprotector.game.Game;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import simplelibrary.opengl.ImageStash;
 public class ParticleFog extends Particle{
-    public static final double SIZE = 200;
-    public ParticleFog(Game game, double x, double y, boolean air, double opacity){
+    public static final int SIZE = 200;
+    public ParticleFog(Game game, int x, int y, boolean air, double opacity){
         super(game, x, y, ParticleEffectType.FOG);
         x+=(game.rand.nextDouble()-.5)*SIZE/10;
         y+=(game.rand.nextDouble()-.5)*SIZE/10;
@@ -17,7 +17,7 @@ public class ParticleFog extends Particle{
         rotSpeed = game.rand.nextDouble()*10-5;
     }
     @Override
-    public void render(){
+    public void draw(){
         if(dead){
             return;
         }
@@ -82,7 +82,7 @@ public class ParticleFog extends Particle{
     public void tick(){
         rotation+=rotSpeed;
         x+=5;
-        if(x>game.getCityBoundingBox().getRight()){
+        if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
             dead = true;
         }
     }

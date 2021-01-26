@@ -3,12 +3,12 @@ import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
 public class MothershipAsteroidLaser extends GameObject{
     int time = 0;
-    double[] target = new double[]{0,0};
+    int[] target = new int[]{0,0};
     int speed = 1;
     int damageMult = 1;
     public MothershipAsteroidLaser(Game game){
         super(game, game.getCityBoundingBox().x-150, game.getCityBoundingBox().getCenterY(), 0, 0);
-        target = new double[]{x,y};
+        target = new int[]{x,y};
     }
     public void tick(){
         double oldx = x;
@@ -28,7 +28,7 @@ public class MothershipAsteroidLaser extends GameObject{
         if(oldx==x&&oldy==y){
             target = Enemy.getBestStrike(game);
             if(target==null){
-                target = new double[]{x,y};
+                target = new int[]{x,y};
             }
         }
         time++;
@@ -39,8 +39,8 @@ public class MothershipAsteroidLaser extends GameObject{
             while(r>=c){
                 r-=c;
             }
-            double X = Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2;
-            double Y = Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2;
+            int X = (int)(Math.cos(Math.toRadians(r*(360D/c)))*radius+x+width/2);
+            int Y = (int)(Math.sin(Math.toRadians(r*(360D/c)))*radius+y+height/2);
             for(int j = 0; j<damageMult; j++){
                 Asteroid a = new Asteroid(game, X-25, Y-25, AsteroidMaterial.STONE, 0);
                 Asteroid A = new Asteroid(game, x-25, y-25, AsteroidMaterial.STONE, 0);
@@ -51,5 +51,5 @@ public class MothershipAsteroidLaser extends GameObject{
         }
     }
     @Override
-    public void render(){}
+    public void draw(){}
 }

@@ -6,9 +6,9 @@ import simplelibrary.opengl.ImageStash;
 public class Item{
     public static final ArrayList<Item> items = new ArrayList<>();
     public static final ArrayList<Item> allItems = new ArrayList<>();
-    public static final Item stone = new Item("Stone", "Stone");
+    public static final Item stone = new Item("Stone", "Stone").setRepairTime(20);
     public static final Item ironOre = new Item("Iron Chunk", "Iron Chunk");
-    public static final Item ironIngot = new Item("Iron Ingot", "Iron Ingot");
+    public static final Item ironIngot = new Item("Iron Ingot", "Iron Ingot").setRepairTime(50);
     public static final Item coal = new Item("Coal", "Coal");
     public static final Item star = new Item("Shooting Star", "Shooting Star");
     static{
@@ -30,6 +30,7 @@ public class Item{
     private final String texture;
     public MenuComponentClickable button;
     public int priority = 0;
+    private int repairTime;
     public Item(String name, String texture){
         this.name = name;
         this.texture = texture;
@@ -46,5 +47,12 @@ public class Item{
     }
     public String getTextureS() {
         return "/textures/items/"+Game.Theme.NORMAL.tex()+"/"+texture+".png";
+    }
+    private Item setRepairTime(int repairTime){
+        this.repairTime = repairTime;
+        return this;
+    }
+    public int getRepairTime(){
+        return repairTime;
     }
 }

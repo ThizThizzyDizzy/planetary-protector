@@ -2,38 +2,38 @@ package planetaryprotector.friendly;
 import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
-import planetaryprotector.structure.building.task.Task;
+import planetaryprotector.structure.task.Task;
 import java.util.Iterator;
 import planetaryprotector.Core;
 import planetaryprotector.GameObject;
-import planetaryprotector.structure.building.Base;
-import planetaryprotector.structure.building.Skyscraper;
-import planetaryprotector.structure.building.task.TaskDemolish;
+import planetaryprotector.structure.Base;
+import planetaryprotector.structure.Skyscraper;
+import planetaryprotector.structure.task.TaskDemolish;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
-import planetaryprotector.structure.building.ShieldGenerator;
+import planetaryprotector.structure.ShieldGenerator;
 import simplelibrary.opengl.ImageStash;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
     public DroppedItem grabbedItem;
-    public static final int workerSpeed = 5;
+    public static final int workerSpeed = 8;
     public int speed = workerSpeed;
-    public double[] target;
-    public double[] runningFrom;
-    public double[] selectedTarget;
+    public int[] target;
+    public int[] runningFrom;
+    public int[] selectedTarget;
     public Task task;
     public Task targetTask;
     private final Game game;
-    public Worker(Game game, double x, double y){
+    public Worker(Game game, int x, int y){
         super(game, x,y,10,10);
         this.game = game;
     }
     @Override
-    public void render(){
+    public void draw(){
         drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/worker.png"));
         if(grabbedItem!=null){
-            grabbedItem.render();
+            grabbedItem.draw();
         }
     }
     public void tick(){
@@ -50,7 +50,7 @@ public class Worker extends GameObject{
         for(Asteroid asteroid : game.asteroids){
             if(Core.distance(asteroid, this)<50){
                 if(!game.superSafe(this)){
-                    runningFrom = new double[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
+                    runningFrom = new int[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
                 }
             }
         }
@@ -58,7 +58,7 @@ public class Worker extends GameObject{
             if(structure instanceof Skyscraper){
                 if(((Skyscraper)structure).falling){
                     if(Core.distance(structure.x+structure.width/2, structure.y-((Skyscraper)structure).fallen+structure.height/2, x+width/2, y+height/2)<structure.width*3/4){
-                        runningFrom = new double[]{structure.x+structure.width/2, structure.y+structure.height/2};
+                        runningFrom = new int[]{structure.x+structure.width/2, structure.y+structure.height/2};
                     }
                 }
             }
@@ -102,7 +102,7 @@ public class Worker extends GameObject{
             if(grabbedItem!=null){
                 dropItem();
             }
-            double[] loc = new double[]{targetTask.building.x+targetTask.building.width/2,targetTask.building.y+targetTask.building.height/2};
+            int[] loc = new int[]{targetTask.structure.x+targetTask.structure.width/2,targetTask.structure.y+targetTask.structure.height/2};
             //<editor-fold defaultstate="collapsed" desc="Movement">
             if(loc!=null){
                 move(loc);
@@ -146,7 +146,7 @@ public class Worker extends GameObject{
         }
 //</editor-fold>
         if(targetItem!=null&&grabbedItem==null){
-            target = new double[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
+            target = new int[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
             //<editor-fold defaultstate="collapsed" desc="Grab Item">
             if(Core.distance(this, targetItem.x+targetItem.width/2, targetItem.y+targetItem.height/2)<=10){
                 game.droppedItems.remove(targetItem);
@@ -166,13 +166,13 @@ public class Worker extends GameObject{
             target = null;
             for(Structure structure : game.structures){
                 if(structure instanceof ShieldGenerator){
-                    target = new double[]{structure.x+structure.width/2,structure.y+structure.height/2};
+                    target = new int[]{structure.x+structure.width/2,structure.y+structure.height/2};
                 }
             }
 //</editor-fold>
         }
         if(target==null&&base!=null){
-            target = new double[]{base.getWorkerX(),base.getWorkerY()};
+            target = new int[]{base.getWorkerX(),base.getWorkerY()};
         }
         //<editor-fold defaultstate="collapsed" desc="Movement">
         if(target!=null&&runningFrom==null){
@@ -208,7 +208,7 @@ public class Worker extends GameObject{
             y = base.getWorkerY();
         }
         task.finishTask();
-        task.building.setTask(null);
+        task.structure.setTask(null);
         task = null;
     }
     public boolean isAvailable(){
@@ -217,8 +217,8 @@ public class Worker extends GameObject{
     public void damage(double x, double y){
         dead = true;
     }
-    private void move(double[] location){
-        double[] loc = new double[]{location[0]-width/2, location[1]-height/2};
+    private void move(int[] location){
+        int[] loc = new int[]{location[0]-width/2, location[1]-height/2};
         double xDiff = loc[0]-x;
         double yDiff = loc[1]-y;
         double dist = Core.distance(0, 0, xDiff, yDiff);
@@ -232,7 +232,7 @@ public class Worker extends GameObject{
         x+=xDiff*speed;
         y+=yDiff*speed;
     }
-    private void moveAway(double[] loc){
+    private void moveAway(int[] loc){
         double xDiff = loc[0]-x;
         double yDiff = loc[1]-y;
         double dist = Core.distance(0, 0, xDiff, yDiff);

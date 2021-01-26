@@ -16,13 +16,15 @@ import java.util.logging.Logger;
 import org.lwjgl.glfw.GLFW;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.game.Story;
-import planetaryprotector.structure.building.Building.Upgrade;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
+import planetaryprotector.structure.Structure.Upgrade;
+import planetaryprotector.structure.StructureType;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
@@ -255,6 +257,9 @@ public class Core extends Renderer2D{
     public static void tickInit(){
         loadOptions();
         for(Upgrade upgrade : Upgrade.values());//initialize upgrades to add them to building upgrade lists
+        for(StructureType type : StructureType.structureTypes){
+            System.out.println("Loaded structure "+type.name+". Max level: "+type.getMaxLevel());
+        }
     }
     public static void finalInit(){
         System.out.println("Activating GUI");
@@ -300,15 +305,15 @@ public class Core extends Renderer2D{
     public static void render(int millisSinceLastTick){
         if(is3D&&enableCullFace) GL11.glDisable(GL11.GL_CULL_FACE);
         if(gui.menu instanceof MenuGame){
-            ((MenuGame)gui.menu).game.renderWorld(millisSinceLastTick);
+            ((MenuGame)gui.menu).renderWorld(millisSinceLastTick);
         }
         gui.render(millisSinceLastTick);
         if(is3D&&enableCullFace) GL11.glEnable(GL11.GL_CULL_FACE);
         if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_EQUAL)){
-            Sounds.vol+=0.01f;
+            Sounds.setVolume(Sounds.getVolume()+.01f);
         }
         if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_MINUS)){
-            Sounds.vol-=0.01f;
+            Sounds.setVolume(Sounds.getVolume()-.01f);
         }
         FPStracker.add(System.currentTimeMillis());
         while(FPStracker.get(0)<System.currentTimeMillis()-5_000){
@@ -539,7 +544,7 @@ public class Core extends Renderer2D{
         Game g = Game.load(name);
         if(g==null){
             if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
-            gui.open(new MenuGame(gui, Game.generate(name, level, gen, story, tutorial)));
+            gui.open(new MenuGame(gui, Game.generate(name, level, gen, new BoundingBox(-960, -540, 1920, 1080), story, tutorial)));
         }else{
             gui.open(new MenuGame(gui, g));
         }

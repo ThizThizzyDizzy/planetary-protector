@@ -15,18 +15,15 @@ import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.Enemy;
-import planetaryprotector.structure.building.task.TaskDemolish;
-import planetaryprotector.structure.building.task.TaskRepair;
-import planetaryprotector.structure.building.task.TaskRepairAll;
-import planetaryprotector.structure.building.task.TaskType;
-import planetaryprotector.structure.building.task.Task;
-import planetaryprotector.structure.building.task.TaskUpgrade;
-import planetaryprotector.structure.building.ShieldGenerator;
-import planetaryprotector.structure.building.Building;
-import planetaryprotector.structure.building.Building.Upgrade;
-import planetaryprotector.structure.building.BuildingType;
-import planetaryprotector.structure.building.Skyscraper;
-import planetaryprotector.structure.building.Base;
+import planetaryprotector.structure.task.TaskDemolish;
+import planetaryprotector.structure.task.TaskRepair;
+import planetaryprotector.structure.task.TaskRepairAll;
+import planetaryprotector.structure.task.TaskType;
+import planetaryprotector.structure.task.Task;
+import planetaryprotector.structure.task.TaskUpgrade;
+import planetaryprotector.structure.ShieldGenerator;
+import planetaryprotector.structure.Skyscraper;
+import planetaryprotector.structure.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.ParticleFog;
 import java.awt.Color;
@@ -44,15 +41,14 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
-import planetaryprotector.structure.building.BuildingDamagable;
-import planetaryprotector.structure.building.BuildingDemolishable;
-import planetaryprotector.structure.building.PowerNetwork;
-import planetaryprotector.structure.building.StarlightNetwork;
-import planetaryprotector.structure.building.task.TaskAnimated;
-import planetaryprotector.structure.building.task.TaskAnimation;
-import planetaryprotector.structure.building.task.TaskSpecialUpgrade;
+import planetaryprotector.structure.PowerNetwork;
+import planetaryprotector.structure.StarlightNetwork;
+import planetaryprotector.structure.task.TaskAnimated;
+import planetaryprotector.structure.task.TaskAnimation;
+import planetaryprotector.structure.task.TaskSpecialUpgrade;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.research.Research;
@@ -66,8 +62,12 @@ import simplelibrary.error.ErrorCategory;
 import simplelibrary.error.ErrorLevel;
 import simplelibrary.opengl.ImageStash;
 import planetaryprotector.event.StructureChangeEventListener;
-import planetaryprotector.structure.building.Laboratory;
+import planetaryprotector.structure.StructureType;
+import planetaryprotector.structure.Laboratory;
+import planetaryprotector.structure.Structure.Upgrade;
 import simplelibrary.opengl.Renderer2D;
+import planetaryprotector.structure.StructureDamagable;
+import planetaryprotector.structure.StructureDemolishable;
 public class Game extends Renderer2D{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
@@ -164,6 +164,7 @@ public class Game extends Renderer2D{
     private final WorldGenerator worldGenerator;
     public final Story story;
     public boolean tutorial = false;
+    public BoundingBox generatedBBox;//the portion of the world that has been generated
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -171,9 +172,9 @@ public class Game extends Renderer2D{
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
     }
-    public static Game generate(String name, int level, WorldGenerator worldGenerator, Story story, boolean tutorial){
+    public static Game generate(String name, int level, WorldGenerator worldGenerator, BoundingBox cityBBox, Story story, boolean tutorial){
         Game game = new Game(name, level, worldGenerator, story, tutorial);
-        game.generate();
+        game.generateCity(cityBBox);
         return game;
     }
     public Game(String name, int level, WorldGenerator worldGenerator, Story story, boolean tutorial){
@@ -184,10 +185,7 @@ public class Game extends Renderer2D{
         this.story = story;
         this.tutorial = tutorial;
     }
-    public void renderBackground(){
-        for(Structure structure : structures){
-            structure.mouseover = 0;
-        }
+    public synchronized void renderBackground(){
         Collections.sort(structures, (Structure o1, Structure o2) -> {
             double y1 = o1.y;
             double y2 = o2.y;
@@ -205,22 +203,27 @@ public class Game extends Renderer2D{
             y2 += height2/2;
             return (int) Math.round(y1-y2);
         });
-        Structure structure = getMouseoverStructure(Core.gui.mouseX, Core.gui.mouseY);
-        if(structure!=null){
-            structure.mouseover = .1;
-        }
-        if(selectedStructure!=null){
-            selectedStructure.mouseover+=.2;
-        }
     }
     public void render(int millisSinceLastTick){}
     public synchronized void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(level));
+        //675x365
+        int chunkWidth = 1350;
+        int chunkHeight = 730;
+        BoundingBox bbox = getWorldBoundingBox();
+        int left = bbox.getLeft()/chunkWidth-1;
+        int top = bbox.getTop()/chunkHeight-1;
+        int right = bbox.getRight()/chunkWidth+1;
+        int bottom = bbox.getBottom()/chunkHeight+1;
+        for(int x = left; x<right; x++){
+            for(int y = top; y<bottom; y++){
+                drawRect(x*chunkWidth,y*chunkHeight, x*chunkWidth+chunkWidth,y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
+            }
+        }
         for(Structure structure : structures){
             structure.renderBackground();
         }
         for(TaskAnimation anim : taskAnimations){
-            if(anim.task.isInBackground())anim.render();
+            if(anim.task.isInBackground())anim.draw();
         }
         ArrayList<Particle> groundParticles = new ArrayList<>();
         for(Particle particle : particles){
@@ -254,18 +257,16 @@ public class Game extends Renderer2D{
         });
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())continue;
-            int index = mainLayer.indexOf(anim.task.building);
+            int index = mainLayer.indexOf(anim.task.structure);
             mainLayer.add(index+1, anim);
         }
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
                 anim.task.anim = anim;
-                continue;
             }
-            if(!anim.task.isInBackground())mainLayer.add(anim);
         }
         for(GameObject o : mainLayer){
-            if(o!=null)o.render();
+            if(o!=null)o.draw();
         }
         if(showPowerNetworks){
             for(PowerNetwork n : powerNetworks){
@@ -276,10 +277,10 @@ public class Game extends Renderer2D{
             }
         }
         for(Particle particle : particles){
-            if(particle.air)particle.render();
+            if(particle.air)particle.draw();
         }
         for(Drone drone : drones){
-            drone.render();
+            drone.draw();
         }
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Structure structure : structures){
@@ -290,18 +291,18 @@ public class Game extends Renderer2D{
         }
         //</editor-fold>
         for(Asteroid asteroid : asteroids){
-            asteroid.render();
+            asteroid.draw();
         }
         for(ShootingStar star : shootingStars){
-            star.render();
+            star.draw();
         }
         for(Enemy e : enemies){
-            if(!(e instanceof EnemyAlien))e.render();
+            if(!(e instanceof EnemyAlien))e.draw();
         }
         drawDayNightCycle();
     }
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
-        if(pressed&&button==0){
+    public void click(int x, int y, int button){
+        if(button==0){
             Structure structure = getMouseoverStructure(x, y);
             if(structure!=null){
                 if(setTarget!=null&&structure.canBeShielded()){
@@ -317,15 +318,35 @@ public class Game extends Renderer2D{
                 actionUpdateRequired = 2;
             }
         }
-        if(pressed&&button==1){
+        if(button==1){
             if(setTarget!=null)setTarget = null;
             selectedStructure = null;
             actionUpdateRequired = 2;
         }
     }
-    public void onMouseMove(double x, double y){}
-    public void onMouseScrolled(double x, double y, double dx, double dy){}
     public synchronized void tick(){
+        cachedCityBoundingBox = null;
+        BoundingBox worldBBox = getWorldBoundingBox().expand(worldGenerator.getGenerationBuffer());
+        if(worldBBox.x<generatedBBox.x){
+            int leftExpansion = generatedBBox.x-worldBBox.x;
+            generate(new BoundingBox(worldBBox.getLeft(), generatedBBox.getTop(), leftExpansion, generatedBBox.height));
+            generatedBBox = generatedBBox.expandLeft(leftExpansion);
+        }
+        if(worldBBox.y<generatedBBox.y){
+            int topExpansion = generatedBBox.y-worldBBox.y;
+            generate(new BoundingBox(generatedBBox.getLeft(), worldBBox.getTop(), generatedBBox.width, topExpansion));
+            generatedBBox = generatedBBox.expandUp(topExpansion);
+        }
+        if(worldBBox.getRight()>generatedBBox.getRight()){
+            int rightExpansion = worldBBox.getRight()-generatedBBox.getRight();
+            generate(new BoundingBox(generatedBBox.getRight(), generatedBBox.getTop(), rightExpansion, generatedBBox.height));
+            generatedBBox = generatedBBox.expandRight(rightExpansion);
+        }
+        if(worldBBox.getBottom()>generatedBBox.getBottom()){
+            int bottomExpansion = worldBBox.getBottom()-generatedBBox.getBottom();
+            generate(new BoundingBox(generatedBBox.getLeft(), generatedBBox.getBottom(), generatedBBox.width, bottomExpansion));
+            generatedBBox = generatedBBox.expandDown(bottomExpansion);
+        }
         saveTimer++;
         if(saveTimer>=saveInterval){
             save();
@@ -567,7 +588,7 @@ public class Game extends Renderer2D{
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Meteors">
-        BoundingBox box = getCityBoundingBox();
+        BoundingBox box = getWorldBoundingBox();
         double intensity = METEOR_INTENSITY*(meteorShower?METEOR_SHOWER_MULT:1)*meteorManualIntensityMult*meteorPhaseIntensityMult*(rand.nextDouble()+1)*box.area()/100_00;
         meteorTimer-=intensity;
         while(meteorTimer<0){
@@ -601,11 +622,8 @@ public class Game extends Renderer2D{
         }
 //</editor-fold>
         for(Structure structure : structures){
-            if(structure instanceof Building){
-                Building building = (Building) structure;
-                if(building.task!=null&&building.task.getPendingWorkers()==0){
-                    assignWorker(building.task);
-                }
+            if(structure.task!=null&&structure.task.getPendingWorkers()==0){
+                assignWorker(structure.task);
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Phase 3">
@@ -956,7 +974,7 @@ public class Game extends Renderer2D{
         cfg.set("count", structures.size());
         for(int i = 0; i<structures.size(); i++){
             Structure structure = structures.get(i);
-            cfg.set(i+"", structure.saveStructure(Config.newConfig()));
+            cfg.set(i+"", structure.save(Config.newConfig()));
         }
         config.set("Buildings", cfg);
         config.set("worker cooldown", workerCooldown);
@@ -1053,22 +1071,22 @@ public class Game extends Renderer2D{
         game.enemyTimer = config.get("enemy timer", 20*30);
         Config cfg = config.get("Dropped Items", Config.newConfig());
         for(int i = 0; i<cfg.get("count", 0); i++){
-            DroppedItem item = new DroppedItem(game, cfg.get(i+" x", 0d), cfg.get(i+" y", 0d), Item.getItemByName(cfg.get(i+" item","iron ingot")));
+            DroppedItem item = new DroppedItem(game, cfg.getInt(i+" x"), cfg.getInt(i+" y"), Item.getItemByName(cfg.get(i+" item","iron ingot")));
             item.life = cfg.get(i+" life", item.life);
             game.droppedItems.add(item);
         }
         game.meteorShower = config.get("Meteor Shower", game.meteorShower);
         game.meteorShowerTimer = config.get("Meteor Shower Timer", game.meteorShowerTimer);
         cfg = config.get("Buildings", Config.newConfig());
-        HashMap<Building, Config> buildings = new HashMap<>();
+        HashMap<Structure, Config> structures = new HashMap<>();
         for(int i = 0; i<cfg.get("count", 0); i++){
             Config conf = cfg.get(i+"", Config.newConfig());
-            Building b = Building.load(conf, game);
-            game.structures.add(b);
-            buildings.put(b, conf);
+            Structure s = Structure.load(conf, game);
+            game.structures.add(s);
+            structures.put(s, conf);
         }
         for(Structure s : game.structures){
-            s.postLoad(game, buildings.get(s));
+            s.postLoad(game, structures.get(s));
         }
         for(int i = 0; i<config.get("workers", 1); i++){
             game.addWorker();
@@ -1289,9 +1307,10 @@ public class Game extends Renderer2D{
     }
     public void addCloud(){
         if(!MenuOptionsGraphics.clouds)return;
-        addCloud(0,getCityBoundingBox().randY(rand));
+        BoundingBox worldBBox = getWorldBoundingBox();
+        addCloud(worldBBox.getLeft(),worldBBox.randY(rand));
     }
-    public void addCloud(double x, double y){
+    public void addCloud(int x, int y){
         if(!MenuOptionsGraphics.clouds)return;
         double rateOfChange = (rand.nextDouble()-.4)/80;
         double speed = rand.nextGaussian()/10+1;
@@ -1364,16 +1383,16 @@ public class Game extends Renderer2D{
                     height++;
                 }
             }
-            double xx = -(X*25)-50;
+            int xx = (int)(-(X*25)-50);
             if(Math.round(X)==Math.round(X*10)/10d){
-                double Y = y;
+                int Y = y;
                 for(int i = 0; i<height; i++){
                     addParticleEffect(new Particle(this, xx+x, y, strength, rateOfChange, speed));
                     y-=40;
                 }
                 y = Y;
             }else{
-                double Y = y;
+                int Y = y;
                 for(int i = 0; i<height; i++){
                     addParticleEffect(new Particle(this, xx+x, y-20, strength, rateOfChange, speed));
                     y-=40;
@@ -1403,26 +1422,27 @@ public class Game extends Renderer2D{
         double o1 = density;
         double o2 = density*height;
         double size = ParticleFog.SIZE*.75;
-        int count = (int)(getCityBoundingBox().height/size+1);
+        BoundingBox bbox = getWorldBoundingBox();
+        int count = (int)(bbox.height/size+1);
         double xOffset = count/size;
         for(int i = 0; i<count; i++){
-            addParticleEffect(new ParticleFog(this, -size*2-xOffset*i, i*size-50, false, o1));
-            addParticleEffect(new ParticleFog(this, -size*2-xOffset*i, i*size-50, true, o2));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.getLeft()-size*2-xOffset*i), (int)(bbox.getTop()+i*size-50), false, o1));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.getLeft()-size*2-xOffset*i), (int)(bbox.getTop()+i*size-50), true, o2));
         }
     }
     private void stopFog(){
         fogTimeIncrease = fogTime = 0;
     }
-    public void damage(double x, double y){
+    public void damage(int x, int y){
         damage(x,y,1);
     }
-    public void damage(double x, double y, int damage){
+    public void damage(int x, int y, int damage){
         damage(x,y,damage,null);
     }
-    public void damage(double x, double y, AsteroidMaterial material){
+    public void damage(int x, int y, AsteroidMaterial material){
         damage(x,y,1,material);
     }
-    public void damage(double x, double y, int damage, AsteroidMaterial material){
+    public void damage(int x, int y, int damage, AsteroidMaterial material){
         DAMAGE:for(int i = 0; i<damage; i++){
             for(Structure structure : structures){
                 if(structure instanceof ShieldGenerator){
@@ -1472,7 +1492,7 @@ public class Game extends Renderer2D{
             }
         }
     }
-    public Structure getStructure(double x, double y){
+    public Structure getStructure(int x, int y){
         Structure hit = null;
         for(Structure structure : structures){
             if(structure instanceof Skyscraper){
@@ -1505,7 +1525,7 @@ public class Game extends Renderer2D{
      * @param radius The radius of the push field
      * @param distance How far to push the particles
      */
-    public void pushParticles(double x, double y, double radius, double distance, Particle.PushCause cause){
+    public void pushParticles(int x, int y, double radius, double distance, Particle.PushCause cause){
         pushParticles(x, y, radius, distance, 1, cause);
     }
     /**
@@ -1517,7 +1537,7 @@ public class Game extends Renderer2D{
      * @param fadeFactor How much the particles should fade
      * @param cause The force that's pushing the particles
      */
-    public void pushParticles(double x, double y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
+    public void pushParticles(int x, int y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
         for(Particle particle : particles){
             if(Core.distance(particle.getX(), particle.getY(), x, y)<=radius){
                 double mult = 1-(Core.distance(particle.getX(), particle.getY(), x, y)/radius);
@@ -1534,7 +1554,7 @@ public class Game extends Renderer2D{
             }
         }
     }
-    public void addWorker(double x, double y){
+    public void addWorker(int x, int y){
         thingsToAdd.enqueue(new Worker(this,x,y));
     }
     public void playSecret(){
@@ -1594,10 +1614,11 @@ public class Game extends Renderer2D{
             double a = Core.getValueBetweenTwoValues(0, night.getAlpha(), 1, noon.getAlpha(), percent)/255d;
             GL11.glColor4d(r, g, b, a);
         }
-        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
+        BoundingBox bbox = getWorldBoundingBox();
+        drawRect(bbox.getLeft(), bbox.getTop(), bbox.getRight(), bbox.getBottom(), 0);
         GL11.glColor4d(1, 1, 1, 1);
     }
-    private Worker getAvailableWorker(double x, double y){
+    private Worker getAvailableWorker(int x, int y){
         Worker closest = null;
         double distance = Double.MAX_VALUE;
         for(Worker worker : workers){
@@ -1737,7 +1758,7 @@ public class Game extends Renderer2D{
             research.event(event);
         }
     }
-    private Structure getMouseoverStructure(double x, double y){
+    public Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
             int h = structure.getStructureHeight();
@@ -1790,24 +1811,22 @@ public class Game extends Renderer2D{
             if(w.task!=null)debug.add("Worker "+(i+1)+": Working");
         }
         debug.add("Worker Cooldown: "+workerCooldown);
-        debug.add("Buildings: "+structures.size());
-        HashMap<BuildingType, Integer> theBuildings = new HashMap<>();
+        debug.add("Total Structures: "+structures.size());
+        HashMap<StructureType, Integer> theStructures = new HashMap<>();
         for(Structure structure : structures){
-            if(structure instanceof Building){
-                Building building = (Building) structure;
-                if(theBuildings.containsKey(building.type)){
-                    theBuildings.put(building.type, theBuildings.get(building.type)+1);
-                }else{
-                    theBuildings.put(building.type, 1);
-                }
+            if(theStructures.containsKey(structure.type)){
+                theStructures.put(structure.type, theStructures.get(structure.type)+1);
+            }else{
+                theStructures.put(structure.type, 1);
             }
         }
-        for(BuildingType building : theBuildings.keySet()){
-            int amount = theBuildings.get(building);
-            debug.add(" - "+amount+" "+building.name+" ("+Math.round(amount/(double)structures.size()*100)+"%)");
+        debug.add("Structures: "+structures.size());
+        for(StructureType structure : theStructures.keySet()){
+            int amount = theStructures.get(structure);
+            debug.add(" - "+amount+" "+structure.name+" ("+Math.round(amount/(double)structures.size()*100)+"%)");
         }
         if(selectedStructure!=null){
-            debug.add("Selected building: ");
+            debug.add("Selected structure: ");
             ArrayList<String> data = new ArrayList<>();
             selectedStructure.getDebugInfo(data);
             for(String s : data){
@@ -1831,6 +1850,7 @@ public class Game extends Renderer2D{
         for(Expedition e : finishedExpeditions){
             debug.add(" - "+e.toString());
         }
+        debug.add("Particles: "+particles.size());
         debug.add("Fog Timer: "+fogTimer);
         debug.add("Cloud Timer: "+cloudTimer);
         debug.add("Fog time: "+fogTime);
@@ -1855,8 +1875,8 @@ public class Game extends Renderer2D{
         }
         return true;
     }
-    private void generate(){
-        worldGenerator.generateCity(this);
+    private void generateCity(BoundingBox bbox){
+        worldGenerator.generateCity(this, bbox);
         //<editor-fold defaultstate="collapsed" desc="Calculating Population per floor">
         if(popPerFloor==-1){
             int floorCount = 0;
@@ -1872,6 +1892,16 @@ public class Game extends Renderer2D{
         }
         //</editor-fold>
         addWorker();
+        generatedBBox = bbox;
+    }
+    private void generate(BoundingBox boundingBox){
+        worldGenerator.generate(this, boundingBox);
+    }
+    public double getXGamePadding(){
+        return Math.max(Core.helper.displayWidth()/MenuGame.minZoom/4, getCityBoundingBox().width/2);
+    }
+    public double getYGamePadding(){
+        return Math.max(Core.helper.displayHeight()/MenuGame.minZoom/4, getCityBoundingBox().height/2);
     }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
@@ -1920,44 +1950,43 @@ public class Game extends Renderer2D{
     }
     public ArrayList<Action> getActions(MenuGame menu){
         ArrayList<Action> actions = new ArrayList<>();
-        if(selectedStructure!=null&&selectedStructure instanceof Building){
-            Building selectedBuilding = (Building) selectedStructure;
-            if(selectedBuilding instanceof BuildingDamagable){
-                actions.add(new Action("Repair", new TaskRepair(selectedBuilding)));
-                actions.add(new Action("Repair All", new TaskRepairAll(selectedBuilding)));
+        if(selectedStructure!=null){
+            if(selectedStructure instanceof StructureDamagable){
+                actions.add(new Action("Repair", new TaskRepair(selectedStructure)));
+                actions.add(new Action("Repair All", new TaskRepairAll(selectedStructure)));
             }
-            if(selectedBuilding.getMaxLevel()>-1){
-                if(selectedBuilding.canUpgrade()){
-                    actions.add(new Action("Upgrade", new TaskUpgrade(selectedBuilding)));
+            if(selectedStructure.type.getMaxLevel()>1){
+                if(selectedStructure.canUpgrade()){
+                    actions.add(new Action("Upgrade", new TaskUpgrade(selectedStructure)));
                 }else{
                     actions.add(new Action("Maxed", null, () -> {
                         return false;
                     }));
                 }
             }
-            ArrayList<Upgrade> upgrades = selectedBuilding.getAvailableUpgrades();
+            ArrayList<Upgrade> upgrades = selectedStructure.getAvailableUpgrades();
             if(!upgrades.isEmpty()){
                 actions.add(new Action(5));
                 for(Upgrade upgrade : upgrades){
-                    actions.add(new Action("Install "+upgrade.toString(), new TaskSpecialUpgrade(selectedBuilding, upgrade)));
+                    actions.add(new Action("Install "+upgrade.toString(), new TaskSpecialUpgrade(selectedStructure, upgrade)));
                 }
                 actions.add(new Action(5));
             }
-            selectedBuilding.getActions(menu, actions);
-            if(selectedBuilding instanceof BuildingDemolishable){
-                actions.add(new Action("Demolish", new TaskDemolish(selectedBuilding)).setImportant());
+            selectedStructure.getActions(menu, actions);
+            if(selectedStructure instanceof StructureDemolishable){
+                actions.add(new Action("Demolish", new TaskDemolish(selectedStructure)).setImportant());
             }
-            if(selectedBuilding.task!=null){
+            if(selectedStructure.task!=null){
                 actions.add(new Action("Add Worker", (e) -> {
-                    if(selectedBuilding==null)return;
-                    Worker worker = getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2);
+                    if(selectedStructure==null)return;
+                    Worker worker = getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2);
                     if(worker==null)return;
-                    worker.targetTask = selectedBuilding.task;
+                    worker.targetTask = selectedStructure.task;
                 }, () -> {
-                    return getAvailableWorker(selectedBuilding.x+selectedBuilding.width/2, selectedBuilding.y+selectedBuilding.height/2)!=null;
+                    return getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2)!=null;
                 }));
                 actions.add(new Action("Cancel Task", (e) -> {
-                    selectedBuilding.cancelTask();
+                    selectedStructure.cancelTask();
                 }, () -> {
                     return true;
                 }).setImportant());
@@ -1965,8 +1994,18 @@ public class Game extends Renderer2D{
         }
         return actions;
     }
+    private BoundingBox cachedCityBoundingBox = null;
     public BoundingBox getCityBoundingBox(){
+        if(cachedCityBoundingBox!=null)return cachedCityBoundingBox;
         if(structures.isEmpty())return new BoundingBox(0, 0, 0, 0);
-        return BoundingBox.enclosing(structures).expand(100);
-    }
+        ArrayList<Structure> buildings = new ArrayList<>();
+        for(Structure s : structures){
+            if(!s.type.isDecoration())buildings.add(s);
+        }
+        return cachedCityBoundingBox = BoundingBox.enclosing(buildings).expand(100);
+    } 
+    public BoundingBox getWorldBoundingBox(){
+        BoundingBox cityBBox = getCityBoundingBox();
+        return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
+    } 
 }

@@ -1,11 +1,11 @@
 package planetaryprotector.research;
 import java.util.ArrayList;
 import java.util.Random;
-import planetaryprotector.structure.building.Building.Upgrade;
-import planetaryprotector.structure.building.BuildingType;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
+import planetaryprotector.structure.Structure.Upgrade;
+import planetaryprotector.structure.StructureType;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 public enum Research{
@@ -19,48 +19,48 @@ public enum Research{
     SHIELD_PROJECTOR(ResearchCategory.BUILDING_UPGRADES, "Shield generator will project a shield", "Shield Projector", "Installing a Shield Projector on a Shield Generator will allow it to project a shield onto a targeted building ", 16000, 25, 20*60*15, new ItemStack(Item.ironIngot, 250), new ItemStack(Item.star));
     static{
         SUPERCHARGE.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR))
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR, 4),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR, 4),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60, DiscoveryPrerequisite.gainResource(Item.coal, 50),
                         DiscoveryPrerequisite.useResource(Item.coal, 50)),
                         DiscoveryPrerequisite.resource(Item.coal, 50));
         ECOLOGICAL.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR))
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR, 4),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR, 4),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60, DiscoveryPrerequisite.gainResource(Item.coal, 80)),
                         DiscoveryPrerequisite.useResource(Item.coal, 80),
                         DiscoveryPrerequisite.resource(Item.coal, 80));
         STARLIGHT_INFUSED_FUEL.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR),
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR),
                         DiscoveryPrerequisite.starlight())
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR, 12),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR, 8)),
-                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR, 4)),
-                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.building(BuildingType.COAL_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR, 12),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR, 8)),
+                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR, 4)),
+                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.structure(StructureType.COAL_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.gainResource(Item.coal, 150)),
                         DiscoveryPrerequisite.useResource(Item.coal, 150),
                         DiscoveryPrerequisite.resource(Item.coal, 150),
                         DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.starlight()));
         STONE_GRINDING.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.MINE))
+                        DiscoveryPrerequisite.structure(StructureType.MINE))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.MINE, 12),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.MINE, 8)),
-                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.building(BuildingType.MINE, 4)),
-                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.building(BuildingType.MINE)),
+                        DiscoveryPrerequisite.structure(StructureType.MINE, 12),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.MINE, 8)),
+                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.structure(StructureType.MINE, 4)),
+                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.structure(StructureType.MINE)),
                         DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.gainResource(Item.stone, 250)),
                         DiscoveryPrerequisite.useResource(Item.stone, 250),
                         DiscoveryPrerequisite.resource(Item.stone, 250));
         POWER_TOOLS.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.MINE))
+                        DiscoveryPrerequisite.structure(StructureType.MINE))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.MINE, 4),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.MINE)),
+                        DiscoveryPrerequisite.structure(StructureType.MINE, 4),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.MINE)),
                         DiscoveryPrerequisite.time(20*60, DiscoveryPrerequisite.gainResource(Item.coal, 25),
                         DiscoveryPrerequisite.useResource(Item.coal, 25)),
                         DiscoveryPrerequisite.resource(Item.coal, 25));
@@ -68,10 +68,10 @@ public enum Research{
                         DiscoveryPrerequisite.useResource(Item.ironIngot, 25),
                         DiscoveryPrerequisite.resource(Item.ironIngot, 25));
         PHOTOVOLTAIC_SENSITIVITY.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR))
+                        DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR, 4),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR, 4),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60, DiscoveryPrerequisite.gainResource(Item.coal, 80)),
                         DiscoveryPrerequisite.useResource(Item.coal, 80),
                         DiscoveryPrerequisite.resource(Item.coal, 80),
@@ -79,28 +79,28 @@ public enum Research{
                         DiscoveryPrerequisite.useResource(Item.ironIngot, 40),
                         DiscoveryPrerequisite.resource(Item.ironIngot, 40));
         STARLIGHT_GENERATION.addDiscoveryStage("",
-                        DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR),
+                        DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR),
                         DiscoveryPrerequisite.starlight())
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR, 16),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR, 12)),
-                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR, 8)),
-                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR, 4)),
-                        DiscoveryPrerequisite.time(20*60*20, DiscoveryPrerequisite.building(BuildingType.SOLAR_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR, 16),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR, 12)),
+                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR, 8)),
+                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR, 4)),
+                        DiscoveryPrerequisite.time(20*60*20, DiscoveryPrerequisite.structure(StructureType.SOLAR_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.gainResource(Item.ironIngot, 250)),
                         DiscoveryPrerequisite.useResource(Item.ironIngot, 250),
                         DiscoveryPrerequisite.resource(Item.ironIngot, 250),
                         DiscoveryPrerequisite.time(20*60*6, DiscoveryPrerequisite.starlight()));
         SHIELD_PROJECTOR.addDiscoveryStage("", 
-                        DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR),
-                        DiscoveryPrerequisite.building(BuildingType.OBSERVATORY))
+                        DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR),
+                        DiscoveryPrerequisite.structure(StructureType.OBSERVATORY))
                 .addDiscoveryStage("undiscovered",
-                        DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR, 20),
-                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR, 16)),
-                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR, 12)),
-                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR, 8)),
-                        DiscoveryPrerequisite.time(20*60*20, DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR, 4)),
-                        DiscoveryPrerequisite.time(20*60*25, DiscoveryPrerequisite.building(BuildingType.SHIELD_GENERATOR)),
+                        DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR, 20),
+                        DiscoveryPrerequisite.time(20*60*5, DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR, 16)),
+                        DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR, 12)),
+                        DiscoveryPrerequisite.time(20*60*15, DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR, 8)),
+                        DiscoveryPrerequisite.time(20*60*20, DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR, 4)),
+                        DiscoveryPrerequisite.time(20*60*25, DiscoveryPrerequisite.structure(StructureType.SHIELD_GENERATOR)),
                         DiscoveryPrerequisite.time(20*60*10, DiscoveryPrerequisite.gainResource(Item.ironIngot, 300)),
                         DiscoveryPrerequisite.useResource(Item.ironIngot, 300),
                         DiscoveryPrerequisite.resource(Item.ironIngot, 300),
