@@ -58,7 +58,7 @@ public class TaskDemolish extends Task{
             Skyscraper sky = (Skyscraper) structure;
             sky.falling = true;
         }else{
-            game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, structure.type.getTotalCost(structure.getLevel(), Item.ironIngot)));
+            game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, structure.type.getTotalCost(structure.level, Item.ironIngot)));
         }
     }
     @Override

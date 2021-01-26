@@ -5,7 +5,7 @@ import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class Workshop extends Structure implements StructureDamagable, StructureDemolishable{
+public class Workshop extends Structure implements StructureDemolishable{
     public Workshop(Game game, int x, int y){
         super(StructureType.WORKSHOP, game, x, y, 100, 100);
     }
@@ -16,18 +16,6 @@ public class Workshop extends Structure implements StructureDamagable, Structure
     }
     public static Workshop loadSpecific(Config cfg, Game game, int x, int y){
         return new Workshop(game, x, y);
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .4;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
-    }
-    @Override
-    public int getStructureHeight(){
-        return 20;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

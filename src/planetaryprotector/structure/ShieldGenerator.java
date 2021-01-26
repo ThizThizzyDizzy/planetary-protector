@@ -9,7 +9,7 @@ import planetaryprotector.particle.Particle;
 import simplelibrary.config2.Config;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.game.BoundingBox;
-public class ShieldGenerator extends Structure implements PowerConsumer, StructureDamagable, StructureDemolishable, StructureChangeEventListener{
+public class ShieldGenerator extends Structure implements PowerConsumer, StructureDemolishable, StructureChangeEventListener{
     public double shieldSize = 0;
     public double maxShieldSize = 500;
     public double shieldStrength = 1;
@@ -86,7 +86,7 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     public void renderForeground(){
         super.renderForeground();
         Game.theme.applyTextColor();
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
         GL11.glColor4d(1, 1, 1, 1);
     }
     /**
@@ -137,23 +137,15 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         generator.shieldOutline = cfg.get("shieldOutline", false);
         return generator;
     }
-    @Override
-    protected double getFireDestroyThreshold(){
-        return .6;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .8;
-    }
     private double getStats(int level){
         return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
     }
     @Override
     public void upgrade(){
         super.upgrade();
-        canBlast = getLevel()>=10;
-        shieldStrength = getStats(getLevel());
-        maxShieldSize += (getLevel())*250;
+        canBlast = level>=10;
+        shieldStrength = getStats(level);
+        maxShieldSize += (level)*250;
     }
     @Override
     public double getMaxPower(){
@@ -218,10 +210,6 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
             return true;
         }
         setShieldSize(0);
-        return false;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
         return false;
     }
     public double getProjectedShieldStrength(){

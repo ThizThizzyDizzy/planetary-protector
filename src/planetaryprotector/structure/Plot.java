@@ -5,7 +5,7 @@ import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class Plot extends Structure implements StructureDamagable{
+public class Plot extends Structure{
     public Plot(Game game, int x, int y) {
         super(StructureType.EMPTY_PLOT, game, x, y, 100, 100);
     }
@@ -15,14 +15,6 @@ public class Plot extends Structure implements StructureDamagable{
     }
     public static Plot loadSpecific(Config cfg, Game game, int x, int y) {
         return new Plot(game, x, y);
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return 0;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return true;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

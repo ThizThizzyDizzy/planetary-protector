@@ -95,7 +95,7 @@ public class DiscoveryPrerequisite{
                 double found = 0;
                 for(Structure s : game.structures){
                     if(s.type==structure){
-                        found += Math.min(level, s.getLevel())/(double)level;
+                        found += Math.min(level, s.level)/(double)level;
                     }
                 }
                 progress = found/count;

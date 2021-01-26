@@ -4,7 +4,7 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class SolarGenerator extends Structure implements PowerProducer, StructureDamagable, StructureDemolishable{
+public class SolarGenerator extends Structure implements PowerProducer, StructureDemolishable{
     private int frame = 0;
     static final int frames = 4;
     private int speed = 0;//0-100
@@ -51,19 +51,11 @@ public class SolarGenerator extends Structure implements PowerProducer, Structur
     public void renderForeground(){
         super.renderForeground();
         Game.theme.applyTextColor();
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
         GL11.glColor4d(1, 1, 1, 1);
     }
     public static SolarGenerator loadSpecific(Config cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         return new SolarGenerator(game, x, y, level, upgrades);
-    }
-    @Override
-    protected double getFireDestroyThreshold(){
-        return .75;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .85;
     }
     @Override
     public double getProduction(){
@@ -72,7 +64,7 @@ public class SolarGenerator extends Structure implements PowerProducer, Structur
         return getMaxProduction()*sunlight;
     }
     public double getMaxProduction(){
-        return Math.max(getLevel(), (49/400d)*Math.pow(getLevel(), 2)+1)/2;
+        return Math.max(level, (49/400d)*Math.pow(level, 2)+1)/2;
     }
     @Override
     public void producePower(double power){}
@@ -83,14 +75,6 @@ public class SolarGenerator extends Structure implements PowerProducer, Structur
     @Override
     public boolean isPowerActive(){
         return true;
-    }
-    @Override
-    public int getStructureHeight(){
-        return 10;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
     }
     @Override
     public double getDisplayPower(){

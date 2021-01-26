@@ -8,7 +8,7 @@ import planetaryprotector.menu.ingame.MenuResearch;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
 import simplelibrary.config2.Config;
-public class Laboratory extends Structure implements StructureDamagable, StructureDemolishable, PowerConsumer, StarlightConsumer{
+public class Laboratory extends Structure implements StructureDemolishable, PowerConsumer, StarlightConsumer{
     public Research targetResearch;
     public double power;
     public double starlight;
@@ -78,10 +78,6 @@ public class Laboratory extends Structure implements StructureDamagable, Structu
         return lab;
     }
     @Override
-    protected double getIgnitionChance(){
-        return .8;
-    }
-    @Override
     public double getMaxPower(){
         return Math.max(power, targetResearch==null?0:targetResearch.powerCost);
     }
@@ -124,14 +120,6 @@ public class Laboratory extends Structure implements StructureDamagable, Structu
     public void setTargetResearch(Research research){
         targetResearch = research;
         game.refreshNetworks();
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
-    }
-    @Override
-    public int getStructureHeight(){
-        return 10;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

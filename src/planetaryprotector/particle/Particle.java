@@ -203,7 +203,7 @@ public class Particle extends GameObjectAnimated{
             game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
                 for(Structure structure : game.structures){
-                    if(Core.distance(structure, x, y)<=radius&&!structure.isBackgroundStructure()){
+                    if(Core.distance(structure, x, y)<=radius&&!structure.type.isBackgroundStructure()){
                         structure.onHit(structure.x-25, structure.y+structure.height-25);
                     }
                 }

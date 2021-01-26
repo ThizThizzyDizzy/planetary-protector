@@ -16,23 +16,7 @@ public class Tree extends Structure{
         return true;
     }
     @Override
-    public boolean isBackgroundStructure(){
-        return false;
-    }
-    @Override
     public void postLoad(Game game, Config config){}
     @Override
     public void getDebugInfo(ArrayList<String> data){}
-    @Override
-    public int getStructureHeight(){
-        return 14;
-    }
-    @Override
-    public boolean isSelectable(){
-        return true;
-    }
-    @Override
-    public boolean canBeShielded(){
-        return true;
-    }
 }

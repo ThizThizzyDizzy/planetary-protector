@@ -66,7 +66,6 @@ import planetaryprotector.structure.StructureType;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.structure.Structure.Upgrade;
 import simplelibrary.opengl.Renderer2D;
-import planetaryprotector.structure.StructureDamagable;
 import planetaryprotector.structure.StructureDemolishable;
 public class Game extends Renderer2D{
     //<editor-fold defaultstate="collapsed" desc="Variables">
@@ -305,7 +304,7 @@ public class Game extends Renderer2D{
         if(button==0){
             Structure structure = getMouseoverStructure(x, y);
             if(structure!=null){
-                if(setTarget!=null&&structure.canBeShielded()){
+                if(setTarget!=null&&structure.type.isShieldable()){
                     setTarget.setProjectorTarget(structure);
                     setTarget = null;
                 }else{
@@ -1951,7 +1950,7 @@ public class Game extends Renderer2D{
     public ArrayList<Action> getActions(MenuGame menu){
         ArrayList<Action> actions = new ArrayList<>();
         if(selectedStructure!=null){
-            if(selectedStructure instanceof StructureDamagable){
+            if(selectedStructure.type.isDamagable()){
                 actions.add(new Action("Repair", new TaskRepair(selectedStructure)));
                 actions.add(new Action("Repair All", new TaskRepairAll(selectedStructure)));
             }
@@ -1986,7 +1985,7 @@ public class Game extends Renderer2D{
                     return getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2)!=null;
                 }));
                 actions.add(new Action("Cancel Task", (e) -> {
-                    selectedStructure.cancelTask();
+                    selectedStructure.task.cancel();
                 }, () -> {
                     return true;
                 }).setImportant());

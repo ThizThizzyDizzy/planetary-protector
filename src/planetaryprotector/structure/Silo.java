@@ -15,7 +15,7 @@ import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Action;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class Silo extends Structure implements PowerConsumer, StructureDamagable, StructureDemolishable{
+public class Silo extends Structure implements PowerConsumer, StructureDemolishable{
     public int drones = 0;
     int missiles = 0;
     public final ArrayList<Drone> droneList = new ArrayList<>();
@@ -47,7 +47,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
             drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
         }
         drawCenteredText(x, y, x+width, y+20, ""+power);
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -64,7 +64,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
         }
     }
     public boolean canBuildMissile(){
-        switch(getLevel()){
+        switch(level){
             case 1:
                 if(missiles>=5){
                     return false;
@@ -81,7 +81,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
         return game.hasResources(missileCost)&&power>=missilePowerCost;
     }
     public boolean canBuildDrone(){
-        switch(getLevel()){
+        switch(level){
             case 2:
                 if(drones>=1){
                     return false;
@@ -91,7 +91,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
                     return false;
                 }
         }
-        return game.hasResources(droneCost)&&power>=dronePowerCost&&getLevel()>=2;
+        return game.hasResources(droneCost)&&power>=dronePowerCost&&level>=2;
     }
     public boolean canLaunchMissile(){
         return missiles>0;
@@ -171,20 +171,12 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
     public ItemStack[] droneCost(){
         return new ItemStack[]{new ItemStack(droneCost)};
     }
-    @Override
-    protected double getFireDestroyThreshold(){
-        return .25;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .2;
-    }
     private static int getMaxPower(int level){
         return level==1?100000:(level==2?250000:1000000);
     }
     @Override
     public double getMaxPower(){
-        return getMaxPower(getLevel());
+        return getMaxPower(level);
     }
     @Override
     public double getDemand(){
@@ -210,17 +202,13 @@ public class Silo extends Structure implements PowerConsumer, StructureDamagable
         data.add("Power: "+power);
     }
     @Override
-    public boolean isBackgroundStructure(){
-        return true;
-    }
-    @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
         actions.add(new Action("Build Missile", (e) -> {
             buildMissile();
         },() -> {
             return canBuildMissile();
         }, missileCost()));
-        if(getLevel()>1){
+        if(level>1){
             actions.add(new Action("Build Drone", (e) -> {
                 buildDrone();
             }, () -> {

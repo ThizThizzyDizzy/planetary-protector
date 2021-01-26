@@ -9,12 +9,11 @@ import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Iterator;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.structure.task.TaskSkyscraperAddFloor;
-import planetaryprotector.structure.task.TaskType;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.game.Action;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class Skyscraper extends Structure implements StructureDamagable, StructureDemolishable{
+public class Skyscraper extends Structure implements StructureDemolishable{
     public static final int floorHeight = 10;
     public int floorCount = 0;
     public boolean falling;
@@ -108,9 +107,6 @@ public class Skyscraper extends Structure implements StructureDamagable, Structu
             }
         }
         renderDamages();
-        if(task!=null&&task.type==TaskType.SKYSCRAPER_ADD_FLOOR){
-//            ((TaskAnimated)task).anim.Structure.super.draw();//TODO what the heck is this
-        }
     }
     @Override
     protected void drawBar(double percent, double r, double g, double b){
@@ -159,14 +155,6 @@ public class Skyscraper extends Structure implements StructureDamagable, Structu
         return amount;
     }
     @Override
-    protected double getFireDestroyThreshold(){
-        return 1;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return 1;
-    }
-    @Override
     public String getName(){
         return floorCount+" Floor Skyscraper";
     }
@@ -179,10 +167,6 @@ public class Skyscraper extends Structure implements StructureDamagable, Structu
         data.add("Fallen: "+fallen);
         data.add("Falled: "+falled);
         data.add("Pop: "+pop);
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
     }
     @Override
     public int getStructureHeight(){

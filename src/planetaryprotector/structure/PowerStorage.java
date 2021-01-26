@@ -7,7 +7,7 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.ingame.MenuPowerStorageConfiguration;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawCenteredText;
-public class PowerStorage extends Structure implements StructurePowerStorage, StructureDamagable, StructureDemolishable{
+public class PowerStorage extends Structure implements StructurePowerStorage, StructureDemolishable{
     private double power;
     public boolean charge = true;
     public boolean discharge = true;
@@ -84,7 +84,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
         super.renderForeground();
         Game.theme.applyTextColor();
         drawCenteredText(x, y, x+width, y+20, (int)power+"");
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -131,20 +131,12 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
         return powerStorage;
     }
     @Override
-    protected double getFireDestroyThreshold(){
-        return .75;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .85;
-    }
-    @Override
     public double getProduction(){
         if(!discharge)return 0;
         return Math.min(getMaxProduction()*dischargeRate/100,power);
     }
     public double getMaxProduction(){
-        return 32+32*getLevel();
+        return 32+32*level;
     }
     @Override
     public void producePower(double power){
@@ -156,7 +148,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
     }
     @Override
     public double getMaxPower(){
-        return Math.round((7000+3000*Math.pow(getLevel(), 1.5))/1000)*1000;
+        return Math.round((7000+3000*Math.pow(level, 1.5))/1000)*1000;
     }
     @Override
     public double getDemand(){
@@ -164,7 +156,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
         return Math.min(getMaxDemand()*rechargeRate/100,getMaxPower()-getPower());
     }
     public double getMaxDemand(){
-        return 4+4*getLevel();
+        return 4+4*level;
     }
     @Override
     public double getPower(){
@@ -184,14 +176,6 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
         data.add("Power: "+power);
         data.add("Charge: "+charge);
         data.add("Discharge: "+discharge);
-    }
-    @Override
-    public int getStructureHeight(){
-        return 19;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

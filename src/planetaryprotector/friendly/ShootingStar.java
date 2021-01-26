@@ -22,8 +22,8 @@ public class ShootingStar extends GameObject implements ZComponent{
         if(dead)return;
         double fallProgress = landing/(double)landTime;
         double landX = x+width/2;
-        double landY = y+height/2;//TODO something better
-        double startX = landX-Core.helper.displayWidth()*.7;
+        double landY = y+height/2;
+        double startX = landX-Core.helper.displayWidth()*.7;//TODO something better
         double startY = landY-Core.helper.displayHeight();
         double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);
         double Y = Core.getValueBetweenTwoValues(0, startY, 1, landY, fallProgress);

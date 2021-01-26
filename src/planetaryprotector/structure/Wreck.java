@@ -38,10 +38,6 @@ public class Wreck extends Structure{
         return wreck;
     }
     @Override
-    protected double getIgnitionChance(){
-        return 0;
-    }
-    @Override
     public String getName(){
         return "Wreck ("+ingots+" ingots)";
     }
@@ -50,10 +46,6 @@ public class Wreck extends Structure{
         super.getDebugInfo(data);
         data.add("Ingots: "+ingots);
         data.add("Progress: "+progress);
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return true;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

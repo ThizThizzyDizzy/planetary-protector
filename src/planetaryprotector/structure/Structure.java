@@ -29,7 +29,7 @@ public abstract class Structure extends GameObject{
     public double fireIncreaseRate = 0;
     public final ArrayList<Particle> fires = new ArrayList<>();
     //Levels
-    private int level = 0;
+    public int level = 0;
     protected final ArrayList<Upgrade> upgrades = new ArrayList<>();
     private static final int barHeight = 5;
     private double barOffset = 0;
@@ -44,33 +44,34 @@ public abstract class Structure extends GameObject{
         super(game, x, y, width, height);
         this.type = type;
         this.level = level;
-        this.upgrades.clear();//TODO ...why?
         this.upgrades.addAll(upgrades);
     }
     public void tick(){
         fire+=fireIncreaseRate;
-        if(fire-fireDamage*getFireDestroyThreshold()*.1>=getFireDestroyThreshold()*.1){
-            damages.add(new StructureDamage(this,0,0));//TODO maybe a fire-specific damage? (or AT the fire?)
-            fires.add(new Particle(game, getRandX(game.rand), getRandY(game.rand), ParticleEffectType.FIRE));
+        if(fire-fireDamage*type.getFireDestroyThreshold()*.1>=type.getFireDestroyThreshold()*.1){
+            int X = getRandX(game.rand);
+            int Y = getRandY(game.rand);
+            damages.add(new StructureDamage(this, X-25, Y-25));
+            fires.add(new Particle(game, X-25, Y-25, ParticleEffectType.FIRE));
             ignite();
             fireDamage++;
         }
         for(Particle particle : fires){
             particle.tick();
         }
-        if(damages.size()>=getDamageDestroyThreshold()){
+        if(damages.size()>=type.getDamageDestroyThreshold()){
             destroy();
         }
     }
     public void destroy(){
         game.addParticleEffect(new Particle(game, x+game.rand.nextInt(100), y+game.rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
-        game.replaceStructure(this, new Wreck(game, x, y, type.getTotalCost(getLevel(), Item.ironIngot)));
+        game.replaceStructure(this, new Wreck(game, x, y, type.getTotalCost(level, Item.ironIngot)));
     }
     public void drawOverlay(){
         drawRect(x, y-getStructureHeight(), x+width, y+height, 0);
     }
     public void render(){
-        if(!isBackgroundStructure()){
+        if(!type.isBackgroundStructure()){
             drawRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
@@ -81,7 +82,7 @@ public abstract class Structure extends GameObject{
         }
     }
     public void renderBackground(){
-        if(isBackgroundStructure()){
+        if(type.isBackgroundStructure()){
             drawRect(x, y, x+width, y+height, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
@@ -90,9 +91,9 @@ public abstract class Structure extends GameObject{
             }
         }
         renderDamages();
-    }//TODO individual buildings have to render the empty plot background!
+    }
     @Override
-    public final void draw(){//TODO don't actually be final; this is temporary so I stop overriding it
+    public void draw(){
         render();
         GL11.glColor4d(1, 0, 0, (game.damageReportTimer/game.damageReportTime)*damages.size()/10d);
         drawOverlay();
@@ -105,7 +106,7 @@ public abstract class Structure extends GameObject{
             GL11.glColor4d(1, 1, 1, 1);
         }
         renderForeground();
-        GL11.glPushMatrix();//TODO should this really be in front of the foreground?
+        GL11.glPushMatrix();
         GL11.glTranslated(x, y, 0);
         for(Particle fire : fires){
             fire.draw();
@@ -121,7 +122,7 @@ public abstract class Structure extends GameObject{
             drawBar(((StarlightUser)this).getDisplayStarlight()/((StarlightUser)this).getDisplayMaxStarlight(), .625, .875, 1);
         }
         barOffset = height;
-        if(this instanceof StructureDamagable){
+        if(type.isDamagable()){
             switch(MenuOptionsGraphics.health){
                 case 0://none
                     break;
@@ -155,10 +156,6 @@ public abstract class Structure extends GameObject{
     public double getHealthPercent(){
         return 1-(damages.size()/10d);
     }
-    @Deprecated//move to type
-    protected double getIgnitionChance(){
-        return 1;
-    }
     public void upgrade(){
         level++;
         game.refreshNetworks();
@@ -185,24 +182,16 @@ public abstract class Structure extends GameObject{
         return s;
     }
     public String getName(){
-        if(type.getMaxLevel()>1)return "Level "+getLevel()+" "+type.getDisplayName();
+        if(type.getMaxLevel()>1)return "Level "+level+" "+type.getDisplayName();
         return type.getDisplayName();
     }
-    @Deprecated
-    public int getLevel(){
-        return level;
-    }
     public boolean canUpgrade(){
-        return getLevel()<type.getMaxLevel();
-    }
-    @Deprecated
-    public void cancelTask(){
-        task.cancel();
+        return level<type.getMaxLevel();
     }
     public Config save(Config cfg){
         cfg.set("type", type.name);
         cfg.set("count", damages.size());
-        cfg.set("level", getLevel());
+        cfg.set("level", level);
         cfg.set("upgrades", upgrades.size());
         for(int i = 0; i<upgrades.size(); i++){
             Upgrade upgrade = upgrades.get(i);
@@ -251,8 +240,8 @@ public abstract class Structure extends GameObject{
         return damage(x,y);
     }
     public boolean damage(int x, int y){
-        if(this instanceof StructureDamagable){//TODO make that a boolean in StructureType
-            if(game.rand.nextDouble()<getIgnitionChance()){
+        if(type.isDamagable()){
+            if(game.rand.nextDouble()<type.getIgnitionChance()){
                 fireIncreaseRate += 0.0002;
                 ignite(x, y);
             }
@@ -270,10 +259,6 @@ public abstract class Structure extends GameObject{
         damages.add(new StructureDamage(this, x-25, y-25));
         return true;
     }
-    @Deprecated//move to type
-    protected double getFireDestroyThreshold(){
-        return 1.1;
-    }
     public void clearFires(){
         for(Particle fire : fires){
             fire.x+=x;
@@ -283,11 +268,8 @@ public abstract class Structure extends GameObject{
         }
         fires.clear();
     }
-    @Deprecated//move to type
-    public abstract boolean isBackgroundStructure();
-    @Deprecated//move to type
     public int getStructureHeight(){
-        return 0;
+        return type.getStructureHeight();
     }
     /**
      * Called after all structures are loaded- this is in case any structure needs to load data regarding another structure (For example, shield projector target)
@@ -303,7 +285,7 @@ public abstract class Structure extends GameObject{
     public void getDebugInfo(ArrayList<String> data){
         data.add(type.name);
         data.add("Damage: "+damages.size());
-        data.add("Level "+getLevel());
+        data.add("Level "+level);
         data.add("Upgrades: "+upgrades.size());
         for(int i = 0; i<upgrades.size(); i++){
             data.add(" "+upgrades.get(i).name());
@@ -339,17 +321,6 @@ public abstract class Structure extends GameObject{
     @Override
     public int getRandY(Random rand){
         return (int)Math.round(rand.nextDouble()*(height+getStructureHeight())-getStructureHeight());
-    }
-    @Deprecated//move to StructureType
-    public boolean isSelectable(){
-        return true;
-    }
-    @Deprecated//move to StructureType
-    public boolean canBeShielded(){
-        return true;
-    }
-    private int getDamageDestroyThreshold(){
-        return 10;//TODO put this in StructureType
     }
     public ArrayList<Upgrade> getBoughtUpgrades(){
         return upgrades;
@@ -394,7 +365,7 @@ public abstract class Structure extends GameObject{
     }
     public ArrayList<Upgrade> getAvailableUpgrades(){
         int next = getNextUpgradeLevel();
-        if(next==-1||getLevel()<next)return new ArrayList<>();
+        if(next==-1||level<next)return new ArrayList<>();
         ArrayList<Upgrade> available = new ArrayList<>();
         for(Upgrade u : type.upgrades){
             boolean avbl = false;

@@ -7,7 +7,7 @@ import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class Observatory extends Structure implements PowerConsumer, StarlightProducer, StructureDamagable, StructureDemolishable{
+public class Observatory extends Structure implements PowerConsumer, StarlightProducer, StructureDemolishable{
     public double starlight = 0;
     private static final double powerPerStarlight = 2000;
     private static final double starlightSpeed = 0.01;
@@ -118,10 +118,6 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         observatory.collecting = cfg.get("collecting", observatory.collecting);
         return observatory;
     }
-    @Override
-    protected double getIgnitionChance(){
-        return .4;
-    }
     public void toggleScan(){
         if(scanning==0){
             scanning = 2;
@@ -226,14 +222,6 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         starlight-=summonThreshold;
         game.secretWaiting = 0;
         shootTimer = 0;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
-    }
-    @Override
-    public int getStructureHeight(){
-        return 10;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

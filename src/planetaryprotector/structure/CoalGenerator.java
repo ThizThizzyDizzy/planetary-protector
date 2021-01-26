@@ -7,7 +7,7 @@ import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import simplelibrary.config2.Config;
-public class CoalGenerator extends Structure implements PowerProducer, StarlightConsumer, StructureDamagable, StructureDemolishable{
+public class CoalGenerator extends Structure implements PowerProducer, StarlightConsumer, StructureDemolishable{
     public int coal = 0;
     public double burning = 0;//how much time is left on current coal burning
     private static final int BURN_TIME = 500;
@@ -31,7 +31,7 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
     public void tick(){
         super.tick();
         if(burning>0){
-            power+=4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0);
+            power+=4+Math.pow(level,1.4)+level*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0);
             if(starlight>STARLIGHT_THRESHOLD)starlight-=STARLIGHT_THRESHOLD;
             burning-=Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE));
             speed+=acceleration;
@@ -77,7 +77,7 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
         drawRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
         Game.theme.applyTextColor();
         if(coal>0)drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());//TODO level markings
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);//TODO level markings
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -92,14 +92,6 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
         generator.power = cfg.get("power", 0d);
         generator.autoFuel = cfg.get("autofuel", false);
         return generator;
-    }
-    @Override
-    protected double getFireDestroyThreshold(){
-        return .75;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .75;
     }
     @Override
     public double getProduction(){
@@ -146,15 +138,11 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
         data.add("Coal: "+coal);
         data.add("Burning: "+burning);
         data.add("Auto-fuel: "+(autoFuel?"Enabled":"Disabled"));
-        data.add("Power Production: "+(burning<=0?0:4+Math.pow(getLevel(),1.4)+getLevel()*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0)));
+        data.add("Power Production: "+(burning<=0?0:4+Math.pow(level,1.4)+level*Math.pow(1.38, getUpgrades(Upgrade.SUPERCHARGE))*(starlight>STARLIGHT_THRESHOLD?2:0)));
     }
     @Override
     public int getVariants(){
         return 2;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

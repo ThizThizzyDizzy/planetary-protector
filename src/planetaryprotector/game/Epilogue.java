@@ -42,7 +42,8 @@ public class Epilogue extends Game{//TODO no Display
         phase = 0;
         for(Structure structure : structures){
             if(structure instanceof Base)continue;
-            replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));//TODO but the trees lol
+            if(structure.type.isBackgroundStructure())continue;
+            replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));
         }
         doNotDisturb = true;
         offset = 0;

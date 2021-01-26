@@ -11,7 +11,7 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.ingame.MenuExpedition;
 import simplelibrary.config2.Config;
 import static simplelibrary.opengl.Renderer2D.drawRect;
-public class Base extends Structure implements StructureDamagable{
+public class Base extends Structure{
     public int door = 0;
     public int deathTick = -1;
     public Base(Game game, int x, int y){
@@ -79,26 +79,10 @@ public class Base extends Structure implements StructureDamagable{
         return base;
     }
     @Override
-    protected double getFireDestroyThreshold(){
-        return 2.5;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return .1;
-    }
-    @Override
     public void getDebugInfo(ArrayList<String> data) {
         super.getDebugInfo(data);
         data.add("Door: "+door);
         data.add("Death Tick: "+deathTick);
-    }
-    @Override
-    public int getStructureHeight(){
-        return 25;
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return false;
     }
     public int getWorkerX(){
         return x+width/2;

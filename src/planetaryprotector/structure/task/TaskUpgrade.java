@@ -13,7 +13,7 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public boolean canPerform(){
-        return game.hasResources(structure.type.getUpgradeCosts(structure.getLevel()))&&structure.task==null&&structure.damages.isEmpty()&&structure.canUpgrade();
+        return game.hasResources(structure.type.getUpgradeCosts(structure.level))&&structure.task==null&&structure.damages.isEmpty()&&structure.canUpgrade();
     }
     @Override
     public String[] getDetails(){
@@ -64,18 +64,18 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public void finish(){
-        for(ItemStack stack : structure.type.getUpgradeCosts(structure.getLevel())){
+        for(ItemStack stack : structure.type.getUpgradeCosts(structure.level)){
             game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, stack.item, stack.count));
         }
         structure.upgrade();
     }
     @Override
     public void begin(){
-        game.removeResources(structure.type.getUpgradeCosts(structure.getLevel()));
+        game.removeResources(structure.type.getUpgradeCosts(structure.level));
     }
     @Override
     public void onCancel() {
-        for(ItemStack stack : structure.type.getUpgradeCosts(structure.getLevel())){
+        for(ItemStack stack : structure.type.getUpgradeCosts(structure.level)){
             for(int i = 0; i<stack.count; i++){
                 int itemX = structure.x+game.rand.nextInt(79)+11;
                 int itemY = structure.y+game.rand.nextInt(79)+11;
@@ -87,6 +87,6 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public ItemStack[] getTooltip(){
-        return structure.type.getUpgradeCosts(structure.getLevel());
+        return structure.type.getUpgradeCosts(structure.level);
     }
 }

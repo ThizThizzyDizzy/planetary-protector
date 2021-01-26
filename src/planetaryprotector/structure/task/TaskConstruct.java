@@ -114,6 +114,6 @@ public class TaskConstruct extends TaskAnimated{
     }
     @Override
     public boolean isInBackground(){
-        return target.isBackgroundStructure();
+        return target.type.isBackgroundStructure();
     }
 }

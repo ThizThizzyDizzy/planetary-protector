@@ -5,7 +5,7 @@ import planetaryprotector.item.Item;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import simplelibrary.config2.Config;
-public class Mine extends Structure implements PowerConsumer, StructureDamagable, StructureDemolishable{
+public class Mine extends Structure implements PowerConsumer, StructureDemolishable{
     private int timer = 0;
     private int delay = 20;
     private double power;
@@ -24,7 +24,7 @@ public class Mine extends Structure implements PowerConsumer, StructureDamagable
                 items++;
             }
         }
-        return items<25*getLevel();
+        return items<25*level;
     }
     public void deployItem(){
         if(!canDeployItem())return;
@@ -57,7 +57,7 @@ public class Mine extends Structure implements PowerConsumer, StructureDamagable
         super.renderForeground();
         Game.theme.applyTextColor();
         if(power>0)drawCenteredText(x, y, x+width, y+20, (int)power+"");
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+getLevel());
+        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
@@ -76,17 +76,9 @@ public class Mine extends Structure implements PowerConsumer, StructureDamagable
         return mine;
     }
     @Override
-    protected double getFireDestroyThreshold(){
-        return 1.5;
-    }
-    @Override
-    protected double getIgnitionChance(){
-        return 1/3d;
-    }
-    @Override
     public void upgrade(){
         super.upgrade();
-        delay = 20-getLevel();
+        delay = 20-level;
     }
     private Item randomItem(){
         double stoneThreshold = 0.5-getUpgrades(Upgrade.STONE_GRINDING)*.2;
@@ -120,10 +112,6 @@ public class Mine extends Structure implements PowerConsumer, StructureDamagable
         data.add("Timer: "+timer);
         data.add("Delay: "+delay);
         data.add("Power: "+power);
-    }
-    @Override
-    public boolean isBackgroundStructure(){
-        return true;
     }
     @Override
     public double getDisplayPower(){
