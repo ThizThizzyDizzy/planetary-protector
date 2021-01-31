@@ -270,9 +270,9 @@ public class Core extends Renderer2D{
         Game.refreshTheme();
         for(AsteroidMaterial m : AsteroidMaterial.values()){
             for(int i = 0; i<10; i++){
-                m.images[i] = "/textures/asteroids/"+m.texture+"/Step "+(i+1)+".png";
+                m.images[i] = "/textures/asteroids/"+m.texture+"/"+(i+1)+".png";
                 if(i<9) {
-                    m.images[i+10] = "/textures/asteroids/crash/Step "+(i+1)+".png";
+                    m.images[i+10] = "/textures/asteroids/crash/"+(i+1)+".png";
                 }
             }
         }
