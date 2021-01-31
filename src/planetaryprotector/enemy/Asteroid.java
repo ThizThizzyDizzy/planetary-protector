@@ -4,11 +4,11 @@ import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
-import planetaryprotector.menu.component.GameObjectAnimated;
 import planetaryprotector.menu.component.ZComponent;
 import simplelibrary.opengl.ImageStash;
-public class Asteroid extends GameObjectAnimated implements ZComponent{
+public class Asteroid extends GameObject implements ZComponent{
     public AsteroidMaterial material;
     private boolean hit;
     public boolean drop = true;
@@ -21,9 +21,11 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
     public static final int PARTICULATE_ALWAYS = 2;
     private final int particleResolution = MenuOptionsGraphics.particles*6;
     /**
-     * when the asteroid hits the ground, previously a constant 12, thus the name
+     * when the asteroid hits the ground
      */
-    private double twelve = 24;
+    private static final int frames = 19;
+    private static final int hitFrame = 12;
+    private int frame = 0;//the amount this has fallen
     /**
      * @param x
      * @param y
@@ -31,34 +33,39 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
      * @param particulate 0=never, 1=only if settings allow, 2=always
      */
     public Asteroid(Game game, int x, int y, AsteroidMaterial material, int particulate){
-        super(game, x,y, 50, 50, material.images);
-        delay /= 2;
-        twelve /= 2;
+        super(game, x,y, 50, 50);
         this.material = material;
         this.particulate = particulate;
     }
     @Override
     public void draw(){
         if(dead)return;
-        if(isParticulate()&&frame<=twelve){
-            double fallProgress = (frame-1)/(double)twelve;
+        GL11.glColor4d(1, 1, 1, 1);
+        if(isParticulate()&&frame<=hitFrame){
+            double fallProgress = (frame-1)/(double)hitFrame;
             double landX = x+width/2;
             double landY = y+height/2;
             double startX = landX-game.getWorldBoundingBox().width*.7;
             double startY = landY-game.getWorldBoundingBox().height;
             double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);
             double Y = Core.getValueBetweenTwoValues(0, startY, 1, landY, fallProgress);
-            GL11.glColor4d(1, 1, 1, 1);
-            drawRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ImageStash.instance.getTexture(images[0]));
+            drawRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ImageStash.instance.getTexture("/textures/asteroids/stone.png"), 0, 0, 1, 1d/frames);
+            if(material.color!=null){
+                GL11.glColor4d(material.color.getRed()/255d,material.color.getGreen()/255d,material.color.getBlue()/255d,1);
+                drawRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ImageStash.instance.getTexture("/textures/asteroids/ore.png"), 0, 0, 1, 1d/frames);
+            }
             return;
         }
-        super.draw();
+        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/asteroids/stone.png"), 0, frame/(double)frames, 1, (frame+1d)/frames);
+        if(material.color!=null){
+            GL11.glColor4d(material.color.getRed()/255d,material.color.getGreen()/255d,material.color.getBlue()/255d,1);
+            drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/asteroids/ore.png"), 0, frame/(double)frames, 1, (frame+1d)/frames);
+        }
     }
-    @Override
     public void tick(){
         if(dead)return;
-        super.tick();
-        if(frame>=twelve&&!hit){
+        frame++;
+        if(frame>=hitFrame&&!hit){
             hit = true;
             if(drop){
                 game.damage(x+width/2,y+height/2, material);
@@ -67,17 +74,17 @@ public class Asteroid extends GameObjectAnimated implements ZComponent{
             }
             game.pushParticles(x+width/2, y+height/2, width*2, width/8, Particle.PushCause.ASTEROID);
         }
-        if(frame>=images.length-1){
+        if(frame>=frames){
             dead = true;
         }
-        if(isParticulate()&&frame<=twelve){
-            double fallProgress = frame/(double)twelve;
+        if(isParticulate()&&frame<=hitFrame){
+            double fallProgress = frame/(double)hitFrame;
             double landX = x+width/2;
             double landY = y+height/2;
             double startX = landX-game.getWorldBoundingBox().width*.7;
             double startY = landY-game.getWorldBoundingBox().height;
-            double frameDistanceX = (landX-startX)/(double)twelve;
-            double frameDistanceY = (landY-startY)/(double)twelve;
+            double frameDistanceX = (landX-startX)/(double)hitFrame;
+            double frameDistanceY = (landY-startY)/(double)hitFrame;
             double dX = frameDistanceX/particleResolution;
             double dY = frameDistanceY/particleResolution;
             double X = Core.getValueBetweenTwoValues(0, startX, 1, landX, fallProgress);

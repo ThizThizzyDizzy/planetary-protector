@@ -268,14 +268,6 @@ public class Core extends Renderer2D{
         Sounds.create();
         Sounds.enableAutoplay();
         Game.refreshTheme();
-        for(AsteroidMaterial m : AsteroidMaterial.values()){
-            for(int i = 0; i<10; i++){
-                m.images[i] = "/textures/asteroids/"+m.texture+"/"+(i+1)+".png";
-                if(i<9) {
-                    m.images[i+10] = "/textures/asteroids/crash/"+(i+1)+".png";
-                }
-            }
-        }
         for(ParticleEffectType p : ParticleEffectType.values()){
             for(int i = 0; i<p.frames; i++){
                 p.images[i] = "/textures/particles/"+p.texture+"/"+(i+1)+".png";

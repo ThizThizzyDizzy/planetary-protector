@@ -63,9 +63,8 @@ public class MenuLoadTextures extends Menu{
             throw new UnsupportedOperationException("What just happened?");
         }
         if(dev){
-            for(AsteroidMaterial m : AsteroidMaterial.values()){
-                for(String s : m.images)verifyTextures.enqueue(s);
-            }
+            verifyTextures.enqueue("/textures/asteroids/stone.png");
+            verifyTextures.enqueue("/textures/asteroids/ore.png");
             for(ParticleEffectType p : ParticleEffectType.values()){
                 for(String s : p.images)verifyTextures.enqueue(s);
             }
