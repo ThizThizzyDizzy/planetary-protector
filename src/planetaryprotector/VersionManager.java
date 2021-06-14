@@ -21,7 +21,6 @@ public class VersionManager{
      */
     private static String backCompatibleTo;
     static{
-        addVersion("1.0");
         breakBackCompatability();
         addVersion("1.1");
         breakBackCompatability();

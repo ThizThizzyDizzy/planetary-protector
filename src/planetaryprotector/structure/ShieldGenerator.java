@@ -217,21 +217,19 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Toggle Shield Outline", (e) -> {
+        actions.add(new Action("Toggle Shield Outline", () -> {
             shieldOutline = !shieldOutline;
         }, () -> {
             return true;
         }));
         if(game.phase>=3&&canBlast){
-            actions.add(new Action("Blast", (e) -> {
-                blast();
-            }, () -> {
+            actions.add(new Action("Blast", this::blast, () -> {
                 return blastRecharge==0;
             }));
         }
         if(hasUpgrade(Upgrade.SHIELD_PROJECTOR)){
             if(game.setTarget==null){
-                actions.add(new Action(projectorTarget!=null?"Change Projector Target":"Set Projector Target", (e) -> {
+                actions.add(new Action(projectorTarget!=null?"Change Projector Target":"Set Projector Target", () -> {
                     if(game.setTarget==null){
                         game.setTarget = this;
                     }else{
@@ -241,7 +239,7 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
                     return true;
                 }));
                 if(projectorTarget!=null){
-                    actions.add(new Action("Clear Projector Target", (e) -> {
+                    actions.add(new Action("Clear Projector Target", () -> {
                         setProjectorTarget(null);
                         game.setTarget = null;
                     }, () -> {

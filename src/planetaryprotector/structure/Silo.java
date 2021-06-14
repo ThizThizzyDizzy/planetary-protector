@@ -203,23 +203,11 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Build Missile", (e) -> {
-            buildMissile();
-        },() -> {
-            return canBuildMissile();
-        }, missileCost()));
+        actions.add(new Action("Build Missile", this::buildMissile, this::canBuildMissile, missileCost()));
         if(level>1){
-            actions.add(new Action("Build Drone", (e) -> {
-                buildDrone();
-            }, () -> {
-                return canBuildDrone();
-            }, droneCost()));
+            actions.add(new Action("Build Drone", this::buildDrone, this::canBuildDrone, droneCost()));
         }
-        actions.add(new Action("Fire Missiles", (e) -> {
-            launchMissile();
-        }, () -> {
-            return canLaunchMissile();
-        }));
+        actions.add(new Action("Fire Missiles", this::launchMissile, this::canLaunchMissile));
     }
     @Override
     public double getDisplayPower(){

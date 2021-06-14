@@ -10,7 +10,7 @@ public abstract class Story{
         for(int i = 1; i<=Core.LEVELS; i++){
             stories.put(i, new ArrayList<>());
         }
-        new Story("level1", 1){
+        addStory(1, new Story("level1"){
             @Override
             public void tick(Game game){
                 //<editor-fold defaultstate="collapsed" desc="Post-lose epilogue loading">
@@ -31,7 +31,7 @@ public abstract class Story{
             public String getName(){
                 return "Default";
             }
-        };
+        });
     }
     public static Story getStory(int level, String name){
         for(Story gen : stories.get(level)){
@@ -39,9 +39,11 @@ public abstract class Story{
         }
         return stories.get(level).get(0);
     }
+    private static void addStory(int level, Story story) {
+        stories.get(level).add(story);
+    }
     public final String id;
-    public Story(String id, int level){
-        stories.get(level).add(this);
+    public Story(String id){
         this.id = id;
     }
     public abstract void tick(Game game);

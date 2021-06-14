@@ -92,20 +92,16 @@ public class Base extends Structure{
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Assign All Workers", (e) -> {
-            game.assignAllWorkers();
-        }, () -> {
+        actions.add(new Action("Assign All Workers", game::assignAllWorkers, () -> {
             return true;
         }));
         if(game.phase>=2){
-            actions.add(new Action("Damage Report", (e) -> {
-                game.damageReport();
-            }, () -> {
+            actions.add(new Action("Damage Report", game::damageReport, () -> {
                 return true;
             }));
         }
         if(game.phase>=3){
-            actions.add(new Action("Expeditions", (e) -> {
+            actions.add(new Action("Expeditions", () -> {
                 menu.openOverlay(new MenuExpedition(menu));
             }, () -> {
                 return game.workers.size()>1;

@@ -13,7 +13,6 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
-import javax.swing.JOptionPane;
 import simplelibrary.Sys;
 import simplelibrary.error.ErrorCategory;
 import simplelibrary.error.ErrorLevel;
@@ -22,8 +21,8 @@ public class Updater{
     private HashMap<String, String> links = new HashMap<>();
     private int versionsBehind;
     private String currentVersion;
-    private String applicationName;
-    public static Updater read(File file, String currentVersion, String applicationName){
+    private String filename;
+    public static Updater read(File file, String currentVersion, String filename){
         if(!file.exists()||!file.isFile()){
             return null;
         }
@@ -40,14 +39,14 @@ public class Updater{
             }
         }catch(IOException ex){}
         updater.setCurrentVersion(currentVersion);
-        updater.applicationName = applicationName;
+        updater.filename = filename;
         return updater;
     }
     public static Updater read(String fileURL, String currentVersion, String applicationName){
         Updater updater = new Updater();
-        File file = new File("C:\\temp\\version.version");
+        File file = new File("version.version");
         file.delete();
-        downloadFile(fileURL, file);
+        downloadFile(fileURL, file.getAbsoluteFile());
         try(BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file)))){
             String line;
             while((line = in.readLine())!=null){
@@ -59,8 +58,9 @@ public class Updater{
                 updater.links.put(spl[0], spl[1]);
             }
         }catch(IOException ex){}
+        file.delete();
         updater.setCurrentVersion(currentVersion);
-        updater.applicationName = applicationName;
+        updater.filename = applicationName;
         return updater;
     }
     private static File downloadFile(String link, File destinationFile){
@@ -148,12 +148,10 @@ public class Updater{
         if(link==null){
             return null;
         }
-        String fileName = applicationName+" "+currentVersion+".jar";
-        String newFilename = applicationName+" "+version+".jar";
-        String existingFilename = new File(Updater.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getName();
+        String newFilename = filename+"-"+version+".jar";
         String temporaryFilename = newFilename;
         for(int i = 2; new File(temporaryFilename).exists(); i++){
-            temporaryFilename = applicationName+" "+version+" ("+i+").jar";
+            temporaryFilename = filename+"-"+version+" ("+i+").jar";
         }
         //<editor-fold defaultstate="collapsed" desc="Downloading">
         try {
@@ -212,22 +210,6 @@ public class Updater{
             Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.InternetIO);
             new File(temporaryFilename).delete();
         }//</editor-fold>
-        if((!existingFilename.equals(fileName))&&false){
-            boolean useExisting = JOptionPane.showConfirmDialog(null, "Would you like to use the same file for the new version of "+applicationName+"?", applicationName+" Update", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)==JOptionPane.YES_OPTION;
-            if(useExisting){
-                File file = new File(Updater.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-                File otherFile = new File(temporaryFilename);
-                try{
-                    file.delete();
-                    otherFile.renameTo(file);
-                    return file;
-                }catch(Throwable twbl){
-                    JOptionPane.showMessageDialog(null, "Could not replace file!");
-                }
-                return new File(temporaryFilename);
-            }
-        }
-        newFilename = temporaryFilename;
         return new File(temporaryFilename);
     }
     public static InputStream getRemoteInputStream(String currentFile, final URLConnection urlconnection) throws Exception {

@@ -1,7 +1,7 @@
 package planetaryprotector.enemy;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
+import simplelibrary.image.Color;
 public enum AsteroidMaterial{
     STONE("stone", 4, null),
     COAL("coal", 1, new Color(0, 0, 0)),

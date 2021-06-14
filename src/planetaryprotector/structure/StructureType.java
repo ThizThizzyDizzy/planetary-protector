@@ -18,7 +18,7 @@ public abstract class StructureType{
         }
         @Override
         public Structure load(Config cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Tree.load(cfg, game);
+            return Tree.loadSpecific(cfg, game, x, y);
         }
     }.setDisplayName("Tree").setDecoration(true).setStructureHeight(14));
     public static final StructureType BASE = registerStructureType(new StructureType("base"){

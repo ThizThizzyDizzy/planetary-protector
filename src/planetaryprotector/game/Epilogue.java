@@ -7,7 +7,6 @@ import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.lwjgl.opengl.GL11;
@@ -26,7 +25,7 @@ public class Epilogue extends Game{//TODO no Display
     private int timer = 195;
     private int i;
     private String[] texts = new String[]{"All of the other cities on the planet are still in ruins.", "Let the people of the city set out and rebuild.", "Thanks for playing!"};
-    private Queue<Point> w = new Queue<>();
+    private Queue<int[]> w = new Queue<>();
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
     public Epilogue(){
@@ -120,12 +119,12 @@ public class Epilogue extends Game{//TODO no Display
             if(rand.nextDouble()<.1){
                 addCloud();
             }
-            for(Point p : w){
-                p.x = rand.nextInt(Core.helper.displayWidth());
-                p.y = rand.nextInt(Core.helper.displayHeight());
+            for(int[] p : w){
+                p[0] = rand.nextInt(Core.helper.displayWidth());
+                p[1] = rand.nextInt(Core.helper.displayHeight());
             }
             for(int i = 0; i<Core.helper.displayHeight()/100; i++){
-                w.enqueue(new Point(rand.nextInt(Core.helper.displayWidth()), rand.nextInt(Core.helper.displayHeight())));
+                w.enqueue(new int[]{rand.nextInt(Core.helper.displayWidth()), rand.nextInt(Core.helper.displayHeight())});
             }
             for(Structure structure : structures){
                 if(structure instanceof Wreck&&rand.nextInt(25)==1){
@@ -162,8 +161,8 @@ public class Epilogue extends Game{//TODO no Display
         for(Structure structure : structures){
             structure.renderBackground();
         }
-        for(Point p : w){
-            drawRect(p.x-5, p.y-5, p.x+5, p.y+5, ImageStash.instance.getTexture("/textures/worker.png"));
+        for(int[] p : w){
+            drawRect(p[0]-5, p[1]-5, p[0]+5, p[1]+5, ImageStash.instance.getTexture("/textures/worker.png"));
         }
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())anim.draw();

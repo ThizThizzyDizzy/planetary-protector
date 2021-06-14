@@ -179,17 +179,17 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action((charge?"Disable":"Enable")+" Charging", (e) -> {
+        actions.add(new Action((charge?"Disable":"Enable")+" Charging", () -> {
             charge = !charge;
         }, () -> {
             return true;
         }));
-        actions.add(new Action((discharge?"Disable":"Enable")+" Discharging", (e) -> {
+        actions.add(new Action((discharge?"Disable":"Enable")+" Discharging", () -> {
             discharge = !discharge;
         }, () -> {
             return true;
         }));
-        actions.add(new Action("Power Storage Configuration", (e) -> {
+        actions.add(new Action("Power Storage Configuration", () -> {
             menu.openOverlay(new MenuPowerStorageConfiguration(menu, this));
         }, () -> {
             return true;

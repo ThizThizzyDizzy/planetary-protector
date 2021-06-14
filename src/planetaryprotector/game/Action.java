@@ -1,11 +1,10 @@
 package planetaryprotector.game;
-import java.awt.event.ActionListener;
 import planetaryprotector.structure.task.Task;
 import planetaryprotector.item.ItemStack;
 public class Action{
     public int divider = 0;
     public final String label;
-    public final ActionListener listener;
+    public final Runnable runFunc;
     public final ActionUpdate update;
     public final ItemStack[] tooltip;
     private boolean important;
@@ -14,19 +13,18 @@ public class Action{
         this.divider = divider;
     }
     public Action(String label, Task task){
-        this(label, (e) -> {
+        this(label, () -> {
             if(!task.canPerform())return;
             task.start();
         }, () -> {
             return task.canPerform();
         }, task.getTooltip());
     }
-    public Action(String label, ActionListener listener, ActionUpdate update, ItemStack... tooltip){
+    public Action(String label, Runnable performFunc, ActionUpdate update, ItemStack... tooltip){
         this.label = label;
-        this.listener = listener;
+        this.runFunc = performFunc;
         this.update = update;
         this.tooltip = tooltip;
-        
     }
     public boolean isDivider(){
         return label==null;

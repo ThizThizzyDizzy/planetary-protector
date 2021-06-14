@@ -1,9 +1,9 @@
 package planetaryprotector.menu;
 import planetaryprotector.Sounds;
-import java.awt.Color;
 import java.util.Random;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
+import simplelibrary.image.Color;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.Menu;

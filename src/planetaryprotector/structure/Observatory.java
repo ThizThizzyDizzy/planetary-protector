@@ -225,7 +225,7 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Add Star", (e) -> {
+        actions.add(new Action("Add Star", () -> {
             if(game.hasResources(new ItemStack(Item.star))){
                 if(addStar()){
                     game.removeResources(new ItemStack(Item.star));
@@ -234,14 +234,10 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         }, () -> {
             return game.hasResources(new ItemStack(Item.star))&&canAddStar();
         }));
-        actions.add(new Action("Toggle Scan", (e) -> {
-            toggleScan();
-        }, () -> {
+        actions.add(new Action("Toggle Scan", this::toggleScan, () -> {
             return true;
         }));
-        actions.add(new Action("Summon Shooting Star", (e) -> {
-            summonStar();
-        }, () -> {
+        actions.add(new Action("Summon Shooting Star", this::summonStar, () -> {
             return canSummonStar();
         }));
     }

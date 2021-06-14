@@ -7,6 +7,7 @@ import planetaryprotector.structure.Laboratory;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
 import planetaryprotector.research.DiscoveryPrerequisite;
+import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.Research.ResearchCategory;
 import planetaryprotector.research.lang.HorizontalLang;
@@ -64,11 +65,14 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         drawTheImageAndItsBorder(x+border, y+borderThickness+width*.15+40, x+border+width/4, y+borderThickness+width*.15+40+width/4);
         if(!research.isDiscovered()){
             drawProgressBar(x+border, y+height-border-borderThickness, x+width-border, y+height-border, research.getPercentDone());
-            double total = research.getDiscoveryStage().prerequisites.size();
-            double wide = width-border*2;
-            for(int i = 0; i<total; i++){
-                DiscoveryPrerequisite pre = research.getDiscoveryStage().prerequisites.get(i);
-                drawProgressBar(x+border+(wide*(i/total)), y+height-border-borderThickness*1.5, x+border+(wide*((i+1)/total)), y+height-border-borderThickness, pre.progress);
+            DiscoveryStage stage = research.getDiscoveryStage();
+            if(stage!=null){//not sure why stage is sometimes null; probably a race condition
+                double total = stage.prerequisites.size();
+                double wide = width-border*2;
+                for(int i = 0; i<total; i++){
+                    DiscoveryPrerequisite pre = stage.prerequisites.get(i);
+                    drawProgressBar(x+border+(wide*(i/total)), y+height-border-borderThickness*1.5, x+border+(wide*((i+1)/total)), y+height-border-borderThickness, pre.progress);
+                }
             }
         }else if(!research.isCompleted()){
             int num = research.itemCosts.length+(research.totalPowerCost>0?1:0)+(research.totalStarlightCost>0?1:0);

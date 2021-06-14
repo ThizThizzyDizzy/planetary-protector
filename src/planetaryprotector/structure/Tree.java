@@ -15,6 +15,10 @@ public class Tree extends Structure{
         dead = true;
         return true;
     }
+    public static Tree loadSpecific(Config cfg, Game game, int x, int y) {
+        Tree tree = new Tree(game, x, y);
+        return tree;
+    }
     @Override
     public void postLoad(Game game, Config config){}
     @Override

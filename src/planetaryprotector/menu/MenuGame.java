@@ -66,7 +66,7 @@ public class MenuGame extends Menu{
         }
     }
     @Override
-    public void render(int millisSinceLastTick){
+    public synchronized void render(int millisSinceLastTick){
         game.render(millisSinceLastTick);
         if(game instanceof Epilogue)return;
         GL11.glColor4d(1, 1, 1, 1);
@@ -178,7 +178,7 @@ public class MenuGame extends Menu{
         GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
-    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+    public synchronized void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
             overlay.keyEvent(key, scancode, isPress, isRepeat, modifiers);
@@ -440,7 +440,7 @@ public class MenuGame extends Menu{
         }
     }
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
+    public synchronized void onMouseButton(double x, double y, int button, boolean pressed, int mods){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
             overlay.onMouseButton(x, y, button, pressed, mods);
@@ -473,7 +473,7 @@ public class MenuGame extends Menu{
         }
     }
     @Override
-    public void onMouseMove(double x, double y){
+    public synchronized void onMouseMove(double x, double y){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
             overlay.onMouseMove(x, y);
@@ -491,7 +491,7 @@ public class MenuGame extends Menu{
         }
     }
     @Override
-    public boolean onMouseScrolled(double x, double y, double dx, double dy){
+    public synchronized boolean onMouseScrolled(double x, double y, double dx, double dy){
         if(game instanceof Epilogue)return true;
         if(overlay!=null){
             return overlay.onMouseScrolled(x, y, dx, dy);
@@ -510,7 +510,7 @@ public class MenuGame extends Menu{
         return true;
     }
     @Override
-    public void tick(){
+    public synchronized void tick(){
         if(overlay!=null)overlay.tick();
         if(game.updatePhaseMarker){
             game.paused = true;

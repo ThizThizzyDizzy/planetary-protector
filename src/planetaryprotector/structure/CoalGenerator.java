@@ -146,13 +146,13 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Add Coal", (e) -> {
+        actions.add(new Action("Add Coal", () -> {
             game.removeResources(new ItemStack(Item.coal));
             coal++;
         }, () -> {
             return game.hasResources(new ItemStack(Item.coal));
         }));
-        actions.add(new Action((autoFuel?"Disable":"Enable")+" Auto-fueling", (e) -> {
+        actions.add(new Action((autoFuel?"Disable":"Enable")+" Auto-fueling", () -> {
             autoFuel = !autoFuel;
         }, () -> {
             return true;

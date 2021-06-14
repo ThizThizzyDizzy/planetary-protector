@@ -123,7 +123,7 @@ public class Laboratory extends Structure implements StructureDemolishable, Powe
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Research", (e) -> {
+        actions.add(new Action("Research", () -> {
             menu.openOverlay(new MenuResearch(menu, this));
         }, () -> {
             return true;

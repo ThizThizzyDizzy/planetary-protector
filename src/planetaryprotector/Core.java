@@ -3,19 +3,20 @@ import club.minnced.discord.rpc.DiscordEventHandlers;
 import club.minnced.discord.rpc.DiscordRPC;
 import club.minnced.discord.rpc.DiscordRichPresence;
 import planetaryprotector.game.Game;
-import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.particle.ParticleEffectType;
-import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.glfw.GLFW;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.game.Story;
@@ -31,6 +32,7 @@ import simplelibrary.error.ErrorAdapter;
 import simplelibrary.error.ErrorCategory;
 import simplelibrary.font.FontManager;
 import simplelibrary.game.GameHelper;
+import simplelibrary.image.Color;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.Renderer2D;
 import simplelibrary.opengl.gui.GUI;
@@ -43,7 +45,7 @@ public class Core extends Renderer2D{
     public static ArrayList<Long> FPStracker = new ArrayList<>();
     public static boolean debugMode = false;
     public static final boolean is3D = false;
-    public static boolean enableCullFace = true;
+    public static final boolean enableCullFace = true;
     public static final int LEVELS = 2;
     public static int latestLevel = 1;
     public static int speedMult = 1;
@@ -56,9 +58,11 @@ public class Core extends Renderer2D{
     public static String discordSmallImageText;
     public static long discordEndTimestamp;
     private static int fpsLimit = 60;
+    public static boolean updateAvailable;
+    private static Updater updater;
     public static void main(String[] args) throws NoSuchMethodException{
         helper = new GameHelper();
-        helper.setBackground(Color.gray);
+        helper.setBackground(Color.GRAY);
         helper.setDisplaySize(800, 600);
         helper.setRenderInitMethod(Core.class.getDeclaredMethod("renderInit", new Class<?>[0]));
         helper.setTickInitMethod(Core.class.getDeclaredMethod("tickInit", new Class<?>[0]));
@@ -67,6 +71,7 @@ public class Core extends Renderer2D{
         helper.setTickMethod(Core.class.getDeclaredMethod("tick", boolean.class));
         helper.setWindowTitle(Main.applicationName+" "+VersionManager.currentVersion);
         helper.setMode(is3D?GameHelper.MODE_HYBRID:GameHelper.MODE_2D);
+        helper.setAntiAliasing(4);
         helper.setFrameOfView(90);
         initDiscord();
         Sys.initLWJGLGame(new File(Main.getAppdataRoot()+"/errors/"), new ErrorAdapter(){
@@ -85,139 +90,22 @@ public class Core extends Renderer2D{
             public void minorError(String message, Throwable error, ErrorCategory category){
                 System.err.println("Minor "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
                 logger.log(Level.SEVERE, message, error);
-                if(Main.hasAWT){
-                    String details = "";
-                    Throwable t = error;
-                    while(t!=null){
-                        details+=t.getClass().getName()+" "+t.getMessage();
-                        StackTraceElement[] stackTrace = t.getStackTrace();
-                        for(StackTraceElement e : stackTrace){
-                            if(e.getClassName().startsWith("net."))continue;
-                            if(e.getClassName().startsWith("com."))continue;
-                            String[] splitClassName = e.getClassName().split("\\Q.");
-                            String filename = splitClassName[splitClassName.length-1]+".java";
-                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
-                            if((details+nextLine).length()+4>1024){
-                                details+="\n...";
-                                break;
-                            }else details+=nextLine;
-                        }
-                        t = t.getCause();
-                        if(t!=null)details+="\nCaused by ";
-                    }
-                    String[] options = new String[]{"Ignore", "Exit"};
-                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Minor "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
-                        case 1:
-                            helper.running = false;
-                            break;
-                        case 0:
-                        default:
-                            break;
-                    }
-                }
             }
             @Override
             public void moderateError(String message, Throwable error, ErrorCategory category){
                 System.err.println("Moderate "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
                 logger.log(Level.SEVERE, message, error);
-                if(Main.hasAWT){
-                    String details = "";
-                    Throwable t = error;
-                    while(t!=null){
-                        details+=t.getClass().getName()+" "+t.getMessage();
-                        StackTraceElement[] stackTrace = t.getStackTrace();
-                        for(StackTraceElement e : stackTrace){
-                            if(e.getClassName().startsWith("net."))continue;
-                            if(e.getClassName().startsWith("com."))continue;
-                            String[] splitClassName = e.getClassName().split("\\Q.");
-                            String filename = splitClassName[splitClassName.length-1]+".java";
-                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
-                            if((details+nextLine).length()+4>1024){
-                                details+="\n...";
-                                break;
-                            }else details+=nextLine;
-                        }
-                        t = t.getCause();
-                        if(t!=null)details+="\nCaused by ";
-                    }
-                    String[] options = new String[]{"Ignore", "Exit"};
-                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Moderate "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
-                        case 1:
-                            helper.running = false;
-                            break;
-                        case 0:
-                        default:
-                            break;
-                    }
-                }
             }
             @Override
             public void severeError(String message, Throwable error, ErrorCategory category){
                 System.err.println("Severe "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
                 logger.log(Level.SEVERE, message, error);
-                if(Main.hasAWT){
-                    String details = "";
-                    Throwable t = error;
-                    while(t!=null){
-                        details+=t.getClass().getName()+" "+t.getMessage();
-                        StackTraceElement[] stackTrace = t.getStackTrace();
-                        for(StackTraceElement e : stackTrace){
-                            if(e.getClassName().startsWith("net."))continue;
-                            if(e.getClassName().startsWith("com."))continue;
-                            String[] splitClassName = e.getClassName().split("\\Q.");
-                            String filename = splitClassName[splitClassName.length-1]+".java";
-                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
-                            if((details+nextLine).length()+4>1024){
-                                details+="\n...";
-                                break;
-                            }else details+=nextLine;
-                        }
-                        t = t.getCause();
-                        if(t!=null)details+="\nCaused by ";
-                    }
-                    String[] options = new String[]{"Ignore", "Exit"};
-                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Severe "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
-                        case 1:
-                            helper.running = false;
-                            break;
-                        case 0:
-                        default:
-                            break;
-                    }
-                }
             }
             @Override
             public void criticalError(String message, Throwable error, ErrorCategory category){
                 System.err.println("Critical "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error");
                 logger.log(Level.SEVERE, message, error);
-                if(Main.hasAWT){
-                    String details = "";
-                    Throwable t = error;
-                    while(t!=null){
-                        details+=t.getClass().getName()+" "+t.getMessage();
-                        StackTraceElement[] stackTrace = t.getStackTrace();
-                        for(StackTraceElement e : stackTrace){
-                            if(e.getClassName().startsWith("net."))continue;
-                            if(e.getClassName().startsWith("com."))continue;
-                            String[] splitClassName = e.getClassName().split("\\Q.");
-                            String filename = splitClassName[splitClassName.length-1]+".java";
-                            String nextLine = "\nat "+e.getClassName()+"."+e.getMethodName()+"("+filename+":"+e.getLineNumber()+")";
-                            if((details+nextLine).length()+4>1024){
-                                details+="\n...";
-                                break;
-                            }else details+=nextLine;
-                        }
-                        t = t.getCause();
-                        if(t!=null)details+="\nCaused by ";
-                    }
-                    String[] options = new String[]{"Exit"};
-                    switch(javax.swing.JOptionPane.showOptionDialog(null, details, "Critical "+Character.toUpperCase(category.toString().charAt(0))+category.toString().substring(1)+" Error: "+message, javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE, null, options, options[0])){
-                        case 0:
-                        default:
-                            helper.running = false;
-                            break;
-                    }
-                }
+                System.exit(1);
             }
         }, null, helper);
     }
@@ -230,6 +118,8 @@ public class Core extends Renderer2D{
         GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL13.GL_MULTISAMPLE);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.01f);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glEnable(GL11.GL_BLEND);
         if(is3D){
@@ -266,6 +156,13 @@ public class Core extends Renderer2D{
         helper.assignGUI(gui);
         System.out.println("Initializing Sound System");
         Sounds.create();
+        System.out.println("Startup complete!");
+        System.out.println("Checking for updates...");
+        updater = Updater.read("https://raw.githubusercontent.com/ThizThizzyDizzy/planetary-protector/master/versions.txt", VersionManager.currentVersion, Main.applicationName);
+        if(updater!=null&&updater.getVersionsBehindLatestDownloadable()>0){
+            updateAvailable = true;
+        }
+        System.out.println("Update Check Complete.");
         Sounds.enableAutoplay();
         Game.refreshTheme();
         for(ParticleEffectType p : ParticleEffectType.values()){
@@ -365,6 +262,20 @@ public class Core extends Renderer2D{
         double valDiff = val2-val1;
         return percent*valDiff+val1;
     }
+    public static float getValueBetweenTwoValues(float pos1, float val1, float pos2, float val2, float pos){
+        if(pos1>pos2){
+            return getValueBetweenTwoValues(pos2, val2, pos1, val1, pos);
+        }
+        float posDiff = pos2-pos1;
+        float percent = pos/posDiff;
+        float valDiff = val2-val1;
+        return percent*valDiff+val1;
+    }
+    public static void update() throws URISyntaxException, IOException{
+        System.out.println("Updating...");
+        Main.startJava(new String[0], new String[]{"justUpdated"}, updater.update(updater.getLatestDownloadableVersion()));
+        System.exit(0);
+    }
     public static boolean canPlayLevel(int i){
         return debugMode||LEVELS>=i;
     }
@@ -403,9 +314,6 @@ public class Core extends Renderer2D{
             }
         }
     }
-    /*
-        extra draw methods Borrowed from simplelibrary extended
-    */
     public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
         if(quality<3){
             throw new IllegalArgumentException("A polygon must have at least 3 sides!");

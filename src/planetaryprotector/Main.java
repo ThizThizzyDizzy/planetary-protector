@@ -1,10 +1,12 @@
 package planetaryprotector;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -12,10 +14,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 public class Main{
-    private static final String versionListURL = "https://raw.githubusercontent.com/ThizThizzyDizzy/planetary-protector/master/versions.txt";
     public static final String applicationName = "Planetary Protector";
     public static final String discordAppID = "592509210277838848";
     public static final String issueTrackerLink = "https://github.com/ThizThizzyDizzy/planetary-protector/issues";
@@ -24,13 +27,11 @@ public class Main{
     private static int total;
     private static int current;
     //OS details
-    public static boolean hasAWT = true;
-    public static boolean hasAWTAfterStartup = false;
     private static final int OS_UNKNOWN = -1;
     static final int OS_WINDOWS = 0;
-    private static final int OS_MACOS = 1;
-    private static final int OS_LINUX = 2;
-    static int os = OS_UNKNOWN;//Should not be directly referenced from other classes, as there are always better ways of handling OS-compatibility
+    static final int OS_MACOS = 1;
+    static final int OS_LINUX = 2;
+    static int os = OS_UNKNOWN;
     private static void addRequiredLibrary(String url, String filename){
         requiredLibraries.add(new String[]{url,filename});
     }
@@ -40,21 +41,7 @@ public class Main{
         addRequiredLibrary("https://www.dropbox.com/s/qb9i7dq98qt0pd6/java-discord-rpc-2.0.2.jar?dl=1", "java-discord-rpc-2.0.2.jar");
     }
     public static void main(String[] args){
-        String osName = System.getProperty("os.name");
-        if(osName==null)osName = "null";
-        osName = osName.toLowerCase(Locale.ENGLISH);
-        if(osName.contains("win"))os = OS_WINDOWS;
-        if(osName.contains("mac"))os = OS_MACOS;
-        if(osName.contains("nix")||osName.contains("nux")||osName.contains("aix"))os = OS_LINUX;
-        List<String> argses = Arrays.asList(args);
         try{
-            if(argses.contains("noAWT")){
-                hasAWT = false;
-            }
-            if(argses.contains("noAWTDuringStartup")){
-                hasAWT = false;
-                hasAWTAfterStartup = true;
-            }
             System.out.println("Initializing...");
             args = update(args);
             if(args==null){
@@ -62,16 +49,23 @@ public class Main{
             }
             Core.main(args);
         }catch(Exception ex){
-            if(hasAWT){
-                String trace = "";
-                for(StackTraceElement e : ex.getStackTrace()){
-                    trace+="\n"+e.toString();
-                }
-                trace = trace.isEmpty()?trace:trace.substring(1);
-                javax.swing.JOptionPane.showMessageDialog(null, ex.getMessage()+"\n"+trace, "CAUGHT ERROR: "+ex.getClass().getName()+" on main thread!", javax.swing.JOptionPane.ERROR_MESSAGE);
-            }else{
-                throw new RuntimeException("Exception on main thread!", ex);
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Exception on main thread!", ex);
+            GregorianCalendar calendar = new GregorianCalendar();
+            File file = new File("crash-reports"+File.separatorChar+"crash-"+calendar.getTime().toString().replace(":", "-")+".txt");
+            if(!file.getParentFile().exists())file.getParentFile().mkdirs();
+            int i = 1;
+            while(file.exists()){
+                file = new File("crash-reports"+File.separatorChar+"crash-"+calendar.getTime().toString().replace(":", "-")+"_"+i+".txt");
+                i++;
             }
+            try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))){
+                writer.write("CAUGHT ERROR: "+ex.getClass().getName()+" on main thread!");
+                writer.write(ex.getMessage()+"\n");
+                for(StackTraceElement e : ex.getStackTrace()){
+                    writer.write(e.toString()+"\n");
+                }
+            }catch(IOException ex1){}
+            System.exit(0);
         }
     }
     public static String getAppdataRoot(){
@@ -100,60 +94,21 @@ public class Main{
     }
     private static String[] update(String[] args) throws URISyntaxException, IOException, InterruptedException{
         ArrayList<String> theargs = new ArrayList<>(Arrays.asList(args));
+        String osName = System.getProperty("os.name");
+        if(osName==null)osName = "null";
+        osName = osName.toLowerCase(Locale.ENGLISH);
+        if(osName.contains("win"))os = OS_WINDOWS;
+        if(osName.contains("mac"))os = OS_MACOS;
+        if(osName.contains("nix")||osName.contains("nux")||osName.contains("aix"))os = OS_LINUX;
         if(args.length<1||!args[0].equals("Skip Dependencies")){
-            if(versionListURL.isEmpty()){
-                System.err.println("Version list URL is empty! assuming latest version.");
-            }else{
-                System.out.println("Checking for updates...");
-                Updater updater = Updater.read(versionListURL, VersionManager.currentVersion, applicationName);
-                if(updater!=null&&updater.getVersionsBehindLatestDownloadable()>0){
-                    boolean allowUpdate = false;
-                    if(hasAWT){
-                        allowUpdate = javax.swing.JOptionPane.showConfirmDialog(null, "Version "+updater.getLatestDownloadableVersion()+" is out!  Would you like to update "+applicationName+" now?", applicationName+" "+VersionManager.currentVersion+"- Update Available", javax.swing.JOptionPane.YES_NO_OPTION)==javax.swing.JOptionPane.YES_OPTION;
-                    }else{
-                        System.out.println("Version "+updater.getLatestDownloadableVersion()+" is out! Would you like to update "+applicationName+" now? (Y/N)");
-                        BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
-                        String s = r.readLine();
-                        if(s==null)s = "";
-                        s = s.trim();
-                        r.close();
-                        allowUpdate = s.equalsIgnoreCase("Y")||s.equalsIgnoreCase("Yes");
-                    }
-                    if(allowUpdate){
-                        System.out.println("Updating...");
-                        startJava(new String[0], new String[]{"justUpdated"}, updater.update(updater.getLatestDownloadableVersion()));
-                        System.exit(0);
-                    }
-                }
-                System.out.println("Update Check Complete.");
-            }
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-assimp.jar", "lwjgl-assimp.jar");
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-glfw.jar", "lwjgl-glfw.jar");
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-openal.jar", "lwjgl-openal.jar");
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-opengl.jar", "lwjgl-opengl.jar");
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl-stb.jar", "lwjgl-stb.jar");
             addRequiredLibrary("https://github.com/ThizThizzyDizzy/thizzyz-games-launcher/raw/master/libraries/lwjgl-3.2.3/jar/lwjgl.jar", "lwjgl.jar");
-            String osName = System.getProperty("os.name");
-            if(osName==null)osName = "null";
-            osName = osName.toLowerCase(Locale.ENGLISH);
             if(os==OS_UNKNOWN){
-                System.out.println("Unknown OS: "+osName);
-                if(hasAWT){
-                    os = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized OS \""+osName+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, which OS are you using?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"Windows", "Mac OS", "Linux"}, "Windows");
-                }else{
-                    System.out.println("Unrecognized OS \""+osName+"\"! Please report this problem at "+issueTrackerLink+"\nWhich OS are you using? (Windows|Mac|Linux)");
-                    BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
-                    String s = r.readLine();
-                    if(s==null)s = "";
-                    s = s.trim();
-                    r.close();
-                    if(s.equalsIgnoreCase("Windows"))os = OS_WINDOWS;
-                    if(s.equalsIgnoreCase("Mac")||s.equalsIgnoreCase("MacOS")||s.equalsIgnoreCase("Mac OS"))os = OS_MACOS;
-                    if(s.equalsIgnoreCase("Linux"))os = OS_LINUX;
-                }
-                if(os<0||os>2){
-                    System.exit(0);
-                }
+                throw new IllegalArgumentException("Unknown OS: "+osName);
             }
             switch(os){
                 case OS_WINDOWS:
@@ -169,22 +124,8 @@ public class Main{
                         if(osArch.equals("x86"))arch = ARCH_X86;
                         System.out.println("OS: Windows");
                         if(arch==ARCH_UNKNOWN){
-                            System.out.println("Unknown Architecture: "+osArch);
-                            if(hasAWT){
-                                arch = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized Architecture \""+osArch+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, what is your OS architecture?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"x86", "x64"}, "x64");
-                            }else{
-                                System.out.println("Unrecognized Architecture \""+osArch+"\"! Please report this problem at "+issueTrackerLink+"\nWhat is your OS architecture? (x86|x64)");
-                                BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
-                                String s = r.readLine();
-                                if(s==null)s = "";
-                                s = s.trim();
-                                r.close();
-                                if(s.equalsIgnoreCase("x86")||s.equalsIgnoreCase("86")||s.equalsIgnoreCase("x32")||s.equalsIgnoreCase("32"))arch = ARCH_X86;
-                                if(s.equalsIgnoreCase("x64")||s.equalsIgnoreCase("64"))arch = ARCH_X64;
-                            }
-                            if(arch<0||arch>1){
-                                System.exit(0);
-                            }
+                            System.err.println("Unknown Architecture: "+osArch+"!\nAssuming x64 architecture...");
+                            arch = ARCH_X64;
                         }
                         switch(arch){
                             case ARCH_X86:
@@ -233,23 +174,8 @@ public class Main{
                         if(osArch.equals("arm64"))arch = ARCH_ARM64;
                         System.out.println("OS: Linux");
                         if(arch==ARCH_UNKNOWN){
-                            System.out.println("Unknown Architecture: "+osArch);
-                            if(hasAWT){
-                                arch = javax.swing.JOptionPane.showOptionDialog(null, "Unrecognized Architecture \""+osArch+"\"!\nPlease report this problem at "+issueTrackerLink+".\nIn the meantime, what is your OS architecture?", "Unrecognized Operating System", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.ERROR_MESSAGE, null, new String[]{"x64", "arm32", "arm64"}, "x64");
-                            }else{
-                                System.out.println("Unrecognized Architecture \""+osArch+"\"! Please report this problem at "+issueTrackerLink+"\nWhat is your OS architecture? (x64|arm32|arm64)");
-                                BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
-                                String s = r.readLine();
-                                if(s==null)s = "";
-                                s = s.trim();
-                                r.close();
-                                if(s.equalsIgnoreCase("x64")||s.equalsIgnoreCase("64"))arch = ARCH_X64;
-                                if(s.equalsIgnoreCase("arm32"))arch = ARCH_ARM32;
-                                if(s.equalsIgnoreCase("arm64"))arch = ARCH_ARM64;
-                            }
-                            if(arch<0||arch>2){
-                                System.exit(0);
-                            }
+                            System.err.println("Unknown Architecture: "+osArch+"!\nAssuming x64 architecture...");
+                            arch = ARCH_X64;
                         }
                         switch(arch){
                             case ARCH_X64:
@@ -284,56 +210,26 @@ public class Main{
                     break;
             }
             addRequiredLibraries();
-            boolean hasAnythingToDownload = false;
-            for(String[] lib : requiredLibraries){
-                if(!new File(getLibraryRoot()+File.separatorChar+lib[1]).exists()){
-                    hasAnythingToDownload = true;
-                }
-            }
             total = requiredLibraries.size();
             File[] requiredLibs = new File[requiredLibraries.size()];
-            if(hasAWT){
-                javax.swing.JFrame frame = new javax.swing.JFrame("Download Progress");
-                javax.swing.JProgressBar bar = new javax.swing.JProgressBar(0, total);
-                frame.add(bar);
-                frame.setSize(300, 70);
-                bar.setBounds(0, 0, 300, 70);
-                if(hasAnythingToDownload){
-                    frame.setVisible(true);
+            int n = 0;
+            System.out.println("Checking Libraries...");
+            int failed = 0;
+            for(String[] lib : requiredLibraries){
+                String url = lib[0];
+                String filename = lib[1];
+                requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+File.separatorChar+filename));
+                System.out.println("Checking... "+Math.round(100d*current/total)+"% ("+current+"/"+total+")");
+                if(requiredLibs[n]==null){
+                    failed++;
+                    System.err.println("Failed to download library: "+filename+"!");
                 }
-                int n = 0;
-                System.out.println("Checking Libraries...");
-                for(String[] lib : requiredLibraries){
-                    String url = lib[0];
-                    String filename = lib[1];
-                    requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+File.separatorChar+filename));
-                    bar.setValue(current);
-                    n++;
-                }
-                System.out.println("Libraries OK");
-                frame.dispose();
-            }else{
-                int n = 0;
-                System.out.println("Checking Libraries...");
-                for(String[] lib : requiredLibraries){
-                    String url = lib[0];
-                    String filename = lib[1];
-                    requiredLibs[n] = downloadFile(url, new File(getLibraryRoot()+File.separatorChar+filename));
-                    System.out.println("Checking... "+Math.round(100d*current/total)+"% ("+current+"/"+total+")");
-                    n++;
-                }
-                System.out.println("Libraries OK");
+                n++;
             }
+            if(failed>0)throw new RuntimeException("Failed to download "+failed+" librar"+(failed==1?"y":"ies")+"!");
+            System.out.println("Libraries OK");
             String[] additionalClasspathElements = new String[requiredLibs.length+4];
             for(int i = 0; i<requiredLibs.length; i++){
-                if(requiredLibs[i]==null){
-                    if(hasAWT){
-                        javax.swing.JOptionPane.showMessageDialog(null, "Failed to download dependencies!\n"+applicationName+" will now exit.", "Exit", javax.swing.JOptionPane.OK_OPTION);
-                    }else{
-                        System.err.println("Failed to download dependencies!");//TODO yes, but WHAT dependencies?
-                    }
-                    System.exit(0);
-                }
                 additionalClasspathElements[i] = requiredLibs[i].getAbsolutePath();
             }
             theargs.add(0, "Skip Dependencies");

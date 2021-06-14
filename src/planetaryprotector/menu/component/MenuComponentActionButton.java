@@ -48,8 +48,8 @@ public class MenuComponentActionButton extends MenuComponentButton{
         enabled = action.update.getEnabled();
     }
     public void perform(){
-        if(action.listener==null)return;
-        action.listener.actionPerformed(null);
+        if(action.runFunc==null)return;
+        action.runFunc.run();
         game.actionUpdateRequired = 2;
     }
 }

@@ -7,7 +7,10 @@ import planetaryprotector.VersionManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.lwjgl.opengl.GL11;
 import simplelibrary.Sys;
 import simplelibrary.config2.Config;
@@ -28,6 +31,7 @@ public class MenuMain extends Menu{
     private final MenuComponentButton delete;
     private final MenuComponentButton credits;
     private final MenuComponentButton options;
+    private final MenuComponentButton update;
     private final MenuComponentList saveList;
     private HashMap<MenuComponentButton, String> badVersions = new HashMap<>();
     private double blackOpacity = 1;
@@ -40,6 +44,7 @@ public class MenuMain extends Menu{
         delete = add(new MenuComponentButton(Core.helper.displayWidth()/2+200, Core.helper.displayHeight()-80, 300, 60, "Delete", true));
         credits = add(new MenuComponentButton(Core.helper.displayWidth()/2+200, Core.helper.displayHeight()-80, 300, 60, "Credits", true));
         options = add(new MenuComponentButton(0, Core.helper.displayHeight()-80, 300, 60, "Options", true));
+        update = add(new MenuComponentButton(0, Core.helper.displayHeight()-80, 300, 60, "Update", true));
         saveList = add(new MenuComponentList(Core.helper.displayWidth()/2-200, 120+500, newSave.width, Core.helper.displayHeight()-360-500, 50));
         File file = new File(Main.getAppdataRoot()+"\\saves");
         if(!file.exists()){
@@ -107,6 +112,13 @@ public class MenuMain extends Menu{
         if(button==options){
             gui.open(new MenuOptions(gui));
         }
+        if(button==update){
+            try{
+                Core.update();
+            }catch(URISyntaxException|IOException ex){
+                Sys.error(ErrorLevel.severe, "Update failed!", ex, ErrorCategory.other);
+            }
+        }
         if(button==newSave){
             newGame();
         }
@@ -122,6 +134,7 @@ public class MenuMain extends Menu{
     }
     @Override
     public void renderBackground(){
+        update.enabled = Core.updateAvailable;
         if(saveList.getSelectedIndex()==-1){
             drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
         }else{
@@ -158,8 +171,9 @@ public class MenuMain extends Menu{
         saveList.x = newSave.x;
         saveList.y = newSave.y+80;
         saveList.height = (play.y-80)-(newSave.y+80);
-        credits.x = Core.helper.displayWidth()-credits.width;
+        update.x = credits.x = Core.helper.displayWidth()-credits.width;
         options.y = credits.y = Core.helper.displayHeight()-credits.height;
+        update.y = update.enabled?credits.y-credits.height:-update.height;
         GL11.glColor4d(1, 1, 1, 1);
         drawRect(play.x, 40, rename.x+rename.width, newSave.y-40, ImageStash.instance.getTexture("/textures/logo.png"));
     }

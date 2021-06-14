@@ -26,7 +26,6 @@ import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Base;
 import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.ParticleFog;
-import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -67,6 +66,7 @@ import planetaryprotector.structure.Laboratory;
 import planetaryprotector.structure.Structure.Upgrade;
 import simplelibrary.opengl.Renderer2D;
 import planetaryprotector.structure.StructureDemolishable;
+import simplelibrary.image.Color;
 public class Game extends Renderer2D{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
@@ -81,6 +81,9 @@ public class Game extends Renderer2D{
     HashMap<Structure, Structure> structuresToReplace = new HashMap<>();
     public boolean paused;
     public int workerCooldown = 1020;
+    private final int phaseShowerPadding = 600;//30 seconds
+    private final int phaseTime = 200;//10 seconds
+    public int phaseCounter;
     public int phase;
     public final int level;
     public int targetPopulation = 8_000_000;
@@ -96,10 +99,12 @@ public class Game extends Renderer2D{
     public Expedition pendingExpedition;
     public ArrayList<Expedition> activeExpeditions = new ArrayList<>();
     public ArrayList<Expedition> finishedExpeditions = new ArrayList<>();
+    //enemy stuff
     public ArrayList<Enemy> enemies = new ArrayList<>();
     public ArrayList<Enemy> nextEnemies = new ArrayList<>();
     public ArrayList<Drone> drones = new ArrayList<>();
     private int enemyTimer = 20*30;
+    
     public double damageReportTimer = 0;
     public double damageReportTime = 20*10;
     public int civilianCooldown = rand.nextInt(20*60*5);
@@ -684,27 +689,31 @@ public class Game extends Renderer2D{
             //<editor-fold defaultstate="collapsed" desc="Phase 1 advancing">
             if(phase==1){
                 int shieldArea = 0;
-                double maxSize = 0;
                 for(Structure structure : structures){
                     if(structure instanceof ShieldGenerator){
                         ShieldGenerator shield = (ShieldGenerator) structure;
-                        shieldArea += Math.PI*Math.pow(shield.shieldSize*.5,2);
-                        maxSize = Math.max(maxSize, shield.shieldSize);
+                        shieldArea += Math.PI*Math.pow(shield.shieldSize/2,2);
                     }
                 }
                 BoundingBox bbox = getCityBoundingBox();
-                if(shieldArea>=bbox.area()*.7||maxSize>bbox.width){
-                    phase(2);
-                }
+                if(shieldArea>=bbox.area()*.7&&meteorShowerTimer>phaseShowerPadding){
+                    phaseCounter++;
+                    if(phaseCounter>=phaseTime){
+                        phase(2);
+                    }
+                }else phaseCounter = 0;
             }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 2 Rendering and advancing">
             if(phase==2){
                 int pop = calculatePopulationCapacity();
                 notify("Population Capacity: ", pop+"/"+targetPopulation+" ("+Math.round(pop/(double)targetPopulation*10000D)/100D+"%)");
-                if(pop>=targetPopulation){
-                    phase(3);
-                }
+                if(pop>=targetPopulation&&meteorShowerTimer>phaseShowerPadding){
+                    phaseCounter++;
+                    if(phaseCounter>=phaseTime){
+                        phase(3);
+                    }
+                }else phaseCounter = 0;
             }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 3 rendering and advancing">
@@ -713,10 +722,13 @@ public class Game extends Renderer2D{
                 int maxPop = calculatePopulationCapacity();
                 notify("Population Capacity: ", maxPop+"/"+targetPopulation+" ("+Math.round(maxPop/(double)targetPopulation*10000D)/100D+"%)");
                 notify("Population: ", pop+"/"+maxPop+" ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
-                if(pop>=targetPopulation&&maxPop>=targetPopulation){
-                    phase(4);
-                    paused = false;
-                }
+                if(pop>=targetPopulation&&maxPop>=targetPopulation&&meteorShowerTimer>phaseShowerPadding){
+                    phaseCounter++;
+                    if(phaseCounter>=phaseTime){
+                        phase(4);
+                        paused = false;
+                    }
+                }else phaseCounter = 0;
             }
             //</editor-fold>
         }
@@ -978,6 +990,7 @@ public class Game extends Renderer2D{
         config.set("Buildings", cfg);
         config.set("worker cooldown", workerCooldown);
         config.set("phase", phase);
+        config.set("phaseCounter", phaseCounter);
         config.set("target pop", targetPopulation);
         config.set("pop per floor", popPerFloor);
         config.set("meteor shower delay", meteorShowerDelayMultiplier);
@@ -1027,6 +1040,12 @@ public class Game extends Renderer2D{
         }
         config.set("Resources", c);
         config.set("losing", losing);
+        Config bbox = Config.newConfig();
+        bbox.set("x", generatedBBox.x);
+        bbox.set("y", generatedBBox.y);
+        bbox.set("width", generatedBBox.width);
+        bbox.set("height", generatedBBox.height);
+        config.set("generatedBBox", bbox);
         config.save(stream);
         try {
             stream.close();
@@ -1092,6 +1111,7 @@ public class Game extends Renderer2D{
         }
         game.workerCooldown = config.get("worker cooldown", game.workerCooldown);
         game.phase = config.get("phase", game.phase);
+        game.phaseCounter = config.get("phaseCounter", game.phaseCounter);
         game.targetPopulation = config.get("target pop", game.targetPopulation);
         game.popPerFloor = config.get("pop per floor", game.popPerFloor);
         game.meteorShowerDelayMultiplier = config.get("meteor shower delay", game.meteorShowerDelayMultiplier);
@@ -1130,6 +1150,8 @@ public class Game extends Renderer2D{
             game.resources.add(new ItemStack(item, cfg.get(i+" count", 0)));
         }
         game.losing = config.get("losing", game.losing);
+        Config bbox = config.getConfig("generatedBBox", Config.newConfig());
+        game.generatedBBox = new BoundingBox(bbox.getInt("x", 0), bbox.getInt("y", 0), bbox.getInt("width", 0), bbox.getInt("height", 0));
         return game;
     }
     public void addCivilians(int civilians){
@@ -1274,6 +1296,7 @@ public class Game extends Renderer2D{
     }
     public void phase(int i, boolean normal){
         i = Math.min(4,i);
+        phaseCounter = 0;
         phase = i;
         switch(i){
             case 2:
@@ -1976,7 +1999,7 @@ public class Game extends Renderer2D{
                 actions.add(new Action("Demolish", new TaskDemolish(selectedStructure)).setImportant());
             }
             if(selectedStructure.task!=null){
-                actions.add(new Action("Add Worker", (e) -> {
+                actions.add(new Action("Add Worker", () -> {
                     if(selectedStructure==null)return;
                     Worker worker = getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2);
                     if(worker==null)return;
@@ -1984,7 +2007,7 @@ public class Game extends Renderer2D{
                 }, () -> {
                     return getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2)!=null;
                 }));
-                actions.add(new Action("Cancel Task", (e) -> {
+                actions.add(new Action("Cancel Task", () -> {
                     selectedStructure.task.cancel();
                 }, () -> {
                     return true;

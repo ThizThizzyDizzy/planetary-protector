@@ -19,6 +19,7 @@ public abstract class Enemy extends GameObject{
     @Override
     public abstract void draw();
     public abstract void tick();
+    @Deprecated
     public static Enemy randomEnemy(Game game){
         if(canMeteorStrike(game)){
             return new EnemyMeteorStrike(game);
