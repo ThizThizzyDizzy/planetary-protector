@@ -11,9 +11,8 @@ import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.ZComponent;
 public class ShootingStar extends GameObject implements ZComponent{
     private final int particleResolution = MenuOptionsGraphics.particles+1;
-    public int speed = 10;
     public int landing = 0;
-    public int landTime = 48;
+    public int landTime = 96;
     public ShootingStar(Game game, int x, int y){
         super(game, x,y, 25, 25);
     }

@@ -206,7 +206,7 @@ public class Epilogue extends Game{//TODO no Display
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
                 ShieldGenerator gen = (ShieldGenerator) structure;
-                gen.shield.renderOnWorld();
+                gen.shield.render(millisSinceLastTick);
             }
         }
         //</editor-fold>

@@ -1,5 +1,6 @@
 package planetaryprotector.structure;
 import java.util.ArrayList;
+import java.util.Iterator;
 import planetaryprotector.enemy.Enemy;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
@@ -17,19 +18,22 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     public double blastRecharge = 0;
     public boolean canBlast = false;//replace with special upgrade
     public final Shield shield;
-    public boolean shieldOutline = false;
     private double power = 0;
     public Structure projectorTarget;
+    int shieldDecalTimer = 0;
+    public static final int shieldDecalInterval = 240;
+    public static final double shieldDecalSpeed = 1;
+    public ArrayList<Double> shieldDecals = new ArrayList<>();
     public ShieldGenerator(Game game, int x, int y){
         super(StructureType.SHIELD_GENERATOR, game, x, y, 100, 100);
-        shield = new Shield(this);
+        shield = new Shield(this, width/2, height/2);
     }
     public ShieldGenerator(Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         super(StructureType.SHIELD_GENERATOR, game, x, y, 100, 100, level, upgrades);
         canBlast = level>=10;
         shieldStrength = getStats(level);
         maxShieldSize += (level)*250;
-        shield = new Shield(this);
+        shield = new Shield(this, width/2, height/4);
     }
     public void blast(){
         if(!canBlast||blastRecharge!=0) return;
@@ -38,6 +42,18 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     @Override
     public void tick(){
         super.tick();
+        shieldDecalTimer--;
+        if(shieldDecalTimer<0){
+            shieldDecalTimer+=shieldDecalInterval;
+            shieldDecals.add(0d);
+        }
+        for(int i = 0; i<shieldDecals.size(); i++){
+            shieldDecals.set(i, shieldDecals.get(i)+shieldDecalSpeed);
+        }
+        for (Iterator<Double> it = shieldDecals.iterator(); it.hasNext();) {
+            Double next = it.next();
+            if(next>getShieldSize()/2)it.remove();
+        }
         if(blastRecharge>0) blastRecharge--;
         if(blastRecharge<0){//<editor-fold defaultstate="collapsed" desc="Shield blast">
             blastRecharge++;
@@ -122,7 +138,6 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         cfg.set("maxSize", maxShieldSize);
         cfg.set("strength", shieldStrength);
         cfg.set("oldPower", oldPower);
-        cfg.set("shieldOutline", shieldOutline);
         cfg.set("target", projectorTarget==null?-1:projectorTarget.getIndex());
         return cfg;
     }
@@ -134,7 +149,6 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         generator.maxShieldSize = cfg.get("maxSize", 500d);
         generator.shieldStrength = cfg.get("strength", 1d);
         generator.oldPower = cfg.get("oldPower", 0d);
-        generator.shieldOutline = cfg.get("shieldOutline", false);
         return generator;
     }
     private double getStats(int level){
@@ -175,7 +189,6 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         data.add("oldPower: "+oldPower);
         data.add("Blast Recharge: "+blastRecharge);
         data.add("Can Blast: "+canBlast);
-        data.add("Shield outline: "+shieldOutline);
         data.add("Power: "+power);
         data.add("Projector target: "+(projectorTarget==null?"NONE":projectorTarget.toString()));
     }
@@ -217,11 +230,6 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        actions.add(new Action("Toggle Shield Outline", () -> {
-            shieldOutline = !shieldOutline;
-        }, () -> {
-            return true;
-        }));
         if(game.phase>=3&&canBlast){
             actions.add(new Action("Blast", this::blast, () -> {
                 return blastRecharge==0;

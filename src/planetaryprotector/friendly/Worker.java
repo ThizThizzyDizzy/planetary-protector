@@ -166,7 +166,8 @@ public class Worker extends GameObject{
             target = null;
             for(Structure structure : game.structures){
                 if(structure instanceof ShieldGenerator){
-                    target = new int[]{structure.x+structure.width/2,structure.y+structure.height/2};
+                    ShieldGenerator gen = (ShieldGenerator) structure;
+                    target = new int[]{structure.x+gen.shield.x,structure.y+gen.shield.y};
                 }
             }
 //</editor-fold>

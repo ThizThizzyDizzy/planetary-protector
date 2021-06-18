@@ -290,7 +290,7 @@ public class Game extends Renderer2D{
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
                 ShieldGenerator gen = (ShieldGenerator) structure;
-                gen.shield.renderOnWorld();
+                gen.shield.render(millisSinceLastTick);
             }
         }
         //</editor-fold>
@@ -1579,18 +1579,17 @@ public class Game extends Renderer2D{
     public void addWorker(int x, int y){
         thingsToAdd.enqueue(new Worker(this,x,y));
     }
-    public void playSecret(){
-        playSecret(secretWaiting);
+    public void playSecret(ArrayList<String> playableMusic){
+        playSecret(secretWaiting, playableMusic);
         secretWaiting = -1;
     }
-    private void playSecret(int secret){
+    private void playSecret(int secret, ArrayList<String> playableMusic){
         switch(secret){
             case 0://observatory
                 if(getSunlight()>0){
-                    secretWaiting = 0;
                     return;
                 }
-                Sounds.playSound("music", "MysteryMusic3");
+                playableMusic.add("MysteryMusic3");
                 addShootingStar();
                 break;
         }

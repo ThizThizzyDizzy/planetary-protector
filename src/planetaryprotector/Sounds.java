@@ -120,7 +120,7 @@ public class Sounds{
                     playableMusic.add("VictoryMusic"+i);
                 }
             }else if(game.secretWaiting>-1){
-                game.playSecret();
+                game.playSecret(playableMusic);
             }else{
                 int mothershipPhase = 0;
                 for(Enemy e : game.enemies){
