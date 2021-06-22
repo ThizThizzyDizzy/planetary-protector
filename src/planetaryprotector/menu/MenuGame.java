@@ -388,6 +388,7 @@ public class MenuGame extends Menu{
                     }
                     game.meteorShower = false;
                     game.meteorShowerTimer += 20*60*60;
+                    game.meteorTimer += 20*60*60;
                     break;
             }
         }else if(isPress){

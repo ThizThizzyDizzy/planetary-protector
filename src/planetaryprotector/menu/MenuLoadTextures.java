@@ -13,11 +13,11 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.task.TaskAnimated;
 import planetaryprotector.structure.task.TaskType;
-import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.item.Item;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
+import planetaryprotector.structure.SkyscraperDecal;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
 import simplelibrary.Queue;
@@ -81,13 +81,22 @@ public class MenuLoadTextures extends Menu{
                             verifyTextures.enqueue(u.getTextureS(type, i));
                         }
                     }
-                    verifyTextures.enqueue(type.getDamageTextureS());
                     if(type.isConstructible()){
                         verifyAnimations.enqueue(type.getAnimationS());
                     }
                 }
                 verifyAnimations.enqueue("/textures/tasks/skyscraper/add 1/"+t.tex());
                 verifyAnimations.enqueue("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+t.tex());
+                for(SkyscraperDecal.Type d : SkyscraperDecal.Type.values()){
+                    if(d==SkyscraperDecal.Type.DUST)continue;
+                    if(d==SkyscraperDecal.Type.WINDOW){
+                        verifyTextures.enqueue("/textures/structures/skyscraper/decals/"+t.tex()+"/windows.png");
+                        continue;
+                    }
+                    for(int i = 0; i<d.variants; i++){
+                        verifyTextures.enqueue("/textures/structures/skyscraper/decals/"+t.tex()+"/"+d.tex+" "+(i+1)+".png");
+                    }
+                }
                 verifyTextures.enqueue("/textures/structures/shield.png");
                 verifyTextures.enqueue("/textures/structures/shield outline.png");
                 verifyTextures.enqueue("/textures/enemies/alien.png");

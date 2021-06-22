@@ -17,6 +17,7 @@ import planetaryprotector.research.Research;
 import planetaryprotector.structure.task.Task;
 import planetaryprotector.structure.task.TaskAnimated;
 import simplelibrary.config2.Config;
+import simplelibrary.config2.ConfigList;
 import simplelibrary.opengl.ImageStash;
 import static simplelibrary.opengl.Renderer2D.drawRect;
 import static simplelibrary.opengl.Renderer2D.drawRectWithBounds;
@@ -170,8 +171,9 @@ public abstract class Structure extends GameObject{
         }
         StructureType type = StructureType.getByName(cfg.get("type"));
         Structure s = type.load(cfg, game, x, y, level, upgrades);
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            s.damages.add(new StructureDamage(s, cfg.get(i+" x", 0d), cfg.get(i+" y", 0d)));
+        ConfigList dmgs = cfg.getConfigList("damages", new ConfigList());
+        for(int i = 0; i<dmgs.size(); i++){
+            s.damages.add(StructureDamage.load(s, dmgs.getConfig(i)));
         }
         s.fire = cfg.get("fire", s.fire);
         s.fireDamage = cfg.get("fire damage", s.fireDamage);
@@ -190,17 +192,15 @@ public abstract class Structure extends GameObject{
     }
     public Config save(Config cfg){
         cfg.set("type", type.name);
-        cfg.set("count", damages.size());
         cfg.set("level", level);
         cfg.set("upgrades", upgrades.size());
         for(int i = 0; i<upgrades.size(); i++){
             Upgrade upgrade = upgrades.get(i);
             cfg.set("upgrade "+i, upgrade.name());
         }
-        for(int i = 0; i<damages.size(); i++){
-            StructureDamage damage = damages.get(i);
-            cfg.set(i+" x", damage.x);
-            cfg.set(i+" y", damage.y);
+        ConfigList dmgs = new ConfigList();
+        for(StructureDamage dmg : damages){
+            dmgs.add(dmg.save(Config.newConfig()));
         }
         cfg.set("x", x);
         cfg.set("y", y);
@@ -393,9 +393,6 @@ public abstract class Structure extends GameObject{
         return ((int)x)%getVariants();
     }//TODO random, not linear. Also use X and Y
     public void getActions(MenuGame menu, ArrayList<Action> actions){}
-    public void drawDamage(StructureDamage damage){
-        drawRectWithBounds(damage.x-x, damage.y-y, damage.x+damage.size-x, damage.y+damage.size-y, 0, -getStructureHeight(), width, height, type.getDamageTexture());
-    }
     public void setTask(Task task){
         if(game.selectedStructure==this)game.actionUpdateRequired = 2;
         this.task = task;

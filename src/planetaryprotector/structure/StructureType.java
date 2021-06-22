@@ -239,17 +239,11 @@ public abstract class StructureType{
     public int getTexture(){
         return ImageStash.instance.getTexture(getTextureS());
     }
-    public int getDamageTexture(){
-        return ImageStash.instance.getTexture(getDamageTextureS());
-    }
     public int getTexture(String path){
         return ImageStash.instance.getTexture(getTextureS(path));
     }
     public String getTextureS(){
         return "/textures/structures/"+name+"/"+Game.theme.tex()+".png";
-    }
-    public String getDamageTextureS(){
-        return "/textures/structures/"+name+"/damage.png";
     }
     public String getTextureS(String path){
         return "/textures/structures/"+name+"/"+path+".png";

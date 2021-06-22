@@ -158,7 +158,6 @@ public class Game extends Renderer2D{
     public ShieldGenerator setTarget;
     public ArrayList<ItemStack> resources = new ArrayList<>();
     public String name;
-//    public HashMap<AsteroidMaterial, Integer> asteroidTimers = new HashMap<>();
     public boolean updatePhaseMarker = true;
     public int addingIron, addingCoal, smeltingIron;
     public int furnaceOre, furnaceCoal, furnaceXP, furnaceLevel, furnaceTimer;

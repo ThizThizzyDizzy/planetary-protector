@@ -36,6 +36,7 @@ public abstract class WorldGenerator{
                                 continue FOR;
                             }
                         }
+                        scraper.generateApocolypseDecals();
                         game.structures.add(scraper);
                     }
                     //</editor-fold>
@@ -110,6 +111,7 @@ public abstract class WorldGenerator{
                         int X = left+(x*(GAP+100));
                         int Y = top+(y*(GAP+100));
                         Structure structure = (x==width/2&&y==height/2)?new Base(game, X, Y):new Skyscraper(game, X, Y, game.rand.nextInt(15)+25);
+                        if(structure instanceof Skyscraper)((Skyscraper)structure).generateApocolypseDecals();
                         game.structures.add(structure);
                     }
                 }
