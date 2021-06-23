@@ -86,32 +86,35 @@ public class SkyscraperDecal{
         LEFT("left", 1) {
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
+                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
                 drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
         RIGHT("right", 1) {
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
+                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
                 drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
         TOP("top", 2) {
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
+                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
                 drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+100, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+100, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
         DUST("dust", 10) {
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(0, 0, 0, 0.02);
+                GL11.glColor4d(0, 0, 0, 0.02*(sky.game.hideSkyscrapers?.2:1));
                 drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/damage/"+(decal.variant+1)+".png"));
-                GL11.glColor4d(1, 1, 1, 1);
             }
         },
         WINDOW("window", 30) {
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
+                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.1:1);
                 int X = decal.variant;
                 int Y = X/10;
                 X-=Y*10;

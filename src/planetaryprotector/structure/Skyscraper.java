@@ -85,7 +85,12 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     }
     @Override
     public void renderBackground(){
+        GL11.glColor4d(1, 1, 1, 1);
+        drawRect(x, y-fallen, x+width, y+height-fallen, StructureType.WRECK.getTexture());
+        double fallenPercent = fallen/(floorHeight*(floorCount+0D));
+        GL11.glColor4d(1, 1, 1, 1-fallenPercent);
         drawRect(x, y-fallen, x+width, y+height-fallen, StructureType.EMPTY_PLOT.getTexture());
+        GL11.glColor4d(1, 1, 1, 1);
     }
     @Override
     public void drawOverlay(){
@@ -93,9 +98,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     }
     @Override
     public void render(){
-        boolean seeThrough = game.hideSkyscrapers;
-        GL11.glColor4d(1, 1, 1, seeThrough?.25:1);
-        double fallenPercent = fallen/(floorHeight*(floorCount+0D));
+        GL11.glColor4d(1, 1, 1, game.hideSkyscrapers?.2:1);
         if(falled){
             drawRect(x, y, x+width, y+height, StructureType.WRECK.getTexture());
             return;
@@ -130,14 +133,12 @@ public class Skyscraper extends Structure implements StructureDemolishable{
             }
             if(i==floorCount-1){
                 if(t)drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, type.getTexture(), 0, 0, 1, 10/11d);//top face
-                GL11.glColor4d(1, 1, 1, fallenPercent*(seeThrough?.05:1));
-                drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, StructureType.WRECK.getTexture());
-                GL11.glColor4d(1, 1, 1, 1);
             }
         }
         for(SkyscraperDecal decal : decals){
             decal.render(this);
         }
+        GL11.glColor4d(1, 1, 1, 1);
         renderDamages();
     }
     @Override
