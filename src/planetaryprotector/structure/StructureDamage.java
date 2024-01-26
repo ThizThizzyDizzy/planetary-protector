@@ -1,5 +1,6 @@
 package planetaryprotector.structure;
 import org.lwjgl.opengl.GL11;
+import planetaryprotector.game.GameState;
 import simplelibrary.config2.Config;
 import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.Renderer2D;
@@ -36,16 +37,17 @@ public class StructureDamage extends Renderer2D{
         }
         GL11.glColor4d(1, 1, 1, 1);
     }
-    public Config save(Config config){
-        config.set("x", x);
-        config.set("y", y);
-        config.set("tex1", tex1);
-        config.set("tex2", tex2);
-        config.set("size", size);
-        config.set("opacity", opacity);
-        return config;
+    public GameState.Structure.Damage save(){
+        GameState.Structure.Damage damage = new GameState.Structure.Damage();
+        damage.x = x;
+        damage.y = y;
+        damage.tex1 = tex1;
+        damage.tex2 = tex2;
+        damage.size = size;
+        damage.opacity = opacity;
+        return damage;
     }
-    public static StructureDamage load(Structure s, Config config) {
-        return new StructureDamage(s, config.getDouble("x"), config.getDouble("y"), config.getDouble("size"), config.getDouble("opacity"), config.getInt("tex1"), config.getInt("tex2"));
+    public static StructureDamage load(Structure s, GameState.Structure.Damage damage){
+        return new StructureDamage(s, damage.x, damage.y, damage.size, damage.opacity, damage.tex1, damage.tex2);
     }
 }

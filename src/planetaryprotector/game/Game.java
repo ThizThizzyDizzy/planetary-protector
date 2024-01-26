@@ -1,4 +1,8 @@
 package planetaryprotector.game;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import planetaryprotector.Core;
 import planetaryprotector.Expedition;
 import planetaryprotector.item.Item;
@@ -30,6 +34,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -38,9 +44,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.PowerNetwork;
@@ -53,21 +56,12 @@ import planetaryprotector.menu.MenuGame;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
-import simplelibrary.Queue;
-import simplelibrary.Sys;
-import simplelibrary.config2.Config;
-import simplelibrary.config2.ConfigList;
-import simplelibrary.error.ErrorCategory;
-import simplelibrary.error.ErrorLevel;
-import simplelibrary.opengl.ImageStash;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.structure.StructureType;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.structure.Structure.Upgrade;
-import simplelibrary.opengl.Renderer2D;
 import planetaryprotector.structure.StructureDemolishable;
-import simplelibrary.image.Color;
-public class Game extends Renderer2D{
+public class Game{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Random rand = new Random();
@@ -148,7 +142,7 @@ public class Game extends Renderer2D{
     public ArrayList<TaskAnimation> taskAnimations = new ArrayList<>();
     public ArrayList<Asteroid> asteroids = new ArrayList<>();
     public ArrayList<ShootingStar> shootingStars = new ArrayList<>();
-    public Queue<Particle> particles = new Queue<>();
+    public ArrayList<Particle> particles = new ArrayList<>();
     public boolean hideSkyscrapers = false;
     public boolean showPowerNetworks = false;
     private int saveTimer = 0;
@@ -163,7 +157,7 @@ public class Game extends Renderer2D{
     public int furnaceOre, furnaceCoal, furnaceXP, furnaceLevel, furnaceTimer;
     public static final int maxFurnaceLevel = 2;
     private boolean tickingEnemies = false;
-    public Queue<GameObject> thingsToAdd = new Queue<>();
+    public ArrayList<GameObject> thingsToAdd = new ArrayList<>();
     private final WorldGenerator worldGenerator;
     public final Story story;
     public boolean tutorial = false;
@@ -938,219 +932,145 @@ public class Game extends Renderer2D{
             return;
         }
         notify("Game Saved");
-        File file = new File(Main.getAppdataRoot()+"\\saves\\"+name+".dat");
-        FileOutputStream stream = null;
-        try {
-            if(file.exists())file.delete();
-            file.createNewFile();
-            stream = new FileOutputStream(file);
-        } catch (IOException ex) {
-            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
-        }
-        Config config = Config.newConfig();
-        config.set("tutorial", tutorial);
-        config.set("level", 0);
-        config.set("WorldGenerator", worldGenerator.id);
-        config.set("Story", story.id);
-        config.set("version", VersionManager.currentVersion);
-        config.save(stream);
-        config.set("meteor timer", meteorTimer);
+        GameState state = new GameState();//TODO integrate into DizzyEngine with entities
+        state.saveName = name;
+        state.tutorial = tutorial;
+        state.level = level;
+        state.worldGenerator = worldGenerator.id;
+        state.story = story.id;
+        state.version = VersionManager.currentVersion;
+        state.meteorTimer = meteorTimer;
         for(Enemy e : enemies){
             if(e instanceof EnemyMothership){
-                config.set("mothership health", e.health);
+                state.mothershipHealth = ((EnemyMothership)e).health;
             }
         }
-        config.set("furnace level", furnaceLevel);
-        config.set("furnace timer", furnaceTimer);
-        config.set("furnace iron", furnaceOre);
-        config.set("furnace coal", furnaceCoal);
-        config.set("furnace xp", furnaceXP);
-        config.set("enemy strength", Enemy.strength);
-        config.set("enemy timer", enemyTimer);
-        Config cfg = Config.newConfig();
-        cfg.set("count", droppedItems.size());
-        for(int i = 0; i<droppedItems.size(); i++){
-            DroppedItem item = droppedItems.get(i);
-            cfg.set(i+" item", item.item.name);
-            cfg.set(i+" life", item.life);
-            cfg.set(i+" x", item.x);
-            cfg.set(i+" y", item.y);
+        state.furnaceLevel = furnaceLevel;
+        state.furnaceTimer = furnaceTimer;
+        state.furnaceOre = furnaceOre;
+        state.furnaceCoal = furnaceCoal;
+        state.furnaceXP = furnaceXP;
+        state.enemyStrength = Enemy.strength;
+        state.enemyTimer = enemyTimer;
+        for(var droppedItem : droppedItems){
+            var item = new GameState.Item();
+            item.item = droppedItem.item.name;
+            item.life = droppedItem.life;
+            item.x = droppedItem.x;
+            item.y = droppedItem.y;
+            state.droppedItems.add(item);
         }
-        config.set("Dropped Items", cfg);
-        config.set("Meteor Shower", meteorShower);
-        config.set("Meteor Shower Timer", meteorShowerTimer);
-        config.set("workers", workers.size());
-        cfg = Config.newConfig();
-        cfg.set("count", structures.size());
-        for(int i = 0; i<structures.size(); i++){
-            Structure structure = structures.get(i);
-            cfg.set(i+"", structure.save(Config.newConfig()));
+        state.meteorShower = meteorShower;
+        state.meteorShowerTimer = meteorShowerTimer;
+        state.workers = workers.size();
+        for(var s : structures)state.structures.add(s.save());
+        state.workerCooldown = workerCooldown;
+        state.phase = phase;
+        state.phaseCounter = phaseCounter;
+        state.targetPopulation = targetPopulation;
+        state.popPerFloor = popPerFloor;
+        state.meteorShowerDelay = meteorShowerDelayMultiplier;
+        state.meteorShowerIntensity = meteorPhaseIntensityMult;
+        state.pendingExpedition = pendingExpedition==null?null:pendingExpedition.save();
+        for(var e : activeExpeditions)state.activeExpeditions.add(e.save());
+        for(var e : finishedExpeditions)state.finishedExpeditions.add(e.save());
+        state.fogTimer = fogTimer;
+        state.cloudTimer = cloudTimer;
+        state.fogTime = fogTime;
+        state.fogTimeIncrease = fogTimeIncrease;
+        state.fogIntensity = fogIntensity;
+        state.fogHeightIntensity = fogHeightIntensity;
+        state.secretTimer = secretTimer;
+        state.secretWaiting = secretWaiting;
+        state.observatoryUnlocked = observatory;
+        state.time = time;
+        for(var r : Research.values())state.researches.put(r.name(), r.save());
+        for(var stack : resources){
+            var resource = new GameState.Resource();
+            resource.item = stack.item.name;
+            resource.count = stack.count;
+            state.resources.add(resource);
         }
-        config.set("Buildings", cfg);
-        config.set("worker cooldown", workerCooldown);
-        config.set("phase", phase);
-        config.set("phaseCounter", phaseCounter);
-        config.set("target pop", targetPopulation);
-        config.set("pop per floor", popPerFloor);
-        config.set("meteor shower delay", meteorShowerDelayMultiplier);
-        config.set("meteor shower intensity", meteorPhaseIntensityMult);
-        if(pendingExpedition!=null){
-            config.set("Pending Expedition", pendingExpedition.save(Config.newConfig()));
-        }
-        cfg = Config.newConfig();
-        cfg.set("count", activeExpeditions.size());
-        for(int i = 0; i<activeExpeditions.size(); i++){
-            Expedition e = activeExpeditions.get(i);
-            cfg.set(i+"", e.save(Config.newConfig()));
-        }
-        config.set("Active Expeditions", cfg);
-        cfg = Config.newConfig();
-        cfg.set("count", finishedExpeditions.size());
-        for(int i = 0; i<finishedExpeditions.size(); i++){
-            Expedition e = finishedExpeditions.get(i);
-            cfg.set(i+"", e.save(Config.newConfig()));
-        }
-        config.set("Finished Expeditions", cfg);
-        config.set("fog timer", fogTimer);
-        config.set("cloud timer", cloudTimer);
-        config.set("fog time", fogTime);
-        config.set("fog time increase", fogTimeIncrease);
-        config.set("fog intensity", fogIntensity);
-        config.set("fog height intensity", fogHeightIntensity);
-        config.set("secret timer", secretTimer);
-        config.set("secret waiting", secretWaiting);
-        config.set("observatoryUnlocked", observatory);
-        config.set("time", time);
-        ConfigList researches = new ConfigList();
-        for(Research r : Research.values()){
-            Config research = Config.newConfig();
-            research.set("name", r.name());
-            research.set("research", r.save(Config.newConfig()));
-            researches.add(research);
-        }
-        config.set("research", researches);
-        Config c = Config.newConfig();
-        c.set("count", resources.size());
-        for(int i = 0; i<resources.size(); i++){
-            ItemStack stack = resources.get(i);
-            if(stack.item==null)continue;
-            c.set(i+" item", stack.item.name);
-            c.set(i+" count", stack.count);
-        }
-        config.set("Resources", c);
-        config.set("losing", losing);
-        Config bbox = Config.newConfig();
-        bbox.set("x", generatedBBox.x);
-        bbox.set("y", generatedBBox.y);
-        bbox.set("width", generatedBBox.width);
-        bbox.set("height", generatedBBox.height);
-        config.set("generatedBBox", bbox);
-        config.save(stream);
-        try {
-            stream.close();
-        } catch (IOException ex) {
-            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
+        state.bboxX = generatedBBox.x;
+        state.bboxY = generatedBBox.y;
+        state.bboxWidth = generatedBBox.width;
+        state.bboxHeight = generatedBBox.height;
+        try(FileWriter writer = new FileWriter("saves"+File.separator+name.replaceAll("[:<>?\\\"*|\\\\/]", "-")+".json")){//TODO fail-safe dual saving
+            DizzyEngine.gson.toJson(state, writer);
+        }catch(IOException ex){
+            Logger.error(ex);
         }
     }
     public static Game load(String save){
-        File file = new File(Main.getAppdataRoot()+"\\saves\\"+save+".dat");
-        FileInputStream stream;
-        try{
-            stream = new FileInputStream(file);
-        }catch(FileNotFoundException ex){
-            return null;
-        }
-        Config config = Config.newConfig(stream);
-        config.load();
-        int level = config.get("level", 1);
-        if(level==0)level = 1;
-        config.load();
-        try{
-            stream.close();
+        GameState state;
+        try(FileReader reader = new FileReader("saves"+File.separator+save.replaceAll("[:<>?\\\"*|\\\\/]", "-")+".json")){
+            state = DizzyEngine.gson.fromJson(reader, GameState.class);
         }catch(IOException ex){
-            Sys.error(ErrorLevel.severe, null, ex, ErrorCategory.fileIO);
+            Logger.error(ex);
             return null;
         }
-        Game game = new Game(save, level, WorldGenerator.getWorldGenerator(level, config.get("WorldGenerator")), Story.getStory(level, config.get("Story")), config.get("tutorial", false));
-        game.meteorTimer = config.get("meteor timer", game.meteorTimer);
-        int hp = config.get("mothership health", -1);
+        int level = state.level;
+        Game game = new Game(save, level, WorldGenerator.getWorldGenerator(level, state.worldGenerator), Story.getStory(level, state.story), state.tutorial);
+        game.meteorTimer = state.meteorTimer;
+        int hp = state.mothershipHealth;
         if(hp!=-1){
             EnemyMothership ship = new EnemyMothership(game);
             ship.health = hp;
             game.enemies.add(ship);
         }
-        game.furnaceLevel = config.get("furnace level", 0);
-        game.furnaceTimer = config.get("furnace timer", 100);
-        game.furnaceOre = config.get("furnace iron", 0);
-        game.furnaceCoal = config.get("furnace coal", 0);
-        game.furnaceXP = config.get("furnace xp", 0);
-        Enemy.strength = config.get("enemy strength", 1d);
-        game.enemyTimer = config.get("enemy timer", 20*30);
-        Config cfg = config.get("Dropped Items", Config.newConfig());
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            DroppedItem item = new DroppedItem(game, cfg.getInt(i+" x"), cfg.getInt(i+" y"), Item.getItemByName(cfg.get(i+" item","iron ingot")));
-            item.life = cfg.get(i+" life", item.life);
+        game.furnaceLevel = state.furnaceLevel;
+        game.furnaceTimer = state.furnaceTimer;
+        game.furnaceOre = state.furnaceOre;
+        game.furnaceCoal = state.furnaceCoal;
+        game.furnaceXP = state.furnaceXP;
+        Enemy.strength = state.enemyStrength;
+        game.enemyTimer = state.enemyTimer;
+        for(var i : state.droppedItems){
+            DroppedItem item = new DroppedItem(game, i.x, i.y, Item.getItemByName(i.item));
+            item.life = i.life;
             game.droppedItems.add(item);
         }
-        game.meteorShower = config.get("Meteor Shower", game.meteorShower);
-        game.meteorShowerTimer = config.get("Meteor Shower Timer", game.meteorShowerTimer);
-        cfg = config.get("Buildings", Config.newConfig());
-        HashMap<Structure, Config> structures = new HashMap<>();
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            Config conf = cfg.get(i+"", Config.newConfig());
-            Structure s = Structure.load(conf, game);
+        game.meteorShower = state.meteorShower;
+        game.meteorShowerTimer = state.meteorShowerTimer;
+        HashMap<Structure, GameState.Structure> structures = new HashMap<>();
+        for(var structure : state.structures){
+            Structure s = Structure.load(structure, game);
             game.structures.add(s);
-            structures.put(s, conf);
+            structures.put(s, structure);
         }
-        for(Structure s : game.structures){
-            s.postLoad(game, structures.get(s));
-        }
-        for(int i = 0; i<config.get("workers", 1); i++){
-            game.addWorker();
-        }
-        game.workerCooldown = config.get("worker cooldown", game.workerCooldown);
-        game.phase = config.get("phase", game.phase);
-        game.phaseCounter = config.get("phaseCounter", game.phaseCounter);
-        game.targetPopulation = config.get("target pop", game.targetPopulation);
-        game.popPerFloor = config.get("pop per floor", game.popPerFloor);
-        game.meteorShowerDelayMultiplier = config.get("meteor shower delay", game.meteorShowerDelayMultiplier);
-        game.meteorPhaseIntensityMult = config.get("meteor shower intensity", game.meteorPhaseIntensityMult);
-        game.pendingExpedition = Expedition.load(config.get("Pending Expedition"), game);
-        cfg = config.get("Active Expeditions", Config.newConfig());
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            game.activeExpeditions.add(Expedition.load(cfg.get(i+"", Config.newConfig()), game));
-        }
-        cfg = config.get("Finished Expeditions", Config.newConfig());
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            game.finishedExpeditions.add(Expedition.load(cfg.get(i+"", Config.newConfig()), game));
-        }
-        game.fogTimer = config.get("fog timer", game.fogTimer);
-        game.cloudTimer = config.get("cloud timer", game.cloudTimer);
-        game.fogTime = config.get("fog time", game.fogTime);
-        game.fogTimeIncrease = config.get("fog time increase", game.fogTimeIncrease);
-        game.fogIntensity = config.get("fog intensity", game.fogIntensity);
-        game.fogHeightIntensity = config.get("fog height intensity", game.fogHeightIntensity);
-        game.secretTimer = config.get("secret timer", game.secretTimer);
-        game.secretWaiting = config.get("secret waiting", game.secretWaiting);
-        game.observatory = config.get("observatoryUnlocked", game.observatory);
-        game.time = config.get("time", game.time);
-        ConfigList researches = config.get("research", new ConfigList());
-        for(int i = 0; i<researches.size(); i++){
-            Config research = researches.get(i);
-            String name = research.get("name");
-            if(name==null)continue;
-            Research.valueOf(name).load(research.get("research", Config.newConfig()));
+        for(Structure s : game.structures)s.postLoad(game, structures.get(s));
+        for(int i = 0; i<state.workers; i++)game.addWorker();
+        game.workerCooldown = state.workerCooldown;
+        game.phase = state.phase;
+        game.phaseCounter = state.phaseCounter;
+        game.targetPopulation = state.targetPopulation;
+        game.popPerFloor = state.popPerFloor;
+        game.meteorShowerDelayMultiplier = state.meteorShowerDelay;
+        game.meteorPhaseIntensityMult = state.meteorShowerIntensity;
+        game.pendingExpedition = Expedition.load(state.pendingExpedition, game);
+        for(var exp : state.activeExpeditions)game.activeExpeditions.add(Expedition.load(exp, game));
+        for(var exp : state.finishedExpeditions)game.finishedExpeditions.add(Expedition.load(exp, game));
+        game.fogTimer = state.fogTimer;
+        game.cloudTimer = state.cloudTimer;
+        game.fogTime = state.fogTime;
+        game.fogTimeIncrease = state.fogTimeIncrease;
+        game.fogIntensity = state.fogIntensity;
+        game.fogHeightIntensity = state.fogHeightIntensity;
+        game.secretTimer = state.secretTimer;
+        game.secretWaiting = state.secretWaiting;
+        game.observatory = state.observatoryUnlocked;
+        game.time = state.time;
+        for(String key : state.researches.keySet()){
+            Research.valueOf(key).load(state.researches.get(key));
         }
         game.resources.clear();
-        cfg = config.get("Resources", Config.newConfig());
-        for(int i = 0; i<cfg.get("count", 0); i++){
-            Item item = Item.getItemByName(cfg.get(i+" item", ""));
+        for(var res : state.resources){
+            var item = Item.getItemByName(res.item);
             if(item==null)continue;
-            game.resources.add(new ItemStack(item, cfg.get(i+" count", 0)));
+            game.resources.add(new ItemStack(item, res.count));
         }
-        game.losing = config.get("losing", game.losing);
-        Config bbox = config.getConfig("generatedBBox", Config.newConfig());
-        game.generatedBBox = new BoundingBox(bbox.getInt("x", 0), bbox.getInt("y", 0), bbox.getInt("width", 0), bbox.getInt("height", 0));
+        game.losing = state.losing;
+        game.generatedBBox = new BoundingBox(state.bboxX, state.bboxY, state.bboxWidth, state.bboxHeight);
         return game;
     }
     public void addCivilians(int civilians){
@@ -1941,7 +1861,7 @@ public class Game extends Renderer2D{
             return texture;
         }
         public int getBackgroundTexture(int level){
-            return ImageStash.instance.getTexture(getBackgroundTextureS(level));
+            return ResourceManager.getTexture(getBackgroundTextureS(level));
         }
         public String getBackgroundTextureS(int level){
             return "/textures/background/level "+level+"/"+texture+".png";

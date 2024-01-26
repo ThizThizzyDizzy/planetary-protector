@@ -1,7 +1,7 @@
 package planetaryprotector.research;
 import java.util.ArrayList;
 import planetaryprotector.game.Game;
-import simplelibrary.config2.Config;
+import planetaryprotector.game.GameState;
 public class DiscoveryStage{
     public final String image;
     public ArrayList<DiscoveryPrerequisite> prerequisites = new ArrayList<>();
@@ -26,17 +26,18 @@ public class DiscoveryStage{
         }
         progress = prog/prerequisites.size();
     }
-    public Config save(Config config){
-        config.set("progress", progress);
-        for(int i = 0; i<prerequisites.size(); i++){
-            config.set("prerequisite "+i, prerequisites.get(i).save(Config.newConfig()));
+    public GameState.Research.DiscoveryStage save(){
+        GameState.Research.DiscoveryStage state = new GameState.Research.DiscoveryStage();
+        state.progress = progress;
+        for(var prereq : prerequisites){
+            state.prerequisites.add(prereq.save());
         }
-        return config;
+        return state;
     }
-    public void load(Config config){
-        progress = config.get("progress", progress);
+    public void load(GameState.Research.DiscoveryStage state){
+        progress = state.progress;
         for(int i = 0; i<prerequisites.size(); i++){
-            prerequisites.get(i).load(config.get("prerequisite "+i, Config.newConfig()));
+            prerequisites.get(i).load(state.prerequisites.get(i));
         }
     }
     public String getProgressDescription(Game game){

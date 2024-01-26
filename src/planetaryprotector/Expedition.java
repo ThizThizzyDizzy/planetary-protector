@@ -2,7 +2,7 @@ package planetaryprotector;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.HashMap;
-import simplelibrary.config2.Config;
+import planetaryprotector.game.GameState;
 public class Expedition{
     public final int requiredWorkers;
     private final Game game;
@@ -179,33 +179,33 @@ public class Expedition{
             }
         }
     }
-    public Config save(Config cfg){
-        cfg.set("Required Workers", requiredWorkers);
-        cfg.set("Workers", workers);
-        cfg.set("Time", time);
-        cfg.set("Total time", totalTime);
-        cfg.set("civilians", civilians);
-        cfg.set("civilan cooldown", civilianCooldown);
-        cfg.set("die cooldown", dieCooldown);
-        cfg.set("returning", returning);
-        cfg.set("recalled", recalled);
-        cfg.set("done", done);
-        cfg.set("returned", returned);
-        return cfg;
+    public GameState.Expedition save(){
+        GameState.Expedition state = new GameState.Expedition();
+        state.requiredWorkers = requiredWorkers;
+        state.workers = workers;
+        state.time = time;
+        state.totalTime = totalTime;
+        state.civilians = civilians;
+        state.civilianCooldown = civilianCooldown;
+        state.dieCooldown = dieCooldown;
+        state.returning = returning;
+        state.recalled = recalled;
+        state.done = done;
+        state.returned = returned;
+        return state;
     }
-    public static Expedition load(Config cfg, Game game){
-        if(cfg==null) return null;
-        Expedition e = new Expedition(game, cfg.get("Required Workers", 1));
-        e.workers = cfg.get("Workers", 1);
-        e.time = cfg.get("Time", 0);
-        e.totalTime = cfg.get("Total time", 0);
-        e.civilians = cfg.get("civilians", 0);
-        e.civilianCooldown = cfg.get("civilian cooldown", e.civilianCooldown);
-        e.dieCooldown = cfg.get("die cooldown", e.dieCooldown);
-        e.returning = cfg.get("returning", false);
-        e.recalled = cfg.get("recalled", false);
-        e.done = cfg.get("done", false);
-        e.returned = cfg.get("returned", false);
+    public static Expedition load(GameState.Expedition state, Game game){
+        Expedition e = new Expedition(game, state.requiredWorkers);
+        e.workers = state.workers;
+        e.time = state.time;
+        e.totalTime = state.totalTime;
+        e.civilians = state.civilians;
+        e.civilianCooldown = state.civilianCooldown;
+        e.dieCooldown = state.dieCooldown;
+        e.returning = state.returning;
+        e.recalled = state.recalled;
+        e.done = state.done;
+        e.returned = state.returned;
         return e;
     }
     @Override

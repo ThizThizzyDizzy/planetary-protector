@@ -7,6 +7,7 @@ import planetaryprotector.GameObject;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
@@ -161,25 +162,19 @@ public abstract class Structure extends GameObject{
         level++;
         game.refreshNetworks();
     }
-    public static Structure load(Config cfg, Game game){//TODO clean this up!
-        int x = cfg.getInt("x");
-        int y = cfg.getInt("y");
-        int level = cfg.get("level", 1);
+    public static Structure load(GameState.Structure state, Game game){//TODO clean this up!
         ArrayList<Upgrade> upgrades = new ArrayList<>();
-        for(int i = 0; i<cfg.get("upgrades", 0); i++){
-            upgrades.add(Upgrade.valueOf(cfg.get("upgrade "+i, "N/A")));
+        for(var upgrade : state.upgrades)upgrades.add(Upgrade.valueOf(upgrade));
+        StructureType type = StructureType.getByName(state.type);
+        Structure s = type.load(state, game, state.x, state.y, state.level, upgrades);
+        for(var damage : state.damages){
+            s.damages.add(StructureDamage.load(s, damage));
         }
-        StructureType type = StructureType.getByName(cfg.get("type"));
-        Structure s = type.load(cfg, game, x, y, level, upgrades);
-        ConfigList dmgs = cfg.getConfigList("damages", new ConfigList());
-        for(int i = 0; i<dmgs.size(); i++){
-            s.damages.add(StructureDamage.load(s, dmgs.getConfig(i)));
-        }
-        s.fire = cfg.get("fire", s.fire);
-        s.fireDamage = cfg.get("fire damage", s.fireDamage);
-        s.fireIncreaseRate = cfg.get("fire increase", s.fireIncreaseRate);
-        for(int i = 0; i<cfg.get("fires", 0); i++){
-            s.fires.add(new Particle(game, cfg.getInt("fire "+i+" x"), cfg.getInt("fire "+i+" y"), ParticleEffectType.FIRE));
+        s.fire = state.fire;
+        s.fireDamage = state.fireDamage;
+        s.fireIncreaseRate = state.fireIncreaseRate;
+        for(var fire : state.fires){
+            s.fires.add(new Particle(game, fire.x, fire.y, ParticleEffectType.FIRE));
         }
         return s;
     }
@@ -190,37 +185,31 @@ public abstract class Structure extends GameObject{
     public boolean canUpgrade(){
         return level<type.getMaxLevel();
     }
-    public Config save(Config cfg){
-        cfg.set("type", type.name);
-        cfg.set("level", level);
-        cfg.set("upgrades", upgrades.size());
-        for(int i = 0; i<upgrades.size(); i++){
-            Upgrade upgrade = upgrades.get(i);
-            cfg.set("upgrade "+i, upgrade.name());
-        }
-        ConfigList dmgs = new ConfigList();
-        for(StructureDamage dmg : damages){
-            dmgs.add(dmg.save(Config.newConfig()));
-        }
-        cfg.set("x", x);
-        cfg.set("y", y);
-        cfg.set("fire", fire);
-        cfg.set("fire damage", fireDamage);
-        cfg.set("fire increase", fireIncreaseRate);
-        cfg.set("fires", fires.size());
-        for(int i = 0; i<fires.size(); i++){
-            Particle particle = fires.get(i);
-            cfg.set("fire "+i+" x", particle.x);
-            cfg.set("fire "+i+" y", particle.y);
+    public GameState.Structure save(){
+        GameState.Structure state = new GameState.Structure();
+        state.type = type.name;
+        state.level = level;
+        for(var upgrade : upgrades)state.upgrades.add(upgrade.name());
+        for(var damage : damages)state.damages.add(damage.save());
+        state.x = x;
+        state.y = y;
+        state.fire = fire;
+        state.fireDamage = fireDamage;
+        state.fireIncreaseRate = fireIncreaseRate;
+        for(var fire : fires){
+            GameState.Structure.Fire f = new GameState.Structure.Fire();
+            f.x = fire.x;
+            f.y = fire.y;
+            state.fires.add(f);
         }
         if(this instanceof PowerConsumer){
-            cfg.set("power", ((PowerConsumer)this).getPower());
+            state.power = ((PowerConsumer)this).getPower();
         }
         if(this instanceof StarlightConsumer){
-            cfg.set("starlight", ((StarlightConsumer)this).getStarlight());
+            state.starlight = ((StarlightConsumer)this).getStarlight();
         }
-        cfg.set("shield", shield==null?-1:shield.getIndex());
-        return cfg;
+        state.shield = shield==null?-1:shield.getIndex();
+        return state;
     }
     protected void ignite(){
         ignite(x+getRandX(game.rand),y+getRandY(game.rand));
@@ -274,13 +263,10 @@ public abstract class Structure extends GameObject{
     /**
      * Called after all structures are loaded- this is in case any structure needs to load data regarding another structure (For example, shield projector target)
      * @param game the game that is being loaded
-     * @param config the config to load from
+     * @param state the config to load from
      */
-    public void postLoad(Game game, Config config){
-        int index = config.get("shield", -1);
-        if(index!=-1){
-            shield = (ShieldGenerator) game.structures.get(index);
-        }
+    public void postLoad(Game game, GameState.Structure state){
+        if(state.shield!=-1)shield = (ShieldGenerator) game.structures.get(state.shield);
     }
     public void getDebugInfo(ArrayList<String> data){
         data.add(type.name);

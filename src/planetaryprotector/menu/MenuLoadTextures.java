@@ -1,4 +1,8 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.gui.Menu;
 import planetaryprotector.game.Game;
 import java.io.File;
 import java.io.IOException;
@@ -9,32 +13,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.task.TaskAnimated;
 import planetaryprotector.structure.task.TaskType;
 import planetaryprotector.item.Item;
-import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
 import planetaryprotector.structure.SkyscraperDecal;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
-import simplelibrary.Queue;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
 public class MenuLoadTextures extends Menu{
-    private Queue<String> textures = new Queue<>();
-    private Queue<String> verifyTextures = new Queue<>();
-    private Queue<String> verifyAnimations = new Queue<>();
+    private ArrayList<String> textures = new ArrayList<>();
+    private ArrayList<String> verifyTextures = new ArrayList<>();
+    private ArrayList<String> verifyAnimations = new ArrayList<>();
     private String loading = "Initializing...";
     private String loading2 = "";
     private int total;
     private int threads = Math.max(1,Runtime.getRuntime().availableProcessors()-1);
     private boolean dev;
-    public MenuLoadTextures(GUI gui){
-        super(gui, null);
+    public MenuLoadTextures(){
         CodeSource src = Core.class.getProtectionDomain().getCodeSource();
         if(src!=null){
             URL jar = src.getLocation();
@@ -46,7 +43,7 @@ public class MenuLoadTextures extends Menu{
                     devEnv = false;
                     String name = e.getName();
                     if(name.endsWith(".png")){
-                        textures.enqueue("/"+name);
+                        textures.add("/"+name);
                     }
                 }
             }catch(IOException ex){
@@ -55,7 +52,7 @@ public class MenuLoadTextures extends Menu{
             if(devEnv){
                 File f = new File("build\\classes");
                 for(File fi : getAllFiles(f, ".png")){
-                    textures.enqueue(fi.getAbsolutePath().substring(f.getAbsolutePath().length()).replace("\\", "/"));
+                    textures.add(fi.getAbsolutePath().substring(f.getAbsolutePath().length()).replace("\\", "/"));
                 }
             }
             dev = devEnv;
@@ -63,125 +60,115 @@ public class MenuLoadTextures extends Menu{
             throw new UnsupportedOperationException("What just happened?");
         }
         if(dev){
-            verifyTextures.enqueue("/textures/asteroids/stone.png");
-            verifyTextures.enqueue("/textures/asteroids/ore.png");
-            for(ParticleEffectType p : ParticleEffectType.values()){
-                for(String s : p.images)verifyTextures.enqueue(s);
-            }
+            verifyTextures.add("/textures/asteroids/stone.png");
+            verifyTextures.add("/textures/asteroids/ore.png");
+//            for(ParticleEffectType p : ParticleEffectType.values()){
+//                for(String s : p.images)verifyTextures.add(s);
+//            }
             for(Game.Theme t : Game.Theme.values()){
                 Game.theme = t;
                 for(int i = 0; i<=16; i++){
-                    verifyTextures.enqueue("/textures/structures/base/door/"+i+".png");
+                    verifyTextures.add("/textures/structures/base/door/"+i+".png");
                 }
                 for(StructureType type : StructureType.structureTypes){
-                    verifyTextures.enqueue(type.getTextureS());
+                    verifyTextures.add(type.getTextureS());
                     for(Upgrade u : type.upgrades){
                         for(int i = 1; i<=u.max; i++){
-                            verifyAnimations.enqueue(u.getAnimationS(type, i));
-                            verifyTextures.enqueue(u.getTextureS(type, i));
+                            verifyAnimations.add(u.getAnimationS(type, i));
+                            verifyTextures.add(u.getTextureS(type, i));
                         }
                     }
                     if(type.isConstructible()){
-                        verifyAnimations.enqueue(type.getAnimationS());
+                        verifyAnimations.add(type.getAnimationS());
                     }
                 }
-                verifyAnimations.enqueue("/textures/tasks/skyscraper/add 1/"+t.tex());
-                verifyAnimations.enqueue("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+t.tex());
+                verifyAnimations.add("/textures/tasks/skyscraper/add 1/"+t.tex());
+                verifyAnimations.add("/textures/tasks/"+TaskType.WRECK_CLEAN.textureRoot+"/"+t.tex());
                 for(SkyscraperDecal.Type d : SkyscraperDecal.Type.values()){
                     if(d==SkyscraperDecal.Type.DUST)continue;
                     if(d==SkyscraperDecal.Type.WINDOW){
-                        verifyTextures.enqueue("/textures/structures/skyscraper/decals/"+t.tex()+"/windows.png");
+                        verifyTextures.add("/textures/structures/skyscraper/decals/"+t.tex()+"/windows.png");
                         continue;
                     }
                     for(int i = 0; i<d.variants; i++){
-                        verifyTextures.enqueue("/textures/structures/skyscraper/decals/"+t.tex()+"/"+d.tex+" "+(i+1)+".png");
+                        verifyTextures.add("/textures/structures/skyscraper/decals/"+t.tex()+"/"+d.tex+" "+(i+1)+".png");
                     }
                 }
-                verifyTextures.enqueue("/textures/structures/shield.png");
-                verifyTextures.enqueue("/textures/structures/shield outline.png");
-                verifyTextures.enqueue("/textures/enemies/alien.png");
-                verifyTextures.enqueue("/textures/worker.png");
-                verifyTextures.enqueue("/textures/enemies/ship.png");
-                verifyTextures.enqueue("/textures/drone.png");
-                verifyTextures.enqueue("/textures/missile.png");
+                verifyTextures.add("/textures/structures/shield.png");
+                verifyTextures.add("/textures/structures/shield outline.png");
+                verifyTextures.add("/textures/enemies/alien.png");
+                verifyTextures.add("/textures/worker.png");
+                verifyTextures.add("/textures/enemies/ship.png");
+                verifyTextures.add("/textures/drone.png");
+                verifyTextures.add("/textures/missile.png");
                 for(int i = 1; i<=4; i++){
-                    verifyTextures.enqueue("/textures/enemies/mothership "+i+".png");
+                    verifyTextures.add("/textures/enemies/mothership "+i+".png");
                 }
                 for(Item i : Item.allItems){
-                    verifyTextures.enqueue(i.getWorldTextureS());
+                    verifyTextures.add(i.getWorldTextureS());
                 }
-                verifyTextures.enqueue("/textures/logo.png");
-                verifyTextures.enqueue("/textures/background/dirt normal.png");
-                verifyTextures.enqueue("/textures/background/dirt snowy.png");
-                verifyTextures.enqueue("/textures/background/stone.png");
+                verifyTextures.add("/textures/logo.png");
+                verifyTextures.add("/textures/background/dirt normal.png");
+                verifyTextures.add("/textures/background/dirt snowy.png");
+                verifyTextures.add("/textures/background/stone.png");
                 for(Game.Theme theme : Game.Theme.values()){
                     for(int i = 1; i<=Core.LEVELS; i++){
-                        verifyTextures.enqueue(theme.getBackgroundTextureS(i));
+                        verifyTextures.add(theme.getBackgroundTextureS(i));
                     }
                 }
-                verifyTextures.enqueue("/textures/gui/sidebar.png");
-                verifyTextures.enqueue("/textures/planet.png");
+                verifyTextures.add("/textures/gui/sidebar.png");
+                verifyTextures.add("/textures/planet.png");
                 for(int i = 1; i<=3; i++){
-                    verifyTextures.enqueue("/textures/planet"+i+".png");
-                    verifyTextures.enqueue("/textures/phase/"+i+".png");
+                    verifyTextures.add("/textures/planet"+i+".png");
+                    verifyTextures.add("/textures/phase/"+i+".png");
                 }
                 for(int i = 0; i<3; i++){
-                    verifyTextures.enqueue("/textures/gui/sidebar "+i+".png");
-                    verifyTextures.enqueue("/textures/furnace "+i+".png");
+                    verifyTextures.add("/textures/gui/sidebar "+i+".png");
+                    verifyTextures.add("/textures/furnace "+i+".png");
                 }
-                verifyTextures.enqueue("/textures/research/nonsense.png");
-                verifyTextures.enqueue("/textures/icons/up.png");
-                verifyTextures.enqueue("/textures/icons/return.png");
+                verifyTextures.add("/textures/research/nonsense.png");
+                verifyTextures.add("/textures/icons/up.png");
+                verifyTextures.add("/textures/icons/return.png");
                 for(Research r : Research.values()){
-                    verifyTextures.enqueue("/textures/research/"+r.name().toLowerCase()+"/researched.png");
+                    verifyTextures.add("/textures/research/"+r.name().toLowerCase()+"/researched.png");
                     for(DiscoveryStage s : r.discoveryStages){
                         if(s.image.isEmpty())continue;
-                        verifyTextures.enqueue("/textures/research/"+r.name().toLowerCase()+"/"+s.image+".png");
+                        verifyTextures.add("/textures/research/"+r.name().toLowerCase()+"/"+s.image+".png");
                     }
                 }
-                verifyTextures.enqueue("/textures/mineshaft.png");
+                verifyTextures.add("/textures/mineshaft.png");
             }
         }
         loading = "Initializing";
         total = textures.size()+verifyTextures.size()+verifyAnimations.size();
     }
     @Override
-    public void onGUIOpened(){
-        for(int i = 0; i<threads; i++){
-            Thread t = new Thread(() -> {
+    public void draw(double deltaTime){
+        long start = System.nanoTime();
+        while((System.nanoTime()-start)<50_000_000){
+            if(!textures.isEmpty()){
                 loading = "Loading Textures";
-                while(!textures.isEmpty()){
-                    loading2 = textures.dequeue();
-                    ImageStash.instance.multithreadedInsert(loading2);
-                }
-                if(dev){
+                ResourceManager.getTexture(textures.remove(0));
+            }else if(dev){
+                if(!verifyTextures.isEmpty()){
                     loading = "Verifying Textures";
-                    while(!verifyTextures.isEmpty()){
-                        loading2 = verifyTextures.dequeue();
-                        ImageStash.instance.multithreadedInsert(loading2);
-                    }
+                    ResourceManager.getTexture(verifyTextures.remove(0));
+                }else if(!verifyAnimations.isEmpty()){
                     loading = "Verifying Animations";
-                    while(!verifyAnimations.isEmpty()){
-                        loading2 = verifyAnimations.dequeue();
-                        TaskAnimated.verifyAnimation(loading2);
-                    }
+                    TaskAnimated.verifyAnimation(verifyAnimations.remove(0));
+                }else{
+                    loading = "Finishing up";
                 }
-                loading = "Finishing up";
-                loading2 = "";
-                gui.open(new MenuMain(gui, true));
-            });
-            t.setName("Texture loading thread "+(i+1));
-            t.start();
+            }else{
+                new MenuMain(true).open();
+            }
         }
-    }
-    @Override
-    public void render(int millisSinceLastTick){
-        GL11.glColor4d(0, 0, 0, 1);
-        drawRect(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight(), 0);
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0, Core.helper.displayHeight()*.49, Core.helper.displayWidth()*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(double)total, Core.helper.displayHeight()*.51, 0);
-        drawCenteredText(0, Core.helper.displayHeight()*.45-40, Core.helper.displayWidth(), Core.helper.displayHeight()*.45, loading);
-        drawText(0, Core.helper.displayHeight()*.51, Core.helper.displayWidth(), Core.helper.displayHeight()*.51+20, loading2);
+        Renderer.setColor(Color.BLACK);
+        Renderer.fillRect(0, 0, size.x, size.y);
+        Renderer.setColor(Color.WHITE);
+        Renderer.fillRect(0, size.y*.49f, size.x*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(float)total, size.y*.51f, 0);
+        Renderer.drawCenteredText(0, size.y*.45f-40, size.x, size.y*.45f, loading);
+        Renderer.drawText(0, size.y*.51f, size.x, size.y*.51f+20, loading2);
     }
     private ArrayList<File> getAllFiles(File file, String suffix){
         ArrayList<File> files = new ArrayList<>();
@@ -193,8 +180,5 @@ public class MenuLoadTextures extends Menu{
             }
         }
         return files;
-    }
-    public void done(){
-        gui.open(new MenuMain(gui, true));
     }
 }

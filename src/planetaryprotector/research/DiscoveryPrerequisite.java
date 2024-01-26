@@ -1,9 +1,9 @@
 package planetaryprotector.research;
 import planetaryprotector.item.Item;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.StructureType;
-import simplelibrary.config2.Config;
 public class DiscoveryPrerequisite{
     private final Type type;
     private int phase;
@@ -120,20 +120,19 @@ public class DiscoveryPrerequisite{
         }
         progress = Math.max(0, Math.min(1, progress));
     }
-    public Config save(Config config){
-        for(int i = 0; i<prerequisites.length; i++){
-            config.set("prerequisite "+i, prerequisites[i].save(Config.newConfig()));
-        }
-        config.set("progress", progress);
-        config.set("discovery", discovery);
-        return config;
+    public GameState.Research.DiscoveryStage.Prerequisite save(){
+        GameState.Research.DiscoveryStage.Prerequisite state = new GameState.Research.DiscoveryStage.Prerequisite();
+        for(var prereq : prerequisites)state.prerequisites.add(prereq.save());
+        state.progress = progress;
+        state.discovery = discovery;
+        return state;
     }
-    public void load(Config config){
+    public void load(GameState.Research.DiscoveryStage.Prerequisite state){
         for(int i = 0; i<prerequisites.length; i++){
-            prerequisites[i].load(config.get("prerequisite "+i, Config.newConfig()));
+            prerequisites[i].load(state.prerequisites.get(i));
         }
-        progress = config.get("progress", progress);
-        discovery = config.get("discovery", discovery);
+        progress = state.progress;
+        discovery = state.discovery;
     }
     public String getProgressDescription(Game game){
         switch(type){

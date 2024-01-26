@@ -1,13 +1,13 @@
 package planetaryprotector.research;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import java.util.ArrayList;
 import java.util.Random;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
-import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
 public enum Research{
     SUPERCHARGE(ResearchCategory.BUILDING_UPGRADES, "Coal generator will operate faster", "Supercharger", "Each Supercharge module installed on a Coal Generator will increase the power production and fuel consumption by 38% (Multiplicative)", 5000, 0, 20*60*5, new ItemStack(Item.ironIngot, 60), new ItemStack(Item.coal, 30)),
     ECOLOGICAL(ResearchCategory.BUILDING_UPGRADES, "Coal generator will operate cleaner", "Ecological", "Each Ecological module installed a Coal Generator will decrease the fuel consumption rate by 38% (Multiplicative)", 10000, 0, 20*60*7, new ItemStack(Item.ironIngot, 100), new ItemStack(Item.coal, 40)),
@@ -183,32 +183,33 @@ public enum Research{
             }
         }
     }
-    public Config save(Config config){
-        config.set("discovery", discovery);
-        for(int i = 0; i<discoveryStages.size(); i++){
-            config.set("stage "+i, discoveryStages.get(i).save(Config.newConfig()));
+    public GameState.Research save(){
+        GameState.Research state = new GameState.Research();
+        state.discovery = discovery;
+        for(var stage : discoveryStages){
+            state.stages.add(stage.save());
         }
-        config.set("power", powerCost);
-        config.set("starlight", starlightCost);
-        config.set("time", time);
-        for(int i = 0; i<itemCosts.length; i++){
-            config.set("item "+i, itemCosts[i].count);
+        state.power = powerCost;
+        state.starlight = starlightCost;
+        state.time = time;
+        for(var itemCost : itemCosts){
+            state.itemCosts.add(itemCost.count);
         }
-        config.set("completed", completed);
-        return config;
+        state.completed = completed;
+        return state;
     }
-    public void load(Config config){
-        discovery = config.get("discovery", discovery);
-        for(int i = 0; i<discoveryStages.size(); i++){
-            discoveryStages.get(i).load(config.get("stage "+i, Config.newConfig()));
+    public void load(GameState.Research state){
+        discovery = state.discovery;
+        for(int i = 0; i<state.stages.size(); i++){
+            discoveryStages.get(i).load(state.stages.get(i));
         }
-        powerCost = config.get("power", powerCost);
-        starlightCost = config.get("starlight", starlightCost);
-        time = config.get("time", time);
-        for(int i = 0; i<itemCosts.length; i++){
-            itemCosts[i].count = config.get("item "+i, itemCosts[i].count);
+        powerCost = state.power;
+        starlightCost = state.starlight;
+        time = state.time;
+        for(int i = 0; i<state.itemCosts.size(); i++){
+            itemCosts[i].count = state.itemCosts.get(i);
         }
-        completed = config.get("completed", completed);
+        completed = state.completed;
     }
     public boolean isDiscoverable(){
         return discovery>0;
@@ -221,7 +222,7 @@ public enum Research{
     }
     public int getTexture(){
         String texture = isDiscovered()?"researched":discoveryStages.get(discovery).image;
-        return ImageStash.instance.getTexture("/textures/research/"+name().toLowerCase()+"/"+texture+".png");
+        return ResourceManager.getTexture("/textures/research/"+name().toLowerCase()+"/"+texture+".png");
     }
     public long getSeed(){
         return seed;
