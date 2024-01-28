@@ -11,13 +11,13 @@ import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import com.thizthizzydizzy.dizzyengine.sound.SoundSystem;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.layer.TextLabelLayer;
-import com.thizthizzydizzy.dizzyengine.ui.component.layer.TexturedBackgroundLayer;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
+import planetaryprotector.ui.component.layer.ButtonBackgroundLayer;
 public class Main{
     public static void main(String[] args){
         DizzyEngine.init("Planetary Protector");
@@ -29,7 +29,7 @@ public class Main{
         DiscordPresence.setDetails("Starting up...");
         DizzyEngine.addLayer(new FlatGame());//TODO FPS tracker (also tick tracking in each fixed update thread)
         FlatUI ui = DizzyEngine.addLayer(new FlatUI());
-        ui.setDefaultComponentBackground(Button.class, () -> new TexturedBackgroundLayer(ResourceManager.getTexture("gui/button.png")));
+        ui.setDefaultComponentBackground(Button.class, ButtonBackgroundLayer::new);
         ui.setDefaultComponentLabel(() -> new TextLabelLayer("", Color.BLACK));
         ui.open(new MenuLoadTextures());
         Logger.info("Loading fonts");
