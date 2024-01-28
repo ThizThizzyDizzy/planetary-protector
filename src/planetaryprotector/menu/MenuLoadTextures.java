@@ -2,15 +2,14 @@ package planetaryprotector.menu;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
-import com.thizthizzydizzy.dizzyengine.gui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import planetaryprotector.game.Game;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import planetaryprotector.Core;
@@ -47,7 +46,7 @@ public class MenuLoadTextures extends Menu{
                     }
                 }
             }catch(IOException ex){
-                Logger.getLogger(MenuLoadTextures.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.error(ex);
             }
             if(devEnv){
                 File f = new File("build\\classes");
@@ -158,17 +157,18 @@ public class MenuLoadTextures extends Menu{
                     TaskAnimated.verifyAnimation(verifyAnimations.remove(0));
                 }else{
                     loading = "Finishing up";
+                    new MenuMain(true).open();
                 }
             }else{
                 new MenuMain(true).open();
             }
         }
         Renderer.setColor(Color.BLACK);
-        Renderer.fillRect(0, 0, size.x, size.y);
+        Renderer.fillRect(0, 0, getWidth(), getHeight());
         Renderer.setColor(Color.WHITE);
-        Renderer.fillRect(0, size.y*.49f, size.x*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(float)total, size.y*.51f, 0);
-        Renderer.drawCenteredText(0, size.y*.45f-40, size.x, size.y*.45f, loading);
-        Renderer.drawText(0, size.y*.51f, size.x, size.y*.51f+20, loading2);
+        Renderer.fillRect(0, getHeight()*.49f, getWidth()*(total-(textures.size()+verifyTextures.size()+verifyAnimations.size()))/(float)total, getHeight()*.51f, 0);
+        Renderer.drawCenteredText(0, getHeight()*.45f-40, getWidth(), getHeight()*.45f, loading);
+        Renderer.drawText(0, getHeight()*.51f, getWidth(), getHeight()*.51f+20, loading2);
     }
     private ArrayList<File> getAllFiles(File file, String suffix){
         ArrayList<File> files = new ArrayList<>();

@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.game.Game;
 import planetaryprotector.Main;
 import java.io.File;
@@ -12,7 +13,7 @@ public class MenuRename extends Menu{
     private final MenuComponentTextBox name;
     private final MenuComponentButton back;
     private final MenuComponentButton rename;
-    public MenuRename(GUI gui, MenuComponentButton save){
+    public MenuRename(String save){
         super(gui, null);
         back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
         rename = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-160, 400, 40, "Rename", false));

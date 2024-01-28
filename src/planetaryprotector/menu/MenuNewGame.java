@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.game.Game;
 import planetaryprotector.Core;
 import planetaryprotector.Main;
@@ -19,7 +20,7 @@ public class MenuNewGame extends Menu{
     private final MenuComponentSlider selectedLevel = new MenuComponentSlider(Core.helper.displayWidth()/2-200, 60, 400, 40, 1, Core.latestLevel, 1, true);
     private final MenuComponentOptionButton worldGenerator;
     private final MenuComponentOptionButton tutorial;
-    public MenuNewGame(GUI gui){
+    public MenuNewGame(){
         super(gui, null);
         back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 500, 60, "Back", true));
         create = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-160, 500, 60, "Create", false));

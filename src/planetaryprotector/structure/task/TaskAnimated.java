@@ -1,7 +1,8 @@
 package planetaryprotector.structure.task;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.structure.Structure;
-import simplelibrary.texture.TexturePackManager;
 public abstract class TaskAnimated extends Task{
     /**
      * usually null, except in cases where the building needs to access it (skyscraper add floor tasks)
@@ -21,16 +22,16 @@ public abstract class TaskAnimated extends Task{
         int f = 1;
         while(true){
             String path = animFolder+"/"+f+".png";
-            if(TexturePackManager.instance.currentTexturePack.getResourceAsStream(path)==null)break;
+            if(ResourceManager.getInternalResource(path)==null)break;
             animation.addFrame(path);
             f++;
         }
-        if(animation.isEmpty())System.err.println("Animation not found: "+animFolder);//TODO proper handling
+        if(animation.isEmpty())Logger.error("Animation not found: "+animFolder);//TODO proper handling
         return animation;
     }
-    public static void verifyAnimation(String animFolder) {
+    public static void verifyAnimation(String animFolder){
         String path = animFolder+"/1.png";
-        if(TexturePackManager.instance.currentTexturePack.getResourceAsStream(path)==null)System.err.println("Animation not found: "+animFolder);
+        if(ResourceManager.getInternalResource(path)==null)Logger.error("Animation not found: "+animFolder);
     }
     public abstract int getHeight();
     public abstract boolean isInBackground();

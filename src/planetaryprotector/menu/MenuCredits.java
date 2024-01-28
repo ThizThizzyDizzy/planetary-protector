@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
@@ -83,7 +84,7 @@ public class MenuCredits extends Menu{
         credits.add("The people and events in "+Main.applicationName+" are entirely fictional.");
         credits.add("Any similarity to actual people or events is unintentional.");
     }
-    public MenuCredits(GUI gui){
+    public MenuCredits(){
         super(gui, null);
         back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 540, 400, 40, "Back", true));
     }

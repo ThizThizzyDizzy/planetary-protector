@@ -1,4 +1,5 @@
 package planetaryprotector.menu.options;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuMain;
@@ -11,7 +12,7 @@ public class MenuOptions extends Menu{
     public static boolean autosave = true;
     private final MenuComponentButton back, graphics, discord;
     private final MenuComponentOptionButton autosaveButton;
-    public MenuOptions(GUI gui){
+    public MenuOptions(){
         super(gui, null);
         graphics = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 120, 400, 40, "Graphics", true, true));
         discord = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 200, 400, 40, "Discord", true, true));

@@ -5,9 +5,13 @@ import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
 import com.thizthizzydizzy.dizzyengine.flat.FlatGame;
 import com.thizthizzydizzy.dizzyengine.graphics.Font;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import com.thizthizzydizzy.dizzyengine.gui.FlatGUI;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import com.thizthizzydizzy.dizzyengine.sound.SoundSystem;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.layer.TextLabelLayer;
+import com.thizthizzydizzy.dizzyengine.ui.component.layer.TexturedBackgroundLayer;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,15 +21,17 @@ import planetaryprotector.structure.StructureType;
 public class Main{
     public static void main(String[] args){
         DizzyEngine.init("Planetary Protector");
-        DizzyEngine.addFixedUpdateThread("Tick Thread", Main::tick, ()->{
+        DizzyEngine.addFixedUpdateThread("Tick Thread", Main::tick, () -> {
             saveOptions();
         }, 20);
         DiscordPresence.init("592509210277838848");
         DiscordPresence.setLargeImage("city", "Starting up...");
         DiscordPresence.setDetails("Starting up...");
         DizzyEngine.addLayer(new FlatGame());//TODO FPS tracker (also tick tracking in each fixed update thread)
-        DizzyEngine.addLayer(new FlatGUI()).open(new MenuLoadTextures());
-        
+        FlatUI ui = DizzyEngine.addLayer(new FlatUI());
+        ui.setDefaultComponentBackground(Button.class, () -> new TexturedBackgroundLayer(ResourceManager.getTexture("gui/button.png")));
+        ui.setDefaultComponentLabel(() -> new TextLabelLayer("", Color.BLACK));
+        ui.open(new MenuLoadTextures());
         Logger.info("Loading fonts");
         Renderer.setDefaultFont(Font.loadFont(ResourceManager.loadData(ResourceManager.getInternalResource("/assets/fonts/high_resolution.ttf"))));
         SoundSystem.init();

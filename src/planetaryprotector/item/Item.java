@@ -1,8 +1,8 @@
 package planetaryprotector.item;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import planetaryprotector.menu.component.MenuComponentClickable;
 import java.util.ArrayList;
 import planetaryprotector.game.Game;
-import simplelibrary.opengl.ImageStash;
 public class Item{
     public static final ArrayList<Item> items = new ArrayList<>();
     public static final ArrayList<Item> allItems = new ArrayList<>();
@@ -18,7 +18,7 @@ public class Item{
         items.add(coal);
         star.priority = 1;
     }
-    public static Item getItemByName(String get) {
+    public static Item getItemByName(String get){
         for(Item item : allItems){
             if(item.name.equals(get)){
                 return item;
@@ -37,15 +37,15 @@ public class Item{
         allItems.add(this);
     }
     public int getWorldTexture(){
-        return ImageStash.instance.getTexture(getWorldTextureS());
+        return ResourceManager.getTexture(getWorldTextureS());
     }
-    public String getWorldTextureS() {
+    public String getWorldTextureS(){
         return "/textures/items/"+Game.theme.tex()+"/"+texture+".png";
     }
     public int getTexture(){
-        return ImageStash.instance.getTexture(getTextureS());
+        return ResourceManager.getTexture(getTextureS());
     }
-    public String getTextureS() {
+    public String getTextureS(){
         return "/textures/items/"+Game.Theme.NORMAL.tex()+"/"+texture+".png";
     }
     private Item setRepairTime(int repairTime){
