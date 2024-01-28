@@ -147,15 +147,16 @@ public class MenuLoadTextures extends Menu{
         while((System.nanoTime()-start)<50_000_000){
             if(!textures.isEmpty()){
                 loading = "Loading Textures";
-                ResourceManager.getTexture(textures.remove(0));
+                ResourceManager.getTexture(loading2 = textures.remove(0));
             }else if(dev){
                 if(!verifyTextures.isEmpty()){
                     loading = "Verifying Textures";
-                    ResourceManager.getTexture(verifyTextures.remove(0));
+                    ResourceManager.getTexture(loading2 = verifyTextures.remove(0));
                 }else if(!verifyAnimations.isEmpty()){
                     loading = "Verifying Animations";
-                    TaskAnimated.verifyAnimation(verifyAnimations.remove(0));
+                    TaskAnimated.verifyAnimation(loading2 = verifyAnimations.remove(0));
                 }else{
+                    loading2 = "";
                     loading = "Finishing up";
                     new MenuMain(true).open();
                 }
