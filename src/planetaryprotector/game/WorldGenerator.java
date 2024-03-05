@@ -6,7 +6,6 @@ import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.Base;
 import planetaryprotector.structure.Skyscraper;
-import simplelibrary.opengl.Renderer2D;
 public abstract class WorldGenerator{
     public static final HashMap<Integer, ArrayList<WorldGenerator>> generators = new HashMap<>();
     static{

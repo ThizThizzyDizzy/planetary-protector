@@ -1,21 +1,26 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import planetaryprotector.Main;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuCredits extends Menu{
-    private final MenuComponentButton back;
+    private final Button back;
     public static final ArrayList<String> credits = new ArrayList<>();
     static{
         credits.add("Made By");
         credits.add("");
         credits.add("ThizThizzyDizzy");
+        credits.add("");
+        credits.add("");
+        credits.add("Built with DizzyEngine");
+        credits.add("");
+        credits.add("By ThizThizzyDizzy");
         credits.add("");
         credits.add("");
         credits.add("Music");
@@ -64,9 +69,6 @@ public class MenuCredits extends Menu{
         credits.add("");
         credits.add("Libraries Used");
         credits.add("");
-        credits.add("SimpleLibrary");
-        credits.add("by computerneek");
-        credits.add("");
         credits.add("LWJGL");
         credits.add("");
         credits.add("JLayer");
@@ -81,50 +83,51 @@ public class MenuCredits extends Menu{
         credits.add("");
         credits.add("");
         credits.add("");
-        credits.add("The people and events in "+Main.applicationName+" are entirely fictional.");
+        credits.add("The people and events in Planetary Protector are entirely fictional.");
         credits.add("Any similarity to actual people or events is unintentional.");
     }
     public MenuCredits(){
-        super(gui, null);
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 540, 400, 40, "Back", true));
+        var layout = setLayout(new ConstrainedLayout());
+        back = add(new Button("Back"));
+        back.setSize(400, 40);
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 1, .5f, 1, 0, -80));
+        back.addAction(() -> {
+            new MenuMain(false).open();
+        });
     }
     @Override
-    public void buttonClicked(MenuComponentButton button){
-        if(button==back){
-            gui.open(new MenuMain(gui, false));
-        }
-    }
-    @Override
-    public void renderBackground(){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
-        back.x = Core.helper.displayWidth()/2-back.width/2;
-        back.y = Core.helper.displayHeight()-80;
-        drawRect(Core.helper.displayWidth()/4-100, 40, (Core.helper.displayWidth()-Core.helper.displayWidth()/4)-100+200, 200, ImageStash.instance.getTexture("/textures/logo.png"));
+    public void draw(double deltaTime){
+        super.draw(deltaTime);
+        scroll+=deltaTime*20;
+        Renderer.fillRect(0, 0, getWidth(), getHeight(), Game.theme.getBackgroundTexture(1));
+        Renderer.fillRect(getWidth()/4-100, 40, (getWidth()-getWidth()/4)-100+200, 200, ResourceManager.getTexture("/textures/logo.png"));
         yOffset = 240;
         totalTextHeight = 0;
-        if(Game.theme==Game.Theme.SNOWY)GL11.glColor4d(0, 0, 0, 1);
+        if(Game.theme==Game.Theme.SNOWY)Renderer.setColor(Color.BLACK);
+        Renderer.bound(200, 240, getWidth()-200, back.y-40);
         for(String str : credits){
             text(str);
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.unBound();
+        Renderer.setColor(Color.WHITE);
         if(scroll>totalTextHeight){
             scroll = -(back.y-40-240);
         }
     }
-    private double yOffset = 240;
-    private double scroll = Integer.MAX_VALUE;
-    private double textHeight = 20;
-    private double totalTextHeight = 0;
-    private double textWidth = Core.helper.displayWidth()-400;
+    private float yOffset = 240;
+    private float scroll = Integer.MAX_VALUE;
+    private float textHeight = 20;
+    private float totalTextHeight = 0;
     public void text(String text){
         if(text==null||text.isEmpty()){
             text();
             return;
         }
         String[] texts = text.split("&");
-        double wide = textWidth/(double)texts.length;
+        float textWidth = getWidth()-400;
+        float wide = textWidth/(float)texts.length;
         for(int i = 0; i<texts.length; i++){
-            drawCenteredTextWithBounds(200+wide*i, yOffset-scroll, 200+wide*(i+1), yOffset+textHeight-scroll, Core.helper.displayWidth()/2-textWidth/2, 240, Core.helper.displayWidth()/2+textWidth/2, back.y-40, texts[i]);
+            Renderer.drawCenteredText(200+wide*i, yOffset-scroll, 200+wide*(i+1), yOffset+textHeight-scroll, texts[i]);
         }
         totalTextHeight += textHeight;
         yOffset+=textHeight;
@@ -132,10 +135,5 @@ public class MenuCredits extends Menu{
     public void text(){
         totalTextHeight += textHeight;
         yOffset+=textHeight;
-    }
-    @Override
-    public void tick(){
-        super.tick();
-        scroll++;
     }
 }

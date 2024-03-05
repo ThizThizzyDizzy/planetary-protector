@@ -10,7 +10,9 @@ import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import com.thizthizzydizzy.dizzyengine.sound.SoundSystem;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.TextBox;
 import com.thizthizzydizzy.dizzyengine.ui.component.layer.TextLabelLayer;
+import com.thizthizzydizzy.dizzyengine.ui.component.layer.TexturedBackgroundLayer;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,6 +32,7 @@ public class Main{
         DizzyEngine.addLayer(new FlatGame());//TODO FPS tracker (also tick tracking in each fixed update thread)
         FlatUI ui = DizzyEngine.addLayer(new FlatUI());
         ui.setDefaultComponentBackground(Button.class, ButtonBackgroundLayer::new);
+        ui.setDefaultComponentBackground(TextBox.class, ()->new TexturedBackgroundLayer(ResourceManager.getTexture("/assets/textures/ui/text_box.png")));
         ui.setDefaultComponentLabel(() -> new TextLabelLayer("", Color.BLACK));
         ui.open(new MenuLoadTextures());
         Logger.info("Loading fonts");
