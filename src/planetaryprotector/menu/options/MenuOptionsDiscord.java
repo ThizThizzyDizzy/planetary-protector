@@ -1,39 +1,30 @@
 package planetaryprotector.menu.options;
-import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.OptionButton;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
+import planetaryprotector.Options;
 import planetaryprotector.game.Game;
-import static simplelibrary.opengl.Renderer2D.drawRect;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-import simplelibrary.opengl.gui.components.MenuComponentOptionButton;
 public class MenuOptionsDiscord extends Menu{
-    private final MenuComponentButton back;
-    public static boolean rpc = true;
-    private final MenuComponentOptionButton rpcToggle;
-    public MenuOptionsDiscord(GUI gui, Menu parent){
-        super(gui, parent);
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
-        double yOffset = 120;
-        rpcToggle = add(new MenuComponentOptionButton(back.x, yOffset, back.width, back.height, "Rich Presence", true, true, rpc?0:1, "On", "Off"));
+    public MenuOptionsDiscord(){
+        var layout = setLayout(new ConstrainedLayout());
+        var back = add(new Button("Back"));
+        back.setSize(400, 40);
+        back.addAction(() -> {
+            new MenuOptions().open();
+            //TODO initialize discord presence?
+        });
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
+        var richPresence = add(new OptionButton("Rich Presence", Options.options.richPresence?0:1, "On", "Off"));
+        richPresence.setSize(400, 40);
+        richPresence.addAction(() -> Options.options.richPresence = richPresence.getIndex()==0);
+        layout.constrain(richPresence, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 120));
     }
     @Override
-    public void buttonClicked(MenuComponentButton button){
-        if(button==back){
-            gui.open(parent);
-            Core.initDiscord();
-        }
-    }
-    @Override
-    public void renderBackground(){
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
-        rpc = rpcToggle.getIndex()==0;
-    }
-    @Override
-    public void render(int millisSinceLastTick){
-        super.render(millisSinceLastTick);
-        GL11.glColor4d(1, 1, 1, 1);
-        rpcToggle.render();
+    public void draw(double deltaTime){
+        super.draw(deltaTime);
+        Renderer.fillRect(0, 0, getWidth(), getHeight(), Game.theme.getBackgroundTexture(1));
     }
 }

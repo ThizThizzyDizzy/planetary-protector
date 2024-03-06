@@ -11,4 +11,5 @@ public class Options{
     public int theme = 0;
     public boolean autosave = true;
     public int health = 0;
+    public boolean richPresence = true;
 }

@@ -8,7 +8,6 @@ import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
 import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 public class MenuCredits extends Menu{
     private final Button back;
     public static final ArrayList<String> credits = new ArrayList<>();
@@ -90,7 +89,7 @@ public class MenuCredits extends Menu{
         var layout = setLayout(new ConstrainedLayout());
         back = add(new Button("Back"));
         back.setSize(400, 40);
-        layout.constrain(back, new PositionAnchorConstraint(.5f, 1, .5f, 1, 0, -80));
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
         back.addAction(() -> {
             new MenuMain(false).open();
         });

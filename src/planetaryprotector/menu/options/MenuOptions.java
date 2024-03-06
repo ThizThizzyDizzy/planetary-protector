@@ -1,40 +1,41 @@
 package planetaryprotector.menu.options;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.OptionButton;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.Core;
+import planetaryprotector.Options;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuMain;
-import static simplelibrary.opengl.Renderer2D.drawRect;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-import simplelibrary.opengl.gui.components.MenuComponentOptionButton;
 public class MenuOptions extends Menu{
     public static boolean autosave = true;
-    private final MenuComponentButton back, graphics, discord;
-    private final MenuComponentOptionButton autosaveButton;
     public MenuOptions(){
-        super(gui, null);
-        graphics = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 120, 400, 40, "Graphics", true, true));
-        discord = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, 200, 400, 40, "Discord", true, true));
-        autosaveButton = add(new MenuComponentOptionButton(Core.helper.displayWidth()/2-200, 280, 400, 40, "Autosave", true, true, autosave?0:1, "On", "Off"));
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button){
-        if(button==back){
-            gui.open(new MenuMain(gui, false));
+        var layout = setLayout(new ConstrainedLayout());
+        var graphics = add(new Button("Graphics"));
+        graphics.setSize(400, 40);
+        graphics.addAction(() -> new MenuOptionsGraphics().open());
+        layout.constrain(graphics, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 120));
+        var discord = add(new Button("Discord"));
+        discord.setSize(400, 40);
+        discord.addAction(() -> new MenuOptionsDiscord().open());
+        layout.constrain(discord, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 200));
+        var autosaveButton = add(new OptionButton("Autosave", Options.options.autosave?0:1, "On", "Off"));
+        autosaveButton.setSize(400, 40);
+        autosaveButton.addAction(() -> Options.options.autosave = autosaveButton.getIndex()==0);
+        layout.constrain(autosaveButton, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 280));
+        var back = add(new Button("Back"));
+        back.setSize(400, 40);
+        back.addAction(() -> {
             Core.saveOptions();
-        }
-        if(button==graphics){
-            gui.open(new MenuOptionsGraphics(gui, this));
-        }
-        if(button==discord){
-            gui.open(new MenuOptionsDiscord(gui, this));
-        }
+            new MenuMain(false).open();
+        });
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
     }
     @Override
-    public void renderBackground(){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
-        autosave = autosaveButton.getIndex()==0;
+    public void draw(double deltaTime){
+        super.draw(deltaTime);
+        Renderer.fillRect(0, 0, getWidth(), getHeight(), Game.theme.getBackgroundTexture(1));
     }
 }
