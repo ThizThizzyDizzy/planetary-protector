@@ -3,6 +3,7 @@ import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.OptionButton;
+import com.thizthizzydizzy.dizzyengine.ui.component.Slider;
 import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
 import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.Options;
@@ -10,7 +11,7 @@ import planetaryprotector.game.Game;
 public class MenuOptionsGraphics extends Menu{
     public MenuOptionsGraphics(){
         var layout = setLayout(new ConstrainedLayout());
-        var back = new Button("Back");
+        var back = add(new Button("Back"));
         back.setSize(400, 40);
         back.addAction(() -> new MenuOptions().open());
         layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
@@ -30,8 +31,14 @@ public class MenuOptionsGraphics extends Menu{
         particles.setSize(400, 40);
         particles.addAction(() -> Options.options.particles = particles.getIndex());
         layout.constrain(particles, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 360));
-//        cloudIntensitySlider = add(new MenuComponentSlider(back.x, yOffset, back.width, back.height, .1, 1, cloudIntensity, 10, true)); //TODO add sliders WITH LABELS
-//        fogIntensitySlider = add(new MenuComponentSlider(back.x, yOffset, back.width, back.height, .1, 1, fogIntensity, 10, true));
+        var cloudIntensity = add(new Slider(.1, 1, Options.options.cloudIntensity, "Cloud Intensity"));
+        cloudIntensity.setSize(400, 40);
+        cloudIntensity.addAction(() -> Options.options.cloudIntensity = cloudIntensity.getValueF());
+        layout.constrain(cloudIntensity, new PositionAnchorConstraint(.5f, 0f, .5f, 0, 0, 440));
+        var fogIntensity = add(new Slider(.1, 1, Options.options.fogIntensity, "Fog Intensity"));
+        fogIntensity.setSize(400, 40);
+        fogIntensity.addAction(() -> Options.options.fogIntensity = fogIntensity.getValueF());
+        layout.constrain(fogIntensity, new PositionAnchorConstraint(.5f, 0f, .5f, 0, 0, 520));
         var theme = add(new OptionButton("Theme", Options.options.theme, "Auto", "Normal", "Snowy"));
         theme.setSize(400, 40);
         theme.addAction(() -> {
