@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.glfw.GLFW;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import planetaryprotector.game.BoundingBox;
@@ -22,18 +21,15 @@ import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.game.Story;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
-import planetaryprotector.menu.options.MenuOptions;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
 import simplelibrary.Sys;
-import simplelibrary.config2.Config;
 import simplelibrary.error.ErrorAdapter;
 import simplelibrary.error.ErrorCategory;
 import simplelibrary.font.FontManager;
 import simplelibrary.game.GameHelper;
 import simplelibrary.image.Color;
-import simplelibrary.opengl.ImageStash;
 import simplelibrary.opengl.Renderer2D;
 import simplelibrary.opengl.gui.GUI;
 import simplelibrary.opengl.gui.components.MenuComponent;
@@ -47,7 +43,8 @@ public class Core extends Renderer2D{
     public static final boolean is3D = false;
     public static final boolean enableCullFace = true;
     public static final int LEVELS = 2;
-    public static int latestLevel = 1;
+    @Deprecated
+    public static int latestLevel = 1;//Options.options.level
     public static int speedMult = 1;
     private static DiscordRichPresence discord;
     public static String discordState;
@@ -208,35 +205,6 @@ public class Core extends Renderer2D{
         while(FPStracker.get(0)<System.currentTimeMillis()-5_000){
             FPStracker.remove(0);
         }
-    }
-    public static void saveOptions(){
-        Config config = Config.newConfig(Main.getAppdataRoot()+"\\options.cfg");
-        config.set("level", latestLevel);
-        config.set("fog", MenuOptionsGraphics.fog);
-        config.set("clouds", MenuOptionsGraphics.clouds);
-        config.set("particle meteors", MenuOptionsGraphics.particulateMeteors);
-        config.set("particles", MenuOptionsGraphics.particles);
-        config.set("cloudI", MenuOptionsGraphics.cloudIntensity);
-        config.set("fogI", MenuOptionsGraphics.fogIntensity);
-        config.set("theme", MenuOptionsGraphics.theme);
-        config.set("autosave", MenuOptions.autosave);
-        config.set("health", MenuOptionsGraphics.health);
-        config.save();
-    }
-    public static void loadOptions(){
-        Config config = Config.newConfig(Main.getAppdataRoot()+"\\options.cfg");
-        config.load();
-        latestLevel = config.get("level", 1);
-        if(latestLevel==0)latestLevel = 1;
-        MenuOptionsGraphics.fog = config.get("fog", true);
-        MenuOptionsGraphics.clouds = config.get("clouds", true);
-        MenuOptionsGraphics.particulateMeteors = config.get("particle meteors", false);
-        MenuOptionsGraphics.particles = config.get("particles", 1);
-        MenuOptionsGraphics.cloudIntensity = config.get("cloudI", MenuOptionsGraphics.cloudIntensity);
-        MenuOptionsGraphics.fogIntensity = config.get("fogI", MenuOptionsGraphics.fogIntensity);
-        MenuOptionsGraphics.theme = config.get("theme", MenuOptionsGraphics.theme);
-        MenuOptions.autosave = config.get("autosave", MenuOptions.autosave);
-        MenuOptionsGraphics.health = config.get("health", MenuOptionsGraphics.health);
     }
     public static long getFPS(){
         return FPStracker.size()/5;

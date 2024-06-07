@@ -10,6 +10,7 @@ import planetaryprotector.game.Game;
 import planetaryprotector.Core;
 import java.io.File;
 import java.util.ArrayList;
+import planetaryprotector.Options;
 import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.game.Story;
 public class MenuNewGame extends Menu{
@@ -17,7 +18,7 @@ public class MenuNewGame extends Menu{
     public MenuNewGame(){
         var layout = setLayout(new ConstrainedLayout());
         ArrayList<String> levels = new ArrayList<>();
-        for(int i = 0; i</*Core.latestLevel*/1; i++){
+        for(int i = 0; i<Options.options.level; i++){
             levels.add("Level "+(i+1));
         }
         selectedLevel = new OptionButton("Level", 0, levels.toArray(String[]::new));
@@ -34,22 +35,25 @@ public class MenuNewGame extends Menu{
         tutorial.setSize(600, 60);
         layout.constrain(tutorial, new PositionAnchorConstraint(0.5f, 0, .5f, .5f, 0, 200));
         var name = add(new TextBox("New Game"));
-        name.addAction(() -> {});
+        var create = add(new Button("Create", !fileExists(name.getText())));
+        name.runActionsOnTextChange = true;
+        name.addAction(() -> {
+            create.enabled = !fileExists(name.getText());
+        });
         name.setSize(600, 60);
         layout.constrain(name, new PositionAnchorConstraint(.5f, 0, .5f, .5f));
         var back = add(new Button("Back"));
         back.addAction(() -> new MenuMain(false).open());
         back.setSize(500, 60);
         layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
-        var create = add(new Button("Create", false));
         create.addAction(() -> {
             Core.loadGame(validateFilename(name.getText().trim()), selectedLevel.getIndex()+1, WorldGenerator.generators.get(selectedLevel.getIndex()+1).get(worldGenerator.getIndex()), Story.stories.get(selectedLevel.getIndex()+1).get(0), tutorial.getIndex()==1);//TODO story selector
         });
         create.setSize(500, 60);
         layout.constrain(create, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -160));
-//        if(Core.latestLevel>1){
-//            add(selectedLevel);
-//        }
+        if(Options.options.level>1){
+            add(selectedLevel);
+        }
     }
     @Override
     public void draw(double deltaTime){

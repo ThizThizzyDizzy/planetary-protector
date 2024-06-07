@@ -5,12 +5,11 @@ import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.OptionButton;
 import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
 import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
-import planetaryprotector.Core;
+import planetaryprotector.Main;
 import planetaryprotector.Options;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuMain;
 public class MenuOptions extends Menu{
-    public static boolean autosave = true;
     public MenuOptions(){
         var layout = setLayout(new ConstrainedLayout());
         var graphics = add(new Button("Graphics"));
@@ -28,7 +27,7 @@ public class MenuOptions extends Menu{
         var back = add(new Button("Back"));
         back.setSize(400, 40);
         back.addAction(() -> {
-            Core.saveOptions();
+            Main.saveOptions();
             new MenuMain(false).open();
         });
         layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -80));
