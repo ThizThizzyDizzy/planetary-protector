@@ -2,31 +2,18 @@ package planetaryprotector.game;
 import java.util.List;
 import java.util.Random;
 import planetaryprotector.GameObject;
-import planetaryprotector.structure.Structure;
-import planetaryprotector.structure.Skyscraper;
 public class BoundingBox{
-    public static BoundingBox enclosing(List<? extends GameObject> objects){
+    public static BoundingBox enclosing(List<? extends GameObject> objects, boolean includeHeight){
         if(objects.isEmpty())return null;
-        int x1,y1,x2,y2;
+        int x1, y1, x2, y2;
         x1 = x2 = objects.get(0).x;
         y1 = y2 = objects.get(0).y;
         for(GameObject o : objects){
-            int left = o.x;
-            int top = o.y;
-            int right = o.x+o.width;
-            int bottom = o.y+o.height;
-            if(o instanceof Structure){
-                int oy = o.y-((Structure) o).getStructureHeight();
-                if(oy<y1)y1 = oy;
-            }
-            if(o instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o;
-                bottom = sky.y+sky.height-sky.fallen;
-            }
-            if(left<x1)x1 = left;
-            if(top<y1)y1 = top;
-            if(right>x2)x2 = right;
-            if(bottom>y2)y2 = bottom;
+            var bbox = o.getBoundingBox(includeHeight);
+            x1 = Math.min(x1, bbox.x);
+            y1 = Math.min(y1, bbox.y);
+            x2 = Math.max(x2, bbox.x+bbox.width);
+            y2 = Math.min(y2, bbox.y+bbox.height);
         }
         return new BoundingBox(x1, y1, x2-x1, y2-y1);
     }
@@ -84,5 +71,19 @@ public class BoundingBox{
     }
     public BoundingBox expandDown(int expansion){
         return new BoundingBox(x, y, width, height+expansion);
+    }
+    public boolean contains(int x, int y){
+        return x>=this.x&&y>=this.y&&x<this.x+width&&y<this.y+height;
+    }
+    public boolean intersects(BoundingBox other){
+        return intersection(other)!=null;
+    }
+    public BoundingBox intersection(BoundingBox other){
+        int newX1 = Math.max(x, other.x);
+        int newY1 = Math.max(y, other.y);
+        int newX2 = Math.min(x+width, other.x+other.width);
+        int newY2 = Math.min(y+height, other.y+other.height);
+        if(newX2<=newX1||newY2<=newY1)return null;
+        return new BoundingBox(newX1, newY1, newX2-newX1, newY2-newY1);
     }
 }

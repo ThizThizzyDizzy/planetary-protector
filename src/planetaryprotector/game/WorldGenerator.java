@@ -21,19 +21,11 @@ public abstract class WorldGenerator{
                 int fails = 0;
                 while(fails<FAILS){
                     //<editor-fold defaultstate="collapsed" desc="Generate building">
-                    FOR:for(int i = 0; i<tries; i++){
+                    FOR:
+                    for(int i = 0; i<tries; i++){
                         Skyscraper scraper = new Skyscraper(game, bbox.randX(game.rand), bbox.randY(game.rand), game.rand.nextInt(40)+10);
                         for(Structure structure : game.structures){
-                            double Y = structure.y;
-                            if(structure instanceof Skyscraper){
-                                Y-=((Skyscraper) structure).fallen;
-                            }
-                            if(Renderer2D.isClickWithinBounds(scraper.x, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    Renderer2D.isClickWithinBounds(scraper.x+scraper.width, scraper.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    Renderer2D.isClickWithinBounds(scraper.x, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                    Renderer2D.isClickWithinBounds(scraper.x+scraper.width, scraper.y+scraper.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                                continue FOR;
-                            }
+                            if(scraper.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue FOR;
                         }
                         scraper.generateApocolypseDecals();
                         game.structures.add(scraper);
@@ -41,19 +33,11 @@ public abstract class WorldGenerator{
                     //</editor-fold>
                     fails++;
                 }
-                GEN:for(int i = 0; i<tries; i++){
+                GEN:
+                for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        double Y = structure.y;
-                        if(structure instanceof Skyscraper){
-                            Y-=((Skyscraper) structure).fallen;
-                        }
-                        if(Renderer2D.isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                            continue GEN;
-                        }
+                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
                     game.structures.add(tree);
                 }
@@ -61,19 +45,11 @@ public abstract class WorldGenerator{
             @Override
             public void generate(Game game, BoundingBox bbox){
                 long tries = 1000L*bbox.area()/1920/1080;
-                GEN:for(int i = 0; i<tries; i++){
+                GEN:
+                for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        double Y = structure.y;
-                        if(structure instanceof Skyscraper){
-                            Y-=((Skyscraper) structure).fallen;
-                        }
-                        if(Renderer2D.isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                            continue GEN;
-                        }
+                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
                     game.structures.add(tree);
                 }
@@ -92,42 +68,34 @@ public abstract class WorldGenerator{
             @Override
             public void generateCity(Game game, BoundingBox bbox){
                 int width = 1;
-                while(width*100+GAP*(width+1)<Core.helper.displayWidth()){
-                    width+=2;
+                while(width*100+GAP*(width+1)<bbox.width){
+                    width += 2;
                 }
-                width-=2;
+                width -= 2;
                 int height = 1;
-                while(height*100+GAP*(height+1)<Core.helper.displayHeight()){
-                    height+=2;
+                while(height*100+GAP*(height+1)<bbox.height){
+                    height += 2;
                 }
-                height-=2;
+                height -= 2;
                 int w = width*100+(GAP*(width-1));
                 int h = height*100+(GAP*(height-1));
                 int top = -h/2;
                 int left = -w/2;
                 for(int x = 0; x<width; x++){
                     for(int y = 0; y<height; y++){
-                        int X = left+(x*(GAP+100));
-                        int Y = top+(y*(GAP+100));
+                        int X = left+(x*(GAP+100))+bbox.x+bbox.width/2;
+                        int Y = top+(y*(GAP+100))+bbox.y+bbox.height/2;
                         Structure structure = (x==width/2&&y==height/2)?new Base(game, X, Y):new Skyscraper(game, X, Y, game.rand.nextInt(15)+25);
                         if(structure instanceof Skyscraper)((Skyscraper)structure).generateApocolypseDecals();
                         game.structures.add(structure);
                     }
                 }
                 long tries = 1000L*bbox.area()/1920/1080;
-                GEN:for(int i = 0; i<tries; i++){
+                GEN:
+                for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        double Y = structure.y;
-                        if(structure instanceof Skyscraper){
-                            Y-=((Skyscraper) structure).fallen;
-                        }
-                        if(Renderer2D.isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                            continue GEN;
-                        }
+                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
                     game.structures.add(tree);
                 }
@@ -135,19 +103,11 @@ public abstract class WorldGenerator{
             @Override
             public void generate(Game game, BoundingBox bbox){
                 long tries = 1000L*bbox.area()/1920/1080;
-                GEN:for(int i = 0; i<tries; i++){
+                GEN:
+                for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        double Y = structure.y;
-                        if(structure instanceof Skyscraper){
-                            Y-=((Skyscraper) structure).fallen;
-                        }
-                        if(Renderer2D.isClickWithinBounds(tree.x, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                                Renderer2D.isClickWithinBounds(tree.x+tree.width, tree.y+tree.height, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                            continue GEN;
-                        }
+                        if(structure.getBoundingBox(false).intersects(tree.getBoundingBox(false)))continue GEN;
                     }
                     game.structures.add(tree);
                 }

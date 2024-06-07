@@ -1,10 +1,10 @@
 package planetaryprotector;
 import java.util.Random;
+import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.Game;
-import simplelibrary.opengl.Renderer2D;
-public abstract class GameObject extends Renderer2D{
+public abstract class GameObject{
     public Game game;
-    public int x,y,width,height;
+    public int x, y, width, height;
     public boolean dead = false;
     public GameObject(Game game, int x, int y, int width, int height){
         this.game = game;
@@ -19,5 +19,8 @@ public abstract class GameObject extends Renderer2D{
     }
     public int getRandY(Random rand){
         return (int)Math.round(rand.nextDouble()*height);
+    }
+    public BoundingBox getBoundingBox(boolean includeHeight){
+        return new BoundingBox(x, y, width, height);
     }
 }

@@ -19,7 +19,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     public int floorCount = 0;
     public boolean falling;
     public boolean right = true;
-    public int fallen;
+    //public int fallen; // Y value should not change
     public static final int maxHeight = 100;
     private boolean falled = false;
     public double pop = 0;

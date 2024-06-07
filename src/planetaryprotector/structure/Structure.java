@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Action;
+import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
@@ -453,5 +454,10 @@ public abstract class Structure extends GameObject{
             }
             return max+" ~ |"+a+"|"+b+"|"+c+"|"+d+"|"+e+"|";
         }
+    }
+    @Override
+    public BoundingBox getBoundingBox(boolean includeHeight){
+        if(includeHeight)return new BoundingBox(x, y, width, height+getStructureHeight());
+        return super.getBoundingBox(includeHeight);
     }
 }

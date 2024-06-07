@@ -18,6 +18,11 @@ import com.thizthizzydizzy.dizzyengine.ui.component.layer.TexturedLinearHandle;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import planetaryprotector.game.BoundingBox;
+import planetaryprotector.game.Game;
+import planetaryprotector.game.Story;
+import planetaryprotector.game.WorldGenerator;
+import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
@@ -71,6 +76,15 @@ public class Main{
             if(options!=null)Options.options = options;
         }catch(IOException ex){
             Logger.error("Failed to load options!", ex);
+        }
+    }
+    public static void loadGame(String name, int level, WorldGenerator gen, Story story, boolean tutorial){
+        Game g = Game.load(name);
+        if(g==null){
+            if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
+            new MenuGame(Game.generate(name, level, gen, new BoundingBox(-960, -540, 1920, 1080), story, tutorial)).open();
+        }else{
+            new MenuGame(g).open();
         }
     }
 }

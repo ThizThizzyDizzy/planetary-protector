@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.lwjgl.glfw.GLFW;
@@ -15,9 +16,6 @@ import planetaryprotector.game.Action;
 import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.Epilogue;
 import planetaryprotector.game.Game;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 import planetaryprotector.game.Notification;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
@@ -28,9 +26,6 @@ import planetaryprotector.menu.ingame.MenuComponentOverlay;
 import planetaryprotector.menu.ingame.MenuIngame;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Structure.Upgrade;
-import simplelibrary.font.FontManager;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponent;
 public class MenuGame extends Menu{
     public ArrayList<MenuComponentActionButton> actionButtons = new ArrayList<>();
     private static final int actionButtonWidth = 375;
@@ -47,8 +42,7 @@ public class MenuGame extends Menu{
     public static final double maxZoom = 2;
     private double zoomFac = .05;
     private double panFac = 7;
-    public MenuGame(GUI gui, Game game){
-        super(gui, null);
+    public MenuGame(Game game){
         this.game = game;
     }
     @Override
