@@ -1,4 +1,5 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.Random;
@@ -8,10 +9,6 @@ import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
-import simplelibrary.game.Framebuffer;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.Menu;
 public class MenuLost extends Menu{
     private int tick;
     private int[] laserFiring;
@@ -22,8 +19,7 @@ public class MenuLost extends Menu{
     private double laserSize = 0;
     private boolean laserBig = false;
     private boolean explosion = false;
-    public MenuLost(GUI gui, Game game){
-        super(gui, null);
+    public MenuLost(Game game){
         this.game = game;
         Random rand = new Random();
         for(int i = 0; i<1000; i++){

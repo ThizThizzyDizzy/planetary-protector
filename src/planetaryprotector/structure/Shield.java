@@ -9,10 +9,10 @@ public class Shield extends Renderer2D{
     public Shield(ShieldGenerator generator, double x, double y){
         this.generator = generator;
     }
-    public void render(int millisSinceLastTick){
+    public void render(double deltaTime){
         drawShield(generator.x+x, generator.y+y, generator.getShieldSize()/2, 1f);
         for(double d : generator.shieldDecals){
-            d+=Math.min(50, millisSinceLastTick)/50d*ShieldGenerator.shieldDecalSpeed;
+            d+=deltaTime*ShieldGenerator.shieldDecalSpeed;
             drawShield2(generator.x+x, generator.y+y, d, (1-(float)(d/(generator.getShieldSize()/2)))/2f);
         }
     }

@@ -1,23 +1,22 @@
 package planetaryprotector.enemy;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import java.util.ArrayList;
 import java.util.Random;
-import simplelibrary.image.Color;
+import planetaryprotector.item.Item;
 public enum AsteroidMaterial{
-    STONE("stone", 4, null),
-    COAL("coal", 1, new Color(0, 0, 0)),
-    IRON("iron", 8, new Color(142, 63, 11));
+    STONE(Item.stone, "stone", 4, null),
+    COAL(Item.coal, "coal", 1, new Color(0, 0, 0)),
+    IRON(Item.ironOre, "iron", 8, new Color(142, 63, 11));
+    public final Item item;
     public final String texture;
     public boolean forceDrop = false;
     private final int weight;
     public final Color color;
-    private AsteroidMaterial(String texture, int weight, Color color){
+    private AsteroidMaterial(Item item, String texture, int weight, Color color){
+        this.item = item;
         this.texture = texture;
         this.weight = weight;
         this.color = color;
-    }
-    private AsteroidMaterial forceDrop(){
-        forceDrop = true;
-        return this;
     }
     public static AsteroidMaterial random(Random rand){
         ArrayList<AsteroidMaterial> materials = new ArrayList<>();

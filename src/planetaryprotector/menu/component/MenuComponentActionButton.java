@@ -1,34 +1,39 @@
 package planetaryprotector.menu.component;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import planetaryprotector.item.ItemStack;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-public class MenuComponentActionButton extends MenuComponentButton{
+public class MenuComponentActionButton extends Button{
     private final MenuGame menu;
     private final Game game;
     public final Action action;
     public MenuComponentActionButton(MenuGame menu, Game game, int x, int y, int width, int height, Action action){
-        super(x, y, width, height, action.label, action.update.getEnabled());
-        textInset+=15;
+        super(action.label, action.update.getEnabled());
+        label.labelInset += 15;
         this.menu = menu;
         this.game = game;
         this.action = action;
+        addAction(() -> {
+            perform();
+            game.actionUpdateRequired = 2;
+        });//TODO just like don't
     }
     @Override
-    public void render(){
-        super.render();
-        removeRenderBound();
-        GL11.glColor4d(1, 1, 1, 1);
-        if(isMouseOver){
-            double Y = y;
-            double H = height/2;
+    public void render(double deltaTime){
+        super.render(deltaTime);
+        Renderer.setColor(Color.WHITE);
+        if(isCursorFocused()){
+            float Y = y;
+            float H = getHeight()/2;
             for(ItemStack stack : action.tooltip){
-                drawRect(x+width, Y, x+width+H, Y+H, stack.item.getTexture());
-                drawText(x+width+H, Y, Core.helper.displayWidth()+x, Y+H, stack.count+"");
-                Y+=H;
+                Renderer.fillRect(x+getWidth(), Y, x+getWidth()+H, Y+H, stack.item.getTexture());
+                Renderer.drawText(x+getWidth()+H, Y, DizzyEngine.screenSize.x+x, Y+H, stack.count+"");
+                Y += H;
             }
         }
         if(!action.isImportant()){
@@ -39,7 +44,7 @@ public class MenuComponentActionButton extends MenuComponentButton{
                 if(id==9)num = "0";
                 if(id==10)num = "-";
                 if(id==11)num = "=";
-                drawText(x+textInset, y+height/2, x+width-textInset, y+height-textInset, num);
+                Renderer.drawText(x+label.labelInset, y+getHeight()/2, x+getWidth()-label.labelInset, y+getHeight()-label.labelInset, num);
                 GL11.glColor4d(1, 1, 1, 1);
             }
         }

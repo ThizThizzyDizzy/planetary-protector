@@ -1,24 +1,23 @@
 package planetaryprotector.particle;
-import planetaryprotector.Core;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.lwjgl.opengl.GL11;
+import org.joml.Matrix4f;
+import planetaryprotector.Options;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
 import planetaryprotector.structure.Structure;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Particle extends GameObjectAnimated{
     public final ParticleEffectType type;
-    protected double rotation;
-    public double opacity = 1;
+    protected float rotation;
+    public float opacity = 1;
     protected int radius;
     private final int size;
     public boolean air = false;
-    private double xing = 0;//used to smooth out double-based movements over longer X distance
+    private float xing = 0;//used to smooth out double-based movements over longer X distance
     //clouds
-    public double strength;
+    public float strength;
     private double rateOfChange;
     public static final int rainThreshold = 25;
     public static final int lightningThreshold = 40;
@@ -28,7 +27,7 @@ public class Particle extends GameObjectAnimated{
     //FIRE
     public boolean fading;
     public Lightning lightning = null;
-    private ArrayList<double[]> snow = new ArrayList<>();
+    private ArrayList<float[]> snow = new ArrayList<>();
     public Particle(Game game, int x, int y, ParticleEffectType type){
         this(game, x, y, type, 1);
     }
@@ -47,7 +46,7 @@ public class Particle extends GameObjectAnimated{
             this.air = true;
         }
     }
-    public Particle(Game game, int x, int y, double cloudStrength, double cloudRateOfChange, double speed){
+    public Particle(Game game, int x, int y, float cloudStrength, double cloudRateOfChange, double speed){
         this(game, x, y, ParticleEffectType.CLOUD);
         strength = cloudStrength;
         rateOfChange = cloudRateOfChange;
@@ -61,83 +60,78 @@ public class Particle extends GameObjectAnimated{
         if(dead){
             return;
         }
-        double x = this.x+xing;
+        float x = this.x+xing;
         switch(type){
             case EXPLOSION:
                 //smoke
                 for(int j = 0; j<5; j++){
                     int radius = this.radius+5*j;
-                    int c = 90*(MenuOptionsGraphics.particles+1);
+                    int c = 90*(Options.options.particles+1);
                     for(int i = 0; i<c; i++){
-                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
-                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
-                        GL11.glColor4d(0, 0, 0, opacity);
-                        drawRect(X, Y, X+width, Y+height, ImageStash.instance.getTexture(ParticleEffectType.SMOKE.images[0]));
-                        GL11.glColor4d(1, 1, 1, 1);
+                        float X = (float)(Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2);
+                        float Y = (float)(Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2);
+                        Renderer.setColor(0, 0, 0, opacity);
+                        Renderer.fillRect(X, Y, X+width, Y+height, ResourceManager.getTexture(ParticleEffectType.SMOKE.images[0]));
+                        Renderer.setColor(1, 1, 1, 1);
                     }
                 }
                 //explosion
                 for(int j = 0; j<10; j++){
-                    double radius = this.radius/10D+2*j;
-                    int c = 22*(MenuOptionsGraphics.particles+1);
+                    float radius = this.radius/10f+2*j;
+                    int c = 22*(Options.options.particles+1);
                     for(int i = 0; i<45; i++){
-                        double X = Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2;
-                        double Y = Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2;
-                        GL11.glColor4d(1, opacity, 0, opacity);
-                        drawRect(X, Y, X+width, Y+height, ImageStash.instance.getTexture(images[0]));
-                        GL11.glColor4d(1, 1, 1, 1);
+                        float X = (float)(Math.cos(Math.toRadians(i*(360d/c)))*radius+x-width/2);
+                        float Y = (float)(Math.sin(Math.toRadians(i*(360d/c)))*radius+y-height/2);
+                        Renderer.setColor(1, opacity, 0, opacity);
+                        Renderer.fillRect(X, Y, X+width, Y+height, ResourceManager.getTexture(images[0]));
+                        Renderer.setColor(1, 1, 1, 1);
                     }
                 }
                 return;
             case SMOKE:
-                GL11.glColor4d(0, 0, 0, opacity);
-                GL11.glPushMatrix();
-                GL11.glTranslated(x+width/2, y+height/2, 0);
-                GL11.glRotated(rotation, 0, 0, 1);
-                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                GL11.glPopMatrix();
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(0, 0, 0, opacity);
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+                Renderer.popModel();
+                Renderer.setColor(1, 1, 1, 1);
                 return;
             case CLOUD:
                 if(strength>lightningThreshold){
                     //add lightning
                     if(lightning==null&&game.rand.nextDouble()*strength>lightningThreshold&&game.rand.nextDouble()<lightningChance){
                         lightning = new Lightning();
-                        double lastX = 0;
-                        double lastY = 0;
-                        double Y = 0;
-                        double X = 0;
+                        float lastX = 0;
+                        float lastY = 0;
+                        float Y = 0;
+                        float X = 0;
                         while(Y<400){
                             Y = lastY+game.rand.nextInt(40)+10;
-                            X = lastX+(game.rand.nextDouble()-.5)*30;
+                            X = (float)(lastX+(game.rand.nextDouble()-.5)*30);
                             lightning.addLine(x+width/2+lastX, y+height/2+lastY, x+width/2+X, y+height/2+Y);
                             if(game.rand.nextBoolean()){
-                                double YY = lastY+game.rand.nextInt(40)+10;
-                                double XX = lastX+(game.rand.nextDouble()-.5)*30;
+                                float YY = lastY+game.rand.nextInt(40)+10;
+                                float XX = (float)(lastX+(game.rand.nextDouble()-.5)*30);
                                 lightning.addBranch(x+width/2+lastX, y+height/2+lastY, x+width/2+XX, y+height/2+YY);
                             }
                             lastX = X;
                             lastY = Y;
                         }
-                        drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+1, 0);
+                        Renderer.fillRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+1);
                     }
                 }
                 if(strength>rainThreshold){
                     //draw rain
                     if(Game.theme==Game.Theme.SNOWY){
-                        GL11.glColor4d(1, 1, 1, .875*MenuOptionsGraphics.cloudIntensity);
-                        ImageStash.instance.bindTexture(0);
-                        GL11.glBegin(GL11.GL_POINTS);
-                        for(double[] i : snow){
-                            GL11.glVertex2d(x+i[0]+width/2, y+i[1]+i[2]+height/2);
+                        Renderer.setColor(1, 1, 1, .875f*Options.options.cloudIntensity);
+                        for(float[] i : snow){
+                            Renderer.fillRect(x+i[0]+width/2, y+i[1]+i[2]+height/2, x+i[0]+width/2+1, y+i[1]+i[2]+height/2+1);
                         }
-                        GL11.glEnd();
                     }else{
-                        GL11.glColor4d(0, 0, 1, .75*MenuOptionsGraphics.cloudIntensity);
+                        Renderer.setColor(0, 0, 1, .75f*Options.options.cloudIntensity);
                         for(int i = 0; i<strength; i++){
-                            double X = game.rand.nextInt((int)width)-width/2;
-                            double Y = game.rand.nextInt((int)(height+500))-height/2;
-                            drawRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+5, 0);
+                            float X = game.rand.nextInt((int)width)-width/2;
+                            float Y = game.rand.nextInt((int)(height+500))-height/2;
+                            Renderer.fillRect(x+width/2+X, y+height/2+Y, x+width/2+X+1, y+height/2+Y+5, 0);
                         }
                     }
                 }
@@ -148,50 +142,42 @@ public class Particle extends GameObjectAnimated{
                         lightning = null;
                     }
                 }
-                opacity = Math.log10(strength/(rainThreshold/4))*.75;
-                double lightness = 1-((strength-(rainThreshold*(3/4d)))/50);
-                if(Game.theme==Game.Theme.SNOWY)lightness = Math.sqrt(lightness);
-                GL11.glColor4d(lightness, lightness, lightness, opacity*MenuOptionsGraphics.cloudIntensity);
-                GL11.glPushMatrix();
-                GL11.glTranslated(x+width/2, y+height/2, 0);
-                GL11.glRotated(rotation, 0, 0, 1);
-                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                GL11.glPopMatrix();
-                GL11.glColor4d(1, 1, 1, 1);
+                opacity = (float)(Math.log10(strength/(rainThreshold/4))*.75f);
+                float lightness = 1-((strength-(rainThreshold*(3/4f)))/50);
+                if(Game.theme==Game.Theme.SNOWY)lightness = (float)Math.sqrt(lightness);
+                Renderer.setColor(lightness, lightness, lightness, opacity*Options.options.cloudIntensity);
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+                Renderer.popModel();
+                Renderer.setColor(1, 1, 1, 1);
                 return;
             case FIRE:
-                for(double[] i : smoke){
-                    double r = Math.max(0,Math.min(1,(10-i[4])/10));
-                    double g = Math.max(0,Math.min(1,(10-i[4])/20));
-                    GL11.glColor4d(r, g, 0, i[3]);
-                    GL11.glPushMatrix();
-                    GL11.glTranslated(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0);
-                    GL11.glRotated(i[2], 0, 0, 1);
-                    drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                    GL11.glPopMatrix();
+                for(float[] i : smoke){
+                    float r = Math.max(0,Math.min(1,(10-i[4])/10));
+                    float g = Math.max(0,Math.min(1,(10-i[4])/20));
+                    Renderer.setColor(r, g, 0, i[3]);
+                    Renderer.pushModel(new Matrix4f().translate(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0).rotate(i[2], 0, 0, 1));
+                    Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+                    Renderer.popModel();
                 }
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(1, 1, 1, 1);
                 if(fading)return;
-                GL11.glColor4d(1, .5, 0, opacity);
-                GL11.glPushMatrix();
-                GL11.glTranslated(x+width/2, y+height/2, 0);
-                GL11.glRotated(rotation, 0, 0, 1);
-                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                GL11.glPopMatrix();
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(1, .5f, 0, opacity);
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+                Renderer.popModel();
+                Renderer.setColor(1, 1, 1, 1);
                 return;
             default:
-                GL11.glColor4d(1, 1, 1, opacity);
-                GL11.glPushMatrix();
-                GL11.glTranslated(x+width/2, y+height/2, 0);
-                GL11.glRotated(rotation, 0, 0, 1);
-                drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-                GL11.glPopMatrix();
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(1, 1, 1, opacity);
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+                Renderer.popModel();
+                Renderer.setColor(1, 1, 1, 1);
         }
     }
     private int smokeTimer;
-    private ArrayList<double[]> smoke = new ArrayList<>();
+    private ArrayList<float[]> smoke = new ArrayList<>();
     @Override
     public void tick(){
         if(opacity<=0){
@@ -203,7 +189,7 @@ public class Particle extends GameObjectAnimated{
             game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
                 for(Structure structure : game.structures){
-                    if(Core.distance(structure, x, y)<=radius&&!structure.type.isBackgroundStructure()){
+                    if(structure.getCenter().distance(x,y)<=radius&&!structure.type.isBackgroundStructure()){
                         structure.onHit(structure.x-25, structure.y+structure.height-25);
                     }
                 }
@@ -224,8 +210,8 @@ public class Particle extends GameObjectAnimated{
             int actualX = (int)xing;
             x+=actualX;
             xing-=actualX;
-            for (Iterator<double[]> it = snow.iterator(); it.hasNext();) {
-                double[] i = it.next();
+            for (Iterator<float[]> it = snow.iterator(); it.hasNext();) {
+                float[] i = it.next();
                 if(game.rand.nextBoolean()){
                     i[0]+=game.rand.nextInt(3)-1;
                 }
@@ -236,16 +222,16 @@ public class Particle extends GameObjectAnimated{
                 }
             }
             for(int i = 0; i<strength/100; i++){
-                double X = game.rand.nextInt((int)width)-width/2;
-                double Y = game.rand.nextInt((int)height)-height/2;
-                snow.add(new double[]{X,Y,0});
+                float X = game.rand.nextInt((int)width)-width/2;
+                float Y = game.rand.nextInt((int)height)-height/2;
+                snow.add(new float[]{X,Y,0});
             }
         }
         if(type==ParticleEffectType.FIRE){
             smokeTimer++;
             if(fading&&smoke.isEmpty())dead = true;
             int delay = 5;
-            switch(MenuOptionsGraphics.particles){
+            switch(Options.options.particles){
                 case 0:
                     delay = 10;
                     break;
@@ -258,13 +244,13 @@ public class Particle extends GameObjectAnimated{
             }
             if(smokeTimer>=delay&&!fading){
                 smokeTimer = 0;
-                smoke.add(new double[]{0,0,0,0,0,0});
+                smoke.add(new float[]{0,0,0,0,0,0});
             }
-            for(Iterator<double[]> it = smoke.iterator(); it.hasNext();){
-                double[] i = it.next();
+            for(Iterator<float[]> it = smoke.iterator(); it.hasNext();){
+                float[] i = it.next();
                 i[4]++;
                 i[0] = i[4]*3;
-                i[1] = -Math.sqrt(i[4])*10;
+                i[1] = (float)(-Math.sqrt(i[4])*10);
                 i[2] = i[4]*10;
                 i[3] = 1-(i[4]/200);
                 if(i[3]<=0){
@@ -279,7 +265,7 @@ public class Particle extends GameObjectAnimated{
      * @param i how far to move them.
      */
     public void offsetSubParticles(int i){
-        for(double[] d : smoke){
+        for(float[] d : smoke){
             d[5]+=i;
         }
     }
@@ -293,14 +279,14 @@ public class Particle extends GameObjectAnimated{
         }
         if(type==ParticleEffectType.FIRE){
             if(cause==PushCause.ASTEROID)return;
-            for(double[] d : smoke){
+            for(float[] d : smoke){
                 d[1]+=x;
                 d[2]+=y;
             }
             return;
         }
         if(type==ParticleEffectType.CLOUD){
-            for(double[] d : snow){
+            for(float[] d : snow){
                 d[0]-=x;
                 d[1]-=y;
             }
@@ -346,7 +332,7 @@ public class Particle extends GameObjectAnimated{
         private LightningLine branch = null;
         private boolean goBack;
         private boolean first = true;
-        private double opacity = 5;
+        private float opacity = 5;
         public LightningLine(double x1, double y1, double x2, double y2){
             this.x1 = x1;
             this.y1 = y1;
@@ -363,8 +349,8 @@ public class Particle extends GameObjectAnimated{
             if(branch!=null){
                 branch.opacity = opacity;
             }
-            GL11.glColor4d(1, 1, .25, opacity*MenuOptionsGraphics.cloudIntensity);
-            ImageStash.instance.bindTexture(0);
+            Renderer.setColor(1, 1, .25f, opacity*Options.options.cloudIntensity);
+            ResourceManager.bindTexture(0);
             GL11.glBegin(GL11.GL_LINES);
             GL11.glVertex2d(x1, y1);
             GL11.glVertex2d(x2, y2);

@@ -16,9 +16,6 @@ import java.util.logging.Logger;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import planetaryprotector.game.BoundingBox;
-import planetaryprotector.game.WorldGenerator;
-import planetaryprotector.game.Story;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
 import planetaryprotector.menu.options.MenuOptionsDiscord;
@@ -39,13 +36,11 @@ public class Core extends Renderer2D{
     public static GUI gui;
     public static GameHelper helper;
     public static ArrayList<Long> FPStracker = new ArrayList<>();
-    public static boolean debugMode = false;
     public static final boolean is3D = false;
     public static final boolean enableCullFace = true;
     public static final int LEVELS = 2;
     @Deprecated
     public static int latestLevel = 1;//Options.options.level
-    public static int speedMult = 1;
     private static DiscordRichPresence discord;
     public static String discordState;
     public static String discordDetails;
@@ -152,7 +147,7 @@ public class Core extends Renderer2D{
         System.out.println("Activating GUI");
         helper.assignGUI(gui);
         System.out.println("Initializing Sound System");
-        Sounds.create();
+        Sounds.init();
         System.out.println("Startup complete!");
         System.out.println("Checking for updates...");
         updater = Updater.read("https://raw.githubusercontent.com/ThizThizzyDizzy/planetary-protector/master/versions.txt", VersionManager.currentVersion, Main.applicationName);
@@ -208,36 +203,6 @@ public class Core extends Renderer2D{
     }
     public static long getFPS(){
         return FPStracker.size()/5;
-    }
-    public static double distance(GameObject o1, GameObject o2){
-        return Math.sqrt(Math.pow((o1.x+o1.width/2)-(o2.x+o2.width/2), 2)+Math.pow((o1.y+o1.height/2)-(o2.y+o2.height/2), 2));
-    }
-    public static double distance(GameObject object, double x, double y) {
-        return Math.sqrt(Math.pow((object.x+object.width/2)-x, 2)+Math.pow((object.y+object.height/2)-y, 2));
-    }
-    public static double distance(double x1, double y1, double x2, double y2) {
-        return Math.sqrt(Math.pow(x1-x2, 2)+Math.pow(y1-y2, 2));
-    }
-    public static boolean isPointWithinComponent(double x, double y, MenuComponent component){
-        return isClickWithinBounds(x, y, component.x, component.y, component.x+component.width, component.y+component.height);
-    }
-    public static double getValueBetweenTwoValues(double pos1, double val1, double pos2, double val2, double pos){
-        if(pos1>pos2){
-            return getValueBetweenTwoValues(pos2, val2, pos1, val1, pos);
-        }
-        double posDiff = pos2-pos1;
-        double percent = pos/posDiff;
-        double valDiff = val2-val1;
-        return percent*valDiff+val1;
-    }
-    public static float getValueBetweenTwoValues(float pos1, float val1, float pos2, float val2, float pos){
-        if(pos1>pos2){
-            return getValueBetweenTwoValues(pos2, val2, pos1, val1, pos);
-        }
-        float posDiff = pos2-pos1;
-        float percent = pos/posDiff;
-        float valDiff = val2-val1;
-        return percent*valDiff+val1;
     }
     public static void update() throws URISyntaxException, IOException{
         System.out.println("Updating...");

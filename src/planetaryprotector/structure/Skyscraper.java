@@ -1,19 +1,18 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import java.util.Iterator;
-import org.lwjgl.opengl.GL11;
+import planetaryprotector.Options;
 import planetaryprotector.structure.task.TaskSkyscraperAddFloor;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.game.Action;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.config2.Config;
-import simplelibrary.config2.ConfigList;
 public class Skyscraper extends Structure implements StructureDemolishable{
     public static final int floorHeight = 10;
     public int floorCount = 0;
@@ -22,6 +21,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     //public int fallen; // Y value should not change
     public static final int maxHeight = 100;
     private boolean falled = false;
+    private int distanceFallen = 0;
     public double pop = 0;
     public int fallSpeed = 3;
     private ArrayList<SkyscraperDecal> decals = new ArrayList<>();
@@ -32,7 +32,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     @Override
     public void tick(){
         super.tick();
-        pop*=1.000001;
+        pop *= 1.000001;
         if(pop>getMaxPop()){
             pop = getMaxPop();
         }
@@ -40,37 +40,31 @@ public class Skyscraper extends Structure implements StructureDemolishable{
             for(Iterator<Particle> it = fires.iterator(); it.hasNext();){
                 Particle fire = it.next();
                 fire.offsetSubParticles(2);
-                if(fire.y-50>-fallen){
+                if(fire.y-50>0){
                     it.remove();
-                    fire.x+=x;
-                    fire.y+=y;
+                    fire.x += x;
+                    fire.y += y;
                     fire.fading = true;
                     game.addParticleEffect(fire);
                 }
             }
-            for(int i = 0; i<MenuOptionsGraphics.particles*4+1; i++){
-                game.addParticleEffect(new Particle(game, game.rand.nextInt((int)width)+x-25, game.rand.nextInt((int)height)+y-fallen-25,ParticleEffectType.SMOKE, 1, false));
+            for(int i = 0; i<Options.options.particles*4+1; i++){
+                game.addParticleEffect(new Particle(game, game.rand.nextInt((int)width)+x-25, game.rand.nextInt((int)height)+y-25, ParticleEffectType.SMOKE, 1, false));
             }
             right = !right;
             x += right?1:-1;
-            y+=fallSpeed;
-            fallen+=fallSpeed;
+            distanceFallen += fallSpeed;
             for(Worker worker : game.workers){
-                if(isClickWithinBounds(worker.x+(worker.width/2), worker.y+(worker.height/2), x, y-fallen, x+width, y+height-fallen)){
-                    worker.dead = true;
-                }
+                if(getBoundingBox(false).intersects(worker.getBoundingBox(false)))worker.dead = true;
             }
             for(Enemy alien : game.enemies){
-                if(alien instanceof EnemyAlien&&isClickWithinBounds(alien.x+(alien.width/2), alien.y+(alien.height/2), x, y-fallen, x+width, y+height-fallen)){
-                    alien.dead = true;
-                }
+                if(alien instanceof EnemyAlien&&getBoundingBox(false).intersects(alien.getBoundingBox(false)))alien.dead = true;
             }
         }
-        if(fallen>=floorHeight*floorCount){
+        if(distanceFallen>=floorHeight*floorCount){
             damages.clear();
             clearFires();
-            y -= fallen;
-            fallen = 0;
+            distanceFallen = 0;
             falling = false;
             falled = true;
             if(!right){
@@ -85,27 +79,28 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     }
     @Override
     public void renderBackground(){
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(x, y-fallen, x+width, y+height-fallen, StructureType.WRECK.getTexture());
-        double fallenPercent = fallen/(floorHeight*(floorCount+0D));
-        GL11.glColor4d(1, 1, 1, 1-fallenPercent);
-        drawRect(x, y-fallen, x+width, y+height-fallen, StructureType.EMPTY_PLOT.getTexture());
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.WRECK.getTexture());
+        double fallenPercent = distanceFallen/(floorHeight*(floorCount+0D));
+        Renderer.setColor(1, 1, 1, 1-distanceFallen);
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void drawOverlay(){
-        drawRect(x, y-getStructureHeight()-fallen, x+width, y+height-fallen, 0);
+        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, 0);
     }
     @Override
     public void render(){
-        GL11.glColor4d(1, 1, 1, game.hideSkyscrapers?.2:1);
+        Renderer.setColor(1, 1, 1, game.hideSkyscrapers?.2f:1);
         if(falled){
-            drawRect(x, y, x+width, y+height, StructureType.WRECK.getTexture());
+            Renderer.fillRect(x, y, x+width, y+height, StructureType.WRECK.getTexture());
             return;
         }
         for(int i = 0; i<floorCount; i++){
             boolean l = true, r = true, t = true;
-            FOR:for(SkyscraperDecal d : decals){
+            FOR:
+            for(SkyscraperDecal d : decals){
                 switch(d.type){
                     case TOP:
                         t = false;
@@ -125,58 +120,54 @@ public class Skyscraper extends Structure implements StructureDemolishable{
                         break FOR;
                 }
             }
-            if(l&&r)drawRectWithBounds(x, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, type.getTexture(), 0, 10/11d, 1, 1);//front face only
+            Renderer.bound(x, y-(floorHeight*floorCount), x+width, y+height);
+            if(l&&r)Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, 1, 1);//front face only
             else if(l){
-                drawRectWithBounds(x, y-(floorHeight*(i+1))+height, x+width/2, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, type.getTexture(), 0, 10/11d, .5, 1);//front face only
+                Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width/2, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, .5f, 1);//front face only
             }else if(r){
-                drawRectWithBounds(x+width/2, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, type.getTexture(), 0.5, 10/11d, 1, 1);//front face only
+                Renderer.fillRect(x+width/2, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0.5f, 10/11f, 1, 1);//front face only
             }
             if(i==floorCount-1){
-                if(t)drawRectWithBounds(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, x, y-(floorHeight*floorCount), x+width, y+height-fallen, type.getTexture(), 0, 0, 1, 10/11d);//top face
+                if(t)Renderer.fillRect(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, type.getTexture(), 0, 0, 1, 10/11f);//top face
             }
+            Renderer.unBound();
         }
         for(SkyscraperDecal decal : decals){
-            decal.render(this);
+            //decal.render(this);
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         renderDamages();
     }
     @Override
-    protected void drawBar(double percent, double r, double g, double b){
+    protected void drawBar(float percent, float r, float g, float b){
         if(falling)return;
         super.drawBar(percent, r, g, b);
     }
     @Override
     public boolean onDamage(int x, int y){
-        pop*=0.95;
-        return super.onDamage(x, y-fallen);
+        pop *= 0.95;
+        return super.onDamage(x, y);
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("floors", floorCount);
-        cfg.set("falling", falling);
-        cfg.set("fallen", fallen);
-        cfg.set("falled", falled);
-        cfg.set("population", pop);
-        ConfigList decalsCfg = new ConfigList();
-        for(SkyscraperDecal decal : decals)decalsCfg.add(decal.save(Config.newConfig()));
-        cfg.set("decals", decalsCfg);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.skyscraper = new GameState.Structure.Skyscraper();
+        state.skyscraper.floors = floorCount;
+        state.skyscraper.falling = falling;
+        state.skyscraper.fallen = distanceFallen;
+        state.skyscraper.falled = falled;
+        state.skyscraper.population = pop;
+        for(SkyscraperDecal decal : decals)state.skyscraper.decals.add(decal.save());
+        return state;
     }
-    public static Skyscraper loadSpecific(Config cfg, Game game, int x, int y) {
-        Skyscraper sky = new Skyscraper(game, x, y, cfg.get("floors", 10));
-        sky.falling = cfg.get("falling", false);
-        sky.fallen = cfg.get("fallen", 0);
-        sky.falled = cfg.get("falled", false);
-        try{
-            sky.pop = cfg.get("population", 0d);
-        }catch(ClassCastException ex){
-            sky.pop = cfg.get("population", 0);
-        }
-        ConfigList decalsCfg = cfg.getConfigList("decals", new ConfigList());
-        for(int i = 0; i<decalsCfg.size(); i++){
-            sky.decals.add(SkyscraperDecal.load(decalsCfg.getConfig(i)));
+    public static Skyscraper loadSpecific(GameState.Structure state, Game game, int x, int y){
+        Skyscraper sky = new Skyscraper(game, x, y, state.skyscraper.floors);
+        sky.falling = state.skyscraper.falling;
+        sky.distanceFallen = state.skyscraper.fallen;
+        sky.falled = state.skyscraper.falled;
+        sky.pop = state.skyscraper.population;
+        for(var decal : state.skyscraper.decals){
+            sky.decals.add(SkyscraperDecal.load(decal));
         }
         return sky;
     }
@@ -204,13 +195,13 @@ public class Skyscraper extends Structure implements StructureDemolishable{
         data.add("Floor Count: "+floorCount);
         data.add("Falling: "+falling);
         data.add("Right: "+right);
-        data.add("Fallen: "+fallen);
+        data.add("Fallen: "+distanceFallen);
         data.add("Falled: "+falled);
         data.add("Pop: "+pop);
     }
     @Override
     public int getStructureHeight(){
-        return floorHeight*floorCount-fallen;
+        return floorHeight*floorCount-distanceFallen;
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){

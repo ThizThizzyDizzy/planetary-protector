@@ -1,19 +1,22 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public abstract class MenuComponentOverlay extends MenuComponent{
+public abstract class MenuComponentOverlay extends Component{
     protected final MenuGame menu;
     public MenuComponentOverlay(MenuGame menu){
-        super(0, 0, Core.helper.displayWidth(), Core.helper.displayHeight());
         this.menu = menu;
     }
     @Override
-    public void renderBackground(){
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(x, y, width, height, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+    public void onAdded(){
+        setSize(super.getSize());
+    }
+    @Override
+    public void draw(double deltaTime){
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(x, y, getWidth(), getHeight(), 0);
+        Renderer.setColor(1, 1, 1, 1);
+        super.draw(deltaTime);
     }
     public void close(){
         menu.game.paused = false;

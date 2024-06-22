@@ -8,7 +8,6 @@ import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
-import com.thizthizzydizzy.dizzyengine.sound.SoundSystem;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.Slider;
 import com.thizthizzydizzy.dizzyengine.ui.component.TextBox;
@@ -46,7 +45,7 @@ public class Main{
         ui.open(new MenuLoadTextures());
         Logger.info("Loading fonts");
         Renderer.setDefaultFont(Font.loadFont(ResourceManager.loadData(ResourceManager.getInternalResource("/assets/fonts/high_resolution.ttf"))));
-        SoundSystem.init();
+        Sounds.init();
 //        Game.refreshTheme();
         loadOptions();
         DizzyEngine.start();
@@ -61,6 +60,7 @@ public class Main{
             }
             Logger.pop();
         }
+        Sounds.tick(tickCounter);
 //        DizzyEngine.getLayer(FlatGame.class).tick();
     }
     public static void saveOptions(){

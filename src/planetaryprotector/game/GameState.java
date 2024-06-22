@@ -1,6 +1,7 @@
 package planetaryprotector.game;
 import java.util.ArrayList;
 import java.util.HashMap;
+import planetaryprotector.structure.SkyscraperDecal;
 /**
  * Game state for save/load with Gson
  *
@@ -65,6 +66,7 @@ public class GameState{
         public int count;
     }
     public static class Structure{
+        public Skyscraper skyscraper;
         public String type;
         public int level;
         public ArrayList<String> upgrades = new ArrayList<>();
@@ -79,16 +81,30 @@ public class GameState{
         public double starlight;
         public int shield;
         public static class Damage{
-            public double x;
-            public double y;
+            public float x;
+            public float y;
             public int tex1;
             public int tex2;
-            public double size;
-            public double opacity;
+            public float size;
+            public float opacity;
         }
         public static class Fire{
             public int x;
             public int y;
+        }
+        public static class Skyscraper{
+            public int floors = 10;
+            public boolean falling;
+            public int fallen;
+            public boolean falled;
+            public double population;
+            public ArrayList<Decal> decals = new ArrayList<>();
+            public static class Decal{
+                public int x;
+                public int y;
+                public SkyscraperDecal.Type type;
+                public int variant;
+            }
         }
     }
     public static class Expedition{

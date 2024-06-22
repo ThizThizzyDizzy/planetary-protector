@@ -1,16 +1,13 @@
 package planetaryprotector.structure;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.ingame.MenuExpedition;
-import simplelibrary.config2.Config;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Base extends Structure{
     public int door = 0;
     public int deathTick = -1;
@@ -24,7 +21,7 @@ public class Base extends Structure{
         if(!game.paused){
             boolean open = false;
             for(Worker worker : game.workers){
-                if(Core.distance(worker, x+width/2, y+height-12.5)<=25){
+                if(worker.getCenter().distance(x+width/2, y+height-12.5f)<=25){
                     open = true;
                     break;
                 }
@@ -52,17 +49,17 @@ public class Base extends Structure{
     }
     @Override
     public void renderBackground(){
-        drawRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
         super.renderBackground();
     }
     @Override
     public void render(){
-        drawRect(x, y-25, x+width, y+height, type.getTexture());
+        Renderer.fillRect(x, y-25, x+width, y+height, type.getTexture());
         if(game==null){
-            drawRect(x,y-25,x+width,y+height, type.getTexture("door/0"));
+            Renderer.fillRect(x,y-25,x+width,y+height, type.getTexture("door/0"));
             return;
         }
-        drawRect(x,y-25,x+width,y+height, type.getTexture("door/"+door));        
+        Renderer.fillRect(x,y-25,x+width,y+height, type.getTexture("door/"+door));        
         renderDamages();
     }
     @Override
@@ -70,11 +67,11 @@ public class Base extends Structure{
         super.renderForeground();
         Game.theme.applyTextColor();
         if(game.finishedExpeditions.size()>0){
-            drawText(x, y+height-height/8, x+width, y+height, game.finishedExpeditions.size()+"");
+            Renderer.drawText(x, y+height-height/8, x+width, y+height, game.finishedExpeditions.size()+"");
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
     }
-    public static Base loadSpecific(Config cfg, Game game, int x, int y) {
+    public static Base loadSpecific(Object cfg, Game game, int x, int y) {
         Base base = new Base(game, x, y);
         return base;
     }

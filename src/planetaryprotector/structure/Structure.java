@@ -1,9 +1,12 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import org.lwjgl.opengl.GL11;
+import org.joml.Matrix4f;
 import planetaryprotector.GameObject;
+import planetaryprotector.Options;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.BoundingBox;
@@ -12,17 +15,11 @@ import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.Research;
 import planetaryprotector.structure.task.Task;
 import planetaryprotector.structure.task.TaskAnimated;
-import simplelibrary.config2.Config;
-import simplelibrary.config2.ConfigList;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.drawRect;
-import static simplelibrary.opengl.Renderer2D.drawRectWithBounds;
 public abstract class Structure extends GameObject{
     public ArrayList<StructureDamage> damages = new ArrayList<>();
     public Task task;
@@ -35,9 +32,9 @@ public abstract class Structure extends GameObject{
     public int level = 0;
     protected final ArrayList<Upgrade> upgrades = new ArrayList<>();
     private static final int barHeight = 5;
-    private double barOffset = 0;
+    private float barOffset = 0;
     //structure stuff
-    public double mouseover = 0;
+    public float mouseover = 0;
     public ShieldGenerator shield = null;//the shield generator that is currently projecting a shield on this building
     public final StructureType type;
     public Structure(StructureType type, Game game, int x, int y, int width, int height){
@@ -71,26 +68,26 @@ public abstract class Structure extends GameObject{
         game.replaceStructure(this, new Wreck(game, x, y, type.getTotalCost(level, Item.ironIngot)));
     }
     public void drawOverlay(){
-        drawRect(x, y-getStructureHeight(), x+width, y+height, 0);
+        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, 0);
     }
     public void render(){
         if(!type.isBackgroundStructure()){
-            drawRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture());
+            Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
                 if(count==0)continue;
-                drawRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
+                Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
             }
             renderDamages();
         }
     }
     public void renderBackground(){
         if(type.isBackgroundStructure()){
-            drawRect(x, y, x+width, y+height, type.getTexture());
+            Renderer.fillRect(x, y, x+width, y+height, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
                 if(count==0)continue;
-                drawRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
+                Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
             }
         }
         renderDamages();
@@ -98,66 +95,64 @@ public abstract class Structure extends GameObject{
     @Override
     public void draw(){
         render();
-        GL11.glColor4d(1, 0, 0, (game.damageReportTimer/game.damageReportTime)*damages.size()/10d);
+        Renderer.setColor(1, 0, 0, (game.damageReportTimer/game.damageReportTime)*damages.size()/10f);
         drawOverlay();
-        GL11.glColor4d(0, 1, 1, mouseover);
+        Renderer.setColor(0, 1, 1, mouseover);
         drawOverlay();
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         if(shield!=null){
-            GL11.glColor4d(.75, .875, 1, shield.getProjectedShieldStrength()/10d);
+            Renderer.setColor(.75f, .875f, 1, shield.getProjectedShieldStrength()/10f);
             drawOverlay();
-            GL11.glColor4d(1, 1, 1, 1);
+            Renderer.setColor(1, 1, 1, 1);
         }
         renderForeground();
-        GL11.glPushMatrix();
-        GL11.glTranslated(x, y, 0);
+        Renderer.pushModel(new Matrix4f().translate(x, y, 0));
         for(Particle fire : fires){
             fire.draw();
         }
-        GL11.glPopMatrix();
+        Renderer.popModel();
     }
     public void renderForeground(){
         barOffset = barHeight-getStructureHeight();
         if((this instanceof PowerUser)&&((PowerUser)this).isPowerActive()){
-            drawBar(((PowerUser)this).getDisplayPower()/((PowerUser)this).getDisplayMaxPower(), 0, .25, 1);
+            drawBar((float)(((PowerUser)this).getDisplayPower()/((PowerUser)this).getDisplayMaxPower()), 0, .25f, 1);
         }
         if(game.observatory&&(this instanceof StarlightUser)&&((StarlightUser)this).isStarlightActive()){
-            drawBar(((StarlightUser)this).getDisplayStarlight()/((StarlightUser)this).getDisplayMaxStarlight(), .625, .875, 1);
+            drawBar((float)(((StarlightUser)this).getDisplayStarlight()/((StarlightUser)this).getDisplayMaxStarlight()), .625f, .875f, 1);
         }
         barOffset = height;
         if(type.isDamagable()){
-            switch(MenuOptionsGraphics.health){
+            switch(Options.options.health){
                 case 0://none
                     break;
                 case 1://when damaged
                     if(damages.isEmpty()&&fires.isEmpty())break;
                 case 2:
-                    double percent = getHealthPercent();
+                    float percent = getHealthPercent();
                     drawBar(percent, 1-percent, percent, 0);
             }
         }
     }
     public void renderDamages(){
-        GL11.glPushMatrix();
-        GL11.glTranslated(x, y, 0);
+        Renderer.pushModel(new Matrix4f().translate(x, y, 0));
         for(StructureDamage damage : damages){
             damage.render();
         }
-        GL11.glPopMatrix();
+        Renderer.popModel();
     }
-    protected void drawBar(double percent, double r, double g, double b){
+    protected void drawBar(float percent, float r, float g, float b){
         if(Double.isNaN(percent))return;
-        GL11.glColor4d(0, 0, 0, 1);
-        drawRect(x,y+barOffset-barHeight,x+width, y+barOffset, 0);
+        Renderer.setColor(0, 0, 0, 1);
+        Renderer.fillRect(x,y+barOffset-barHeight,x+width, y+barOffset, 0);
         if(percent>0){
-            GL11.glColor4d(r, g, b, 1);
-            drawRect(x+1,y+barOffset-barHeight+1,x+width*percent-1, y+barOffset-1, 0);
+            Renderer.setColor(r, g, b, 1);
+            Renderer.fillRect(x+1,y+barOffset-barHeight+1,x+width*percent-1, y+barOffset-1, 0);
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         barOffset += barHeight;
     }
-    public double getHealthPercent(){
-        return 1-(damages.size()/10d);
+    public float getHealthPercent(){
+        return 1-(damages.size()/10f);
     }
     public void upgrade(){
         level++;
@@ -425,7 +420,7 @@ public abstract class Structure extends GameObject{
             return name;
         }
         public int getTexture(StructureType type, int count){
-            return ImageStash.instance.getTexture(getTextureS(type, count));
+            return ResourceManager.getTexture(getTextureS(type, count));
         }
         public String getTextureS(StructureType type, int count){
             return type.getTextureS(name().toLowerCase().replace("_", " ")+"/"+Game.theme.tex()+"/"+count);

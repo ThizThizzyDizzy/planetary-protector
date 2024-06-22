@@ -15,7 +15,6 @@ import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.BoundsConstraint;
 import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.options.MenuOptions;
-import planetaryprotector.Core;
 import planetaryprotector.VersionManager;
 import java.io.File;
 import java.io.FileReader;
@@ -23,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.joml.Vector2d;
+import planetaryprotector.Main;
 import planetaryprotector.game.GameState;
 public class MenuMain extends Menu{
     private final Button back;
@@ -51,7 +51,7 @@ public class MenuMain extends Menu{
         newSave.setSize(500, 60);
         layout.constrain(newSave, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 240));
         play = add(new Button("Play", false));
-        play.addAction(() -> Core.loadGame(saveNames.get(saveList.components.indexOf(saveList.focusedComponent[0])), saves.get(saveList.components.indexOf(saveList.focusedComponent[0])).level, null, null, false));
+        play.addAction(() -> Main.loadGame(saveNames.get(saveList.components.indexOf(saveList.focusedComponent[0])), saves.get(saveList.components.indexOf(saveList.focusedComponent[0])).level, null, null, false));
         play.setSize(300, 60);
         layout.constrain(play, new PositionAnchorConstraint(.5f, .5f, .25f, 1, 0, -140));
         rename = add(new Button("Rename", false));

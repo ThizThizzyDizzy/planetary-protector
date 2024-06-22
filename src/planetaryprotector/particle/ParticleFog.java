@@ -1,13 +1,14 @@
 package planetaryprotector.particle;
-import org.lwjgl.opengl.GL11;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import org.joml.Matrix4f;
+import planetaryprotector.Options;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Game;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
-import simplelibrary.opengl.ImageStash;
 public class ParticleFog extends Particle{
     public static final int SIZE = 200;
-    public ParticleFog(Game game, int x, int y, boolean air, double opacity){
+    public ParticleFog(Game game, int x, int y, boolean air, float opacity){
         super(game, x, y, ParticleEffectType.FOG);
         x+=(game.rand.nextDouble()-.5)*SIZE/10;
         y+=(game.rand.nextDouble()-.5)*SIZE/10;
@@ -21,15 +22,15 @@ public class ParticleFog extends Particle{
         if(dead){
             return;
         }
-        double lightness = 1;
-        double redTint = 0;
+        float lightness = 1;
+        float redTint = 0;
         switch(game.phase){
             case 2:
-                lightness = .95;
+                lightness = .95f;
                 break;
             case 3:
-                lightness = .9;
-                redTint = .01;
+                lightness = .9f;
+                redTint = .01f;
                 break;
             case 4:
                 int mothershipPhase = 0;
@@ -41,21 +42,21 @@ public class ParticleFog extends Particle{
                 if(mothershipPhase>=0){
                     switch(mothershipPhase){
                         case 2:
-                            lightness = .7;
-                            redTint = .01;
+                            lightness = .7f;
+                            redTint = .01f;
                             break;
                         case 3:
-                            lightness = .65;
-                            redTint = .01;
+                            lightness = .65f;
+                            redTint = .01f;
                             break;
                         case 4:
-                            lightness = .6;
-                            redTint = .01;
+                            lightness = .6f;
+                            redTint = .01f;
                             break;
                         case 1:
                         default:
-                            lightness = .75;
-                            redTint = .01;
+                            lightness = .75f;
+                            redTint = .01f;
                             break;
                     }
                     break;
@@ -68,15 +69,13 @@ public class ParticleFog extends Particle{
             lightness-=.125;
         }
         if(Game.theme==Game.Theme.SNOWY){
-            lightness = Math.sqrt(lightness);
+            lightness = (float)Math.sqrt(lightness);
         }
-        GL11.glColor4d(lightness, lightness-redTint, lightness-redTint, opacity*MenuOptionsGraphics.fogIntensity);
-        GL11.glPushMatrix();
-        GL11.glTranslated(x+width/2, y+height/2, 0);
-        GL11.glRotated(rotation, 0, 0, 1);
-        drawRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ImageStash.instance.getTexture(images[0]));
-        GL11.glPopMatrix();
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(lightness, lightness-redTint, lightness-redTint, opacity*Options.options.fogIntensity);
+        Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+        Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
+        Renderer.popModel();
+        Renderer.setColor(1,1,1,1);
     }
     @Override
     public void tick(){

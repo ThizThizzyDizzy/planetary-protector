@@ -1,9 +1,8 @@
 package planetaryprotector.structure;
-import org.lwjgl.opengl.GL11;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.game.Game;
-import simplelibrary.config2.Config;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.*;
+import planetaryprotector.game.GameState;
 public class SkyscraperDecal{
     private final int x;
     public final int y;
@@ -16,15 +15,16 @@ public class SkyscraperDecal{
         this.type = type;
         this.variant = variant;
     }
-    public Config save(Config config){
-        config.set("x", x);
-        config.set("y", y);
-        config.set("type", type.name());
-        config.set("variant", variant);
-        return config;
+    public GameState.Structure.Skyscraper.Decal save(){
+        var decal = new GameState.Structure.Skyscraper.Decal();
+        decal.x = x;
+        decal.y = y;
+        decal.type = type;
+        decal.variant = variant;
+        return decal;
     }
-    public static SkyscraperDecal load(Config config){
-        return new SkyscraperDecal(config.getInt("x"), config.getInt("y"), Type.valueOf(config.getString("type")), config.getInt("variant"));
+    public static SkyscraperDecal load(GameState.Structure.Skyscraper.Decal decal){
+        return new SkyscraperDecal(decal.x, decal.y, decal.type, decal.variant);
     }
     public boolean conflictsWith(SkyscraperDecal decal){
         switch(type){
@@ -83,42 +83,47 @@ public class SkyscraperDecal{
         type.render(this, sky);
     }
     public static enum Type{
-        LEFT("left", 1) {
+        LEFT("left", 1){
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
-                drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
+                Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
+                Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
-        RIGHT("right", 1) {
+        RIGHT("right", 1){
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
-                drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
+                Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
+                Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
-        TOP("top", 2) {
+        TOP("top", 2){
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.2:1);
-                drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+100, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+100, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
+                Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
+                Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+100, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+100, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
             }
         },
-        DUST("dust", 10) {
+        DUST("dust", 10){
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(0, 0, 0, 0.02*(sky.game.hideSkyscrapers?.2:1));
-                drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/damage/"+(decal.variant+1)+".png"));
+                Renderer.setColor(0, 0, 0, 0.02f*(sky.game.hideSkyscrapers?.2f:1));
+                Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
+                Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/damage/"+(decal.variant+1)+".png"));
             }
         },
-        WINDOW("window", 30) {
+        WINDOW("window", 30){
             @Override
             void render(SkyscraperDecal decal, Skyscraper sky){
-                GL11.glColor4d(1, 1, 1, sky.game.hideSkyscrapers?.1:1);
+                Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.1f:1);
                 int X = decal.variant;
                 int Y = X/10;
-                X-=Y*10;
-                drawRectWithBounds(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+8, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+10, sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height-sky.fallen, ImageStash.instance.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/windows.png"), X/10d, Y/3d, (X+1)/10d, (Y+1)/3d);
+                X -= Y*10;
+                Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
+                Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+8, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+10, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/windows.png"), X/10f, Y/3f, (X+1)/10f, (Y+1)/3f);
             }
         };
         public final String tex;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.function.Function;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.structure.Structure.Upgrade;
@@ -16,8 +17,8 @@ public abstract class StructureType{
             return new Tree(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Tree.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Tree.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Tree").setDecoration(true).setStructureHeight(14));
     public static final StructureType BASE = registerStructureType(new StructureType("base"){
@@ -26,8 +27,8 @@ public abstract class StructureType{
             return new Base(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Base.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Base.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Base").setRepairable(new ItemStack(Item.ironIngot, 10)).setDamagable(true).setFireDestroyThreshold(2.5).setIgnitionChance(.1).setStructureHeight(25));
     public static final StructureType EMPTY_PLOT = registerStructureType(new StructureType("empty_plot"){
@@ -36,8 +37,8 @@ public abstract class StructureType{
             return new Plot(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Plot.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Plot.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Empty Plot").setRepairable(new ItemStack(Item.stone, 10)).setDamagable(true).setIgnitionChance(0).setBackgroundStructure(true));
     public static final StructureType WRECK = registerStructureType(new StructureType("wreck"){
@@ -46,8 +47,8 @@ public abstract class StructureType{
             return new Wreck(game, x, y, 0);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Wreck.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Wreck.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Wreck").setIgnitionChance(0).setBackgroundStructure(true));
     public static final StructureType SKYSCRAPER = registerStructureType(new StructureType("skyscraper"){
@@ -56,8 +57,8 @@ public abstract class StructureType{
             return new Skyscraper(game, x, y, 10);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Skyscraper.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Skyscraper.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Skyscraper").setBuildable(5750, new ItemStack(Item.ironIngot, 125)).setRepairable(new ItemStack(Item.ironIngot, 10)).setDamagable(true).setFireDestroyThreshold(1).setIgnitionChance(1));
     public static final StructureType MINE = registerStructureType(new StructureType("mine"){
@@ -66,8 +67,8 @@ public abstract class StructureType{
             return new Mine(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Mine.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Mine.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Mine").setBuildable(1200, new ItemStack(Item.ironIngot, 10)).setRepairable(new ItemStack(Item.stone, 2)).addUpgrades(19, new ItemStack(Item.ironIngot, 5)).setDamagable(true).setFireDestroyThreshold(1.5).setIgnitionChance(1/3d).setBackgroundStructure(true));
     public static final StructureType SOLAR_GENERATOR = registerStructureType(new StructureType("solar_generator"){
@@ -76,8 +77,8 @@ public abstract class StructureType{
             return new SolarGenerator(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return SolarGenerator.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return SolarGenerator.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Solar Generator").setBuildable(600, new ItemStack(Item.ironIngot, 40)).setRepairable(new ItemStack(Item.ironIngot, 10)).addUpgrades(9, new ItemStack(Item.ironIngot, 20)).addUpgrades(5, new ItemStack(Item.ironIngot, 25)).addUpgrades(3, new ItemStack(Item.ironIngot, 30)).addUpgrade(new ItemStack(Item.ironIngot, 35)).addUpgrade(new ItemStack(Item.ironIngot, 40)).setDamagable(true).setStructureHeight(10).setFireDestroyThreshold(.75).setIgnitionChance(.85));
     public static final StructureType COAL_GENERATOR = registerStructureType(new StructureType("coal_generator"){
@@ -86,8 +87,8 @@ public abstract class StructureType{
             return new CoalGenerator(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return CoalGenerator.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return CoalGenerator.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Coal Generator").setBuildable(800, new ItemStack(Item.ironIngot, 75)).setRepairable(new ItemStack(Item.ironIngot, 20)).addUpgrades(9, new ItemStack(Item.ironIngot, 35)).addUpgrades(5, new ItemStack(Item.ironIngot, 40)).addUpgrades(3, new ItemStack(Item.ironIngot, 45)).addUpgrade(new ItemStack(Item.ironIngot, 50)).addUpgrade(new ItemStack(Item.ironIngot, 55)).setDamagable(true).setFireDestroyThreshold(.75).setIgnitionChance(.75));
     public static final StructureType POWER_STORAGE = registerStructureType(new StructureType("power_storage"){
@@ -96,8 +97,8 @@ public abstract class StructureType{
             return new PowerStorage(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return PowerStorage.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return PowerStorage.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Power Storage").setBuildable(1200, new ItemStack(Item.ironIngot, 100)).setRepairable(new ItemStack(Item.ironIngot, 40)).addUpgrades(9, new ItemStack(Item.ironIngot, 50)).addUpgrades(5, new ItemStack(Item.ironIngot, 60)).addUpgrades(3, new ItemStack(Item.ironIngot, 70)).addUpgrade(new ItemStack(Item.ironIngot, 80)).addUpgrade(new ItemStack(Item.ironIngot, 90)).setDamagable(true).setFireDestroyThreshold(.75).setIgnitionChance(.85).setStructureHeight(19));
     public static final StructureType SHIELD_GENERATOR = registerStructureType(new StructureType("shield_generator"){
@@ -106,8 +107,8 @@ public abstract class StructureType{
             return new ShieldGenerator(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return ShieldGenerator.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return ShieldGenerator.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Shield Generator").setBuildable(800, new ItemStack(Item.ironIngot, 80)).setRepairable(new ItemStack(Item.ironIngot, 20)).addUpgrades(4, new ItemStack(Item.ironIngot, 40)).addUpgrades(5, new ItemStack(Item.ironIngot, 45)).addUpgrades(5, new ItemStack(Item.ironIngot, 50)).addUpgrades(4, new ItemStack(Item.ironIngot, 60)).addUpgrade(new ItemStack(Item.ironIngot, 70)).setDamagable(true).setFireDestroyThreshold(.6).setIgnitionChance(.8));
     public static final StructureType WORKSHOP = registerStructureType(new StructureType("workshop"){
@@ -116,8 +117,8 @@ public abstract class StructureType{
             return new Workshop(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Workshop.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Workshop.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Workshop").setBuildable(1500, new ItemStack(Item.ironIngot, 100)).setRepairable(new ItemStack(Item.ironIngot, 10)).setDamagable(true).setStructureHeight(20).setIgnitionChance(.4));
     public static final StructureType LABORATORY = registerStructureType(new StructureType("laboratory"){
@@ -126,8 +127,8 @@ public abstract class StructureType{
             return new Laboratory(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Laboratory.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Laboratory.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Laboratory").setBuildable(4000, new ItemStack(Item.ironIngot, 100)).setRepairable(new ItemStack(Item.ironIngot, 100)).setDamagable(true).setIgnitionChance(.8).setStructureHeight(10));
     public static final StructureType SILO = registerStructureType(new StructureType("silo"){
@@ -136,8 +137,8 @@ public abstract class StructureType{
             return new Silo(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Silo.loadSpecific(cfg, game, x, y, level, upgrades);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Silo.loadSpecific(state, game, x, y, level, upgrades);
         }
     }.setDisplayName("Silo").setBuildable(20*60*15/2, new ItemStack(Item.ironIngot, 250), new ItemStack(Item.stone, 500)).setRepairable(new ItemStack(Item.ironIngot, 50), new ItemStack(Item.stone, 100)).addUpgrade(20*60*5/2, new ItemStack(Item.ironIngot, 110), new ItemStack(Item.stone, 100)).addUpgrade((int)(20*60*7.5)/2, new ItemStack(Item.ironIngot, 170), new ItemStack(Item.stone, 100)).setConstructibilityFunc((game) -> {
         return game.phase>=3;
@@ -148,8 +149,8 @@ public abstract class StructureType{
             return new Observatory(game, x, y);
         }
         @Override
-        public Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
-            return Observatory.loadSpecific(cfg, game, x, y);
+        public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+            return Observatory.loadSpecific(state, game, x, y);
         }
     }.setDisplayName("Observatory").setBuildable(2000, new ItemStack(Item.stone, 250), new ItemStack(Item.ironIngot, 100), new ItemStack(Item.star, 1)).setRepairable(new ItemStack(Item.ironIngot, 15)).setConstructibilityFunc((game) -> {
         return game.observatory;
@@ -263,7 +264,7 @@ public abstract class StructureType{
     public String getAnimationS(){
         return "/textures/tasks/construct/"+name+"/"+Game.theme.tex();
     }
-    public abstract Structure load(Object cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades);
+    public abstract Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades);
     public int getConstructionTime(){
         return buildTime;
     }

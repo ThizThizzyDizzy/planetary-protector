@@ -5,7 +5,7 @@ public class Notification{
     private final int maxTime;
     private int num = 1;
     public int height = 20;//time counts down, decrease to zero
-    public double width = 0;//increase to 1
+    public float width = 0;//increase to 1
     public Notification(String name, int time){
         this.name = name;
         this.time = time;

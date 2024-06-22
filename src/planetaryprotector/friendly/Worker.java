@@ -1,10 +1,11 @@
 package planetaryprotector.friendly;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.Collections;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.task.Task;
 import java.util.Iterator;
-import planetaryprotector.Core;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.Base;
 import planetaryprotector.structure.Skyscraper;
@@ -13,7 +14,6 @@ import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.ShieldGenerator;
-import simplelibrary.opengl.ImageStash;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
     public DroppedItem grabbedItem;
@@ -31,7 +31,7 @@ public class Worker extends GameObject{
     }
     @Override
     public void draw(){
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture("/textures/worker.png"));
+        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/worker.png"));
         if(grabbedItem!=null){
             grabbedItem.draw();
         }
@@ -48,7 +48,7 @@ public class Worker extends GameObject{
         runningFrom = null;
         if(base==null)runningFrom = game.getCityBoundingBox().getCenter();
         for(Asteroid asteroid : game.asteroids){
-            if(Core.distance(asteroid, this)<50){
+            if(asteroid.getCenter().distance(getCenter())<50){
                 if(!game.superSafe(this)){
                     runningFrom = new int[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
                 }
@@ -57,7 +57,7 @@ public class Worker extends GameObject{
         for(Structure structure : game.structures){
             if(structure instanceof Skyscraper){
                 if(((Skyscraper)structure).falling){
-                    if(Core.distance(structure.x+structure.width/2, structure.y-((Skyscraper)structure).fallen+structure.height/2, x+width/2, y+height/2)<structure.width*3/4){
+                    if(structure.getCenter().distance(getCenter())<structure.width*3/4){
                         runningFrom = new int[]{structure.x+structure.width/2, structure.y+structure.height/2};
                     }
                 }
@@ -106,7 +106,7 @@ public class Worker extends GameObject{
             //<editor-fold defaultstate="collapsed" desc="Movement">
             if(loc!=null){
                 move(loc);
-                if(Core.distance(this,loc[0],loc[1])<=25){
+                if(getCenter().distance(loc[0], loc[1])<=25){
                     task = targetTask;
                     targetTask = null;
                 }
@@ -148,7 +148,7 @@ public class Worker extends GameObject{
         if(targetItem!=null&&grabbedItem==null){
             target = new int[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
             //<editor-fold defaultstate="collapsed" desc="Grab Item">
-            if(Core.distance(this, targetItem.x+targetItem.width/2, targetItem.y+targetItem.height/2)<=10){
+            if(getCenter().distance(targetItem.getCenter())<=10){
                 game.droppedItems.remove(targetItem);
                 grabbedItem = targetItem;
                 targetItem = null;
@@ -182,7 +182,7 @@ public class Worker extends GameObject{
                 grabbedItem.x = x;
                 grabbedItem.y = y-10;
             }
-            if(Core.distance(this,target[0],target[1])<=workerSpeed){
+            if(getCenter().distance(target[0],target[1])<=workerSpeed){
                 target = null;
             }
         }
@@ -222,7 +222,7 @@ public class Worker extends GameObject{
         int[] loc = new int[]{location[0]-width/2, location[1]-height/2};
         double xDiff = loc[0]-x;
         double yDiff = loc[1]-y;
-        double dist = Core.distance(0, 0, xDiff, yDiff);
+        double dist = Math.sqrt(xDiff*xDiff+yDiff*yDiff);
         if(dist<=speed){
             x = loc[0];
             y = loc[1];
@@ -236,7 +236,7 @@ public class Worker extends GameObject{
     private void moveAway(int[] loc){
         double xDiff = loc[0]-x;
         double yDiff = loc[1]-y;
-        double dist = Core.distance(0, 0, xDiff, yDiff);
+        double dist = Math.sqrt(xDiff*xDiff+yDiff*yDiff);
         xDiff/=dist;
         yDiff/=dist;
         x-=xDiff*speed;
@@ -255,7 +255,7 @@ public class Worker extends GameObject{
         for(Structure s : game.structures){
             if(s instanceof Base){
                 if(((Base) s).deathTick>=0)continue;
-                double d = Core.distance(this, ((Base) s).getWorkerX(),((Base) s).getWorkerY());
+                double d = getCenter().distance(((Base) s).getWorkerX(),((Base) s).getWorkerY());
                 if(closest==null||d<dist){
                     closest = (Base) s;
                     dist = d;
@@ -267,6 +267,6 @@ public class Worker extends GameObject{
     private double getClosestBaseDistance(){
         Base base = getClosestBase();
         if(base==null)return -1;
-        return Core.distance(this, base.getWorkerX(),base.getWorkerY());
+        return getCenter().distance(base.getWorkerX(),base.getWorkerY());
     }
 }

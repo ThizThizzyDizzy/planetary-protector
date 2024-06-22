@@ -1,6 +1,9 @@
 package planetaryprotector.game;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.flat.FlatGame;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
 import planetaryprotector.Core;
@@ -27,9 +30,9 @@ import planetaryprotector.structure.task.TaskUpgrade;
 import planetaryprotector.structure.ShieldGenerator;
 import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Base;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.ParticleFog;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,8 +43,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
+import planetaryprotector.Options;
 import planetaryprotector.structure.PowerNetwork;
 import planetaryprotector.structure.StarlightNetwork;
 import planetaryprotector.structure.task.TaskAnimated;
@@ -57,7 +60,7 @@ import planetaryprotector.structure.StructureType;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureDemolishable;
-public class Game{
+public class Game extends FlatGame{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Random rand = new Random();
@@ -95,15 +98,15 @@ public class Game{
     public ArrayList<Drone> drones = new ArrayList<>();
     private int enemyTimer = 20*30;
     
-    public double damageReportTimer = 0;
-    public double damageReportTime = 20*10;
+    public float damageReportTimer = 0;
+    public float damageReportTime = 20*10;
     public int civilianCooldown = rand.nextInt(20*60*5);
     public double civilianIncreasePerSec = 0;
     public int civilianTimer = 0;
     public boolean doNotDisturb = false;
     public int winTimer = -1;
     public boolean fading;
-    public double blackScreenOpacity = 0;
+    public float blackScreenOpacity = 0;
     public boolean cheats = false;
     public int tick;
     public boolean won;
@@ -153,11 +156,14 @@ public class Game{
     public int furnaceOre, furnaceCoal, furnaceXP, furnaceLevel, furnaceTimer;
     public static final int maxFurnaceLevel = 2;
     private boolean tickingEnemies = false;
+    @Deprecated
     public ArrayList<GameObject> thingsToAdd = new ArrayList<>();
     private final WorldGenerator worldGenerator;
     public final Story story;
     public boolean tutorial = false;
     public BoundingBox generatedBBox;//the portion of the world that has been generated
+    public int speedMult;
+    public boolean debugMode;
 //</editor-fold>
     {
         resources.add(new ItemStack(Item.stone, 0));
@@ -178,27 +184,12 @@ public class Game{
         this.story = story;
         this.tutorial = tutorial;
     }
-    public synchronized void renderBackground(){
-        Collections.sort(structures, (Structure o1, Structure o2) -> {
-            double y1 = o1.y;
-            double y2 = o2.y;
-            double height1 = o1.height;
-            double height2 = o2.height;
-            if(o1 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o1;
-                y1 -= sky.fallen;
-            }
-            if(o2 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o2;
-                y2 -= sky.fallen;
-            }
-            y1 += height1/2;
-            y2 += height2/2;
-            return (int) Math.round(y1-y2);
-        });
+    @Deprecated
+    public void renderBackground(){
+        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
     }
-    public void render(int millisSinceLastTick){}
-    public synchronized void renderWorld(int millisSinceLastTick){
+    @Override
+    public void render(double deltaTime){
         //675x365
         int chunkWidth = 1350;
         int chunkHeight = 730;
@@ -209,7 +200,7 @@ public class Game{
         int bottom = bbox.getBottom()/chunkHeight+1;
         for(int x = left; x<right; x++){
             for(int y = top; y<bottom; y++){
-                drawRect(x*chunkWidth,y*chunkHeight, x*chunkWidth+chunkWidth,y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
+                Renderer.fillRect(x*chunkWidth,y*chunkHeight, x*chunkWidth+chunkWidth,y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
             }
         }
         for(Structure structure : structures){
@@ -230,24 +221,7 @@ public class Game{
         for(Enemy e : enemies){
             if(e instanceof EnemyAlien)mainLayer.add(e);
         }
-        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
-            if(o1==null||o2==null)return 0;
-            int y1 = (int)o1.y;
-            int height1 = (int)o1.height;
-            int y2 = (int)o2.y;
-            int height2 = (int)o2.height;
-            if(o1 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o1;
-                y1 -= sky.fallen;
-            }
-            if(o2 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o2;
-                y2 -= sky.fallen;
-            }
-            y1 += height1/2;
-            y2 += height2/2;
-            return y1-y2;
-        });
+        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())continue;
             int index = mainLayer.indexOf(anim.task.structure);
@@ -279,7 +253,7 @@ public class Game{
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
                 ShieldGenerator gen = (ShieldGenerator) structure;
-                gen.shield.render(millisSinceLastTick);
+                gen.shield.render(deltaTime);
             }
         }
         //</editor-fold>
@@ -355,7 +329,7 @@ public class Game{
         }
         if(cheats){
             notifyOnce("Cheats Enabled", 1);
-            if(Core.debugMode)notifyOnce("Debug mode enabled");
+            if(debugMode)notifyOnce("Debug mode enabled");
         }
         if(time>=dayNightCycle){
             time -= dayNightCycle;
@@ -371,9 +345,9 @@ public class Game{
             observatory = true;
         }
         if(canFastForward()){
-            Core.speedMult = 12;
+            speedMult = 12;
         }else{
-            Core.speedMult = 1;
+            speedMult = 1;
         }
         if(damageReportTimer>0){
             damageReportTimer--;
@@ -534,7 +508,7 @@ public class Game{
             meteorShowerTimer--;
         }
         if(meteorShowerTimer==20*3.5){
-            Sounds.fadeSound("music", "Music1");
+            Sounds.fadeMusic("Music1");
         }
         if(meteorShower&&meteorShowerTimer>0){
             meteorShowerTimer = 0;
@@ -761,15 +735,6 @@ public class Game{
         losing = -1;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        new Thread(() -> {
-            while(!isDestroyed()){
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }).start();
         Sounds.fadeSound("music", "SadMusic7");//cryptic sorrow
         for(Enemy e : enemies){
             if(e instanceof EnemyMothership){
@@ -825,7 +790,7 @@ public class Game{
         return count;
     }
     public Particle addParticleEffect(Particle particle){
-        particles.enqueue(particle);
+        particles.add(particle);
         return particle;
     }
     public void addWorker(){
@@ -840,26 +805,26 @@ public class Game{
         structuresToReplace.put(start,end);
     }
     @Deprecated
-    private void textWithBackground(double left, double top, double right, double bottom, String str){
+    private void textWithBackground(float left, float top, float right, float bottom, String str){
         textWithBackground(left, top, right, bottom, str, false);
     }
     @Deprecated
-    private void textWithBackground(double left, double top, double right, double bottom, String str, boolean pulsing){
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1); 
+    private void textWithBackground(float left, float top, float right, float bottom, String str, boolean pulsing){
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(left, top, Renderer.getStringWidth(str, bottom-top)+left, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1); 
         if(pulsing){
-            GL11.glColor4d(Math.sin(tick/5d)/4+.75, 0, 0, 1);
+            Renderer.setColor((float)(Math.sin(tick/5d)/4+.75), 0, 0, 1);
         }
-        drawText(left,top,right,bottom, str);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.drawText(left,top,right,bottom, str);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Deprecated
-    public void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, right, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
-        drawCenteredText(left,top,right,bottom, str);
+    public void centeredTextWithBackground(float left, float top, float right, float bottom, String str) {
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(left, top, right, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.drawCenteredText(left,top,right,bottom, str);
     }
     public void startAnim(TaskAnimated task){
         taskAnimations.add(new TaskAnimation(this, task));
@@ -1001,6 +966,9 @@ public class Game{
         GameState state;
         try(FileReader reader = new FileReader("saves"+File.separator+save.replaceAll("[:<>?\\\"*|\\\\/]", "-")+".json")){
             state = DizzyEngine.gson.fromJson(reader, GameState.class);
+        }catch(FileNotFoundException ex){
+            Logger.info("Could not find save file! Creating new save...");
+            return null;
         }catch(IOException ex){
             Logger.error(ex);
             return null;
@@ -1094,6 +1062,7 @@ public class Game{
             addEnemy(Enemy.randomEnemy(this));
         }
     }
+    @Deprecated
     public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
         if(quality<3){
             throw new IllegalArgumentException("A polygon must have at least 3 sides!");
@@ -1113,6 +1082,7 @@ public class Game{
         }
         GL11.glEnd();
     }
+    @Deprecated
     public static void drawTorus(double x, double y, double outerRadius, double innerRadius, int quality, int texture){
         if(quality<3){
             throw new IllegalArgumentException("A torus must have at least 3 sides!");
@@ -1137,33 +1107,35 @@ public class Game{
         }
         GL11.glEnd();
     }
+    @Deprecated
     public static void drawLaser(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
         double xDiff = x2-x1;
         double yDiff = y2-y1;
         double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
-        GL11.glColor4d(outerR, outerG, outerB, 1);
+        Renderer.setColor(outerR, outerG, outerB, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
             Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), size/2D,5,0);
         }
-        GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
+        Renderer.setColor((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
             Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(2/3D))/2D,5,0);
         }
-        GL11.glColor4d(innerR, innerG, innerB, 1);
+        Renderer.setColor(innerR, innerG, innerB, 1);
         for(int i = 0; i<dist; i++){
             double percent = i/dist;
             Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(1/3D))/2D,5,0);
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
     }
+    @Deprecated
     public static void drawConnector(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
         drawLaser(x1, y1, x2, y2, size, innerR, innerG, innerB, outerR, outerG, outerB);
-        GL11.glColor4d(outerR,outerG,outerB,1);
+        Renderer.setColor(outerR,outerG,outerB,1);
         drawRegularPolygon(x1, y1, size*1.5, 5, 0);
         drawRegularPolygon(x2, y2, size*1.5, 5, 0);
-        GL11.glColor4d((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
+        Renderer.setColor((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
         drawRegularPolygon(x1, y1, size, 5, 0);
         drawRegularPolygon(x2, y2, size, 5, 0);
     }
@@ -1243,14 +1215,14 @@ public class Game{
         if(normal)updatePhaseMarker = true;
     }
     public void addCloud(){
-        if(!MenuOptionsGraphics.clouds)return;
+        if(!Options.options.clouds)return;
         BoundingBox worldBBox = getWorldBoundingBox();
         addCloud(worldBBox.getLeft(),worldBBox.randY(rand));
     }
     public void addCloud(int x, int y){
-        if(!MenuOptionsGraphics.clouds)return;
-        double rateOfChange = (rand.nextDouble()-.4)/80;
-        double speed = rand.nextGaussian()/10+1;
+        if(!Options.options.clouds)return;
+        float rateOfChange = (float)((rand.nextDouble()-.4)/80);
+        float speed = (float)(rand.nextGaussian()/10+1);
         int min = 0;
         double mod = 1;
         switch(phase){
@@ -1301,7 +1273,7 @@ public class Game{
             rateOfChange = Math.max(0, rateOfChange);
             speed*=.75;
         }
-        double strength = rand.nextInt(42-min)+min;
+        float strength = rand.nextInt(42-min)+min;
         rateOfChange*=mod;
         if(won){
             strength = rand.nextInt(10);
@@ -1339,7 +1311,7 @@ public class Game{
         }
     }
     public void startFog(){
-        if(!MenuOptionsGraphics.fog||won)return;
+        if(!Options.options.fog||won)return;
         fogTime = 0;
         fogIntensity = rand.nextDouble()*.875;
         fogHeightIntensity = rand.nextDouble()*.4;
@@ -1356,8 +1328,8 @@ public class Game{
         double b = .5*Math.sin(Math.PI*(2*fogTime-.5))+.5;
         double height = b*fogIntensity*fogHeightIntensity;
         double density = a*fogIntensity;
-        double o1 = density;
-        double o2 = density*height;
+        float o1 = (float)density;
+        float o2 = (float)(density*height);
         double size = ParticleFog.SIZE*.75;
         BoundingBox bbox = getWorldBoundingBox();
         int count = (int)(bbox.height/size+1);
@@ -1384,7 +1356,7 @@ public class Game{
             for(Structure structure : structures){
                 if(structure instanceof ShieldGenerator){
                     ShieldGenerator shield = (ShieldGenerator) structure;
-                    if(Core.distance(structure, x, y)<=shield.getShieldSize()/2){
+                    if(structure.getCenter().distance(x, y)<=shield.getShieldSize()/2){
                         if(shield.shieldHit()){
                             continue DAMAGE;
                         }else{
@@ -1396,32 +1368,24 @@ public class Game{
             Structure hit = getStructure(x,y);
             if(hit==null||!hit.onHit(x,y)||material!=null&&material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
-                double dmgRad = 25;
-                for(Worker worker : workers){
-                    if(isClickWithinBounds(x, y, worker.x-dmgRad, worker.y-dmgRad, worker.x+worker.width+dmgRad, worker.y+worker.height+dmgRad)){
-                        worker.damage(x,y);
-                    }
-                }
-                for(DroppedItem item : droppedItems){
-                    if(isClickWithinBounds(x, y, item.x-dmgRad, item.y-dmgRad, item.x+item.width+dmgRad,item.y+item.height+dmgRad)){
-                        item.damage(x,y);
-                    }
-                }
+                int dmgRad = 25;//TODO make this depend on asteroid and worker size
+                for(Worker worker : workers)if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains(x,y))worker.damage(x,y);
+                for(DroppedItem item : droppedItems)if(new BoundingBox(item.x-dmgRad, item.y-dmgRad, item.width+dmgRad*2, item.height+dmgRad*2).contains(x,y))item.damage(x,y);
                 if(material!=null){
                     if(material.forceDrop){
-                        addItem(new DroppedItem(this, x, y, getItem(material)));
+                        addItem(new DroppedItem(this, x, y, material.item));
                     }else{
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+15-25, y+8-25, getItem(material)));
+                            addItem(new DroppedItem(this, x+15-25, y+8-25, material.item));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+8-25, y+28-25, getItem(material)));
+                            addItem(new DroppedItem(this, x+8-25, y+28-25, material.item));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+38-25, y+24-25, getItem(material)));
+                            addItem(new DroppedItem(this, x+38-25, y+24-25, material.item));
                         }
                         if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+23-25, y+34-25, getItem(material)));
+                            addItem(new DroppedItem(this, x+23-25, y+34-25, material.item));
                         }
                     }
                 }
@@ -1431,29 +1395,8 @@ public class Game{
     }
     public Structure getStructure(int x, int y){
         Structure hit = null;
-        for(Structure structure : structures){
-            if(structure instanceof Skyscraper){
-                if(isClickWithinBounds(x, y, structure.x, structure.y-structure.getStructureHeight()-((Skyscraper) structure).fallen, structure.x+structure.width, structure.y+structure.height-((Skyscraper) structure).fallen)){
-                    hit = structure;
-                }
-            }else{
-                if(isClickWithinBounds(x, y, structure.x, structure.y-structure.getStructureHeight(), structure.x+structure.width, structure.y+structure.height)){
-                    hit = structure;
-                }
-            }
-        }
+        for(Structure structure : structures)if(structure.getBoundingBox(true).contains(x, y))hit = structure;
         return hit;
-    }
-    public Item getItem(AsteroidMaterial material) {
-        switch(material){
-            case STONE:
-                return Item.stone;
-            case IRON:
-                return Item.ironOre;
-            case COAL:
-                return Item.coal;
-        }
-        return null;
     }
     /**
      * Push particles away from a location.
@@ -1476,8 +1419,8 @@ public class Game{
      */
     public void pushParticles(int x, int y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
         for(Particle particle : particles){
-            if(Core.distance(particle.getX(), particle.getY(), x, y)<=radius){
-                double mult = 1-(Core.distance(particle.getX(), particle.getY(), x, y)/radius);
+            if(particle.getPosition().distance(x,y)<=radius){
+                double mult = 1-(particle.getPosition().distance(x, y)/radius);
                 double distX = particle.getX()-x;
                 double distY = particle.getY()-y;
                 double totalDist = Math.sqrt(distX*distX+distY*distY);
@@ -1492,7 +1435,7 @@ public class Game{
         }
     }
     public void addWorker(int x, int y){
-        thingsToAdd.enqueue(new Worker(this,x,y));
+        thingsToAdd.add(new Worker(this,x,y));
     }
     public void playSecret(ArrayList<String> playableMusic){
         playSecret(secretWaiting, playableMusic);
@@ -1525,43 +1468,43 @@ public class Game{
         Color noon = theme.day;
         Color night = theme.night;
         if(time>=dayNightCycle/8&&time<dayNightCycle/2-dayNightCycle/8){
-            GL11.glColor4d(noon.getRed()/255d, noon.getGreen()/255d, noon.getBlue()/255d, noon.getAlpha()/255d);
+            Renderer.setColor(noon);
         }
         if(time>=dayNightCycle/2-dayNightCycle/8&&time<dayNightCycle/2+dayNightCycle/8){
-            double percent = (time-dayNightCycle/2+dayNightCycle/8)/(dayNightCycle/4d);
-            double r = Core.getValueBetweenTwoValues(0, noon.getRed(), 1, night.getRed(), percent)/255d;
-            double g = Core.getValueBetweenTwoValues(0, noon.getGreen(), 1, night.getGreen(), percent)/255d;
-            double b = Core.getValueBetweenTwoValues(0, noon.getBlue(), 1, night.getBlue(), percent)/255d;
-            double a = Core.getValueBetweenTwoValues(0, noon.getAlpha(), 1, night.getAlpha(), percent)/255d;
-            GL11.glColor4d(r, g, b, a);
+            float percent = (time-dayNightCycle/2+dayNightCycle/8)/(dayNightCycle/4f);
+            float r = MathUtil.lerp(noon.getRed(), night.getRed(), percent)/255f;
+            float g = MathUtil.lerp(noon.getGreen(), night.getGreen(), percent)/255f;
+            float b = MathUtil.lerp(noon.getBlue(), night.getBlue(), percent)/255f;
+            float a = MathUtil.lerp(noon.getAlpha(), night.getAlpha(), percent)/255f;
+            Renderer.setColor(r, g, b, a);
         }
         if(time>=dayNightCycle/2+dayNightCycle/9&&time<dayNightCycle-dayNightCycle/8){
-            GL11.glColor4d(night.getRed()/255d, night.getGreen()/255d, night.getBlue()/255d, night.getAlpha()/255d);
+            Renderer.setColor(night);
         }
         if(time<dayNightCycle/8||time>=dayNightCycle-dayNightCycle/8){
-            double newTime = time+dayNightCycle/8;
+            float newTime = time+dayNightCycle/8;
             if(newTime>=dayNightCycle){
                 newTime-=dayNightCycle;
             }
-            double percent = newTime/(dayNightCycle/4d);
-            double r = Core.getValueBetweenTwoValues(0, night.getRed(), 1, noon.getRed(), percent)/255d;
-            double g = Core.getValueBetweenTwoValues(0, night.getGreen(), 1, noon.getGreen(), percent)/255d;
-            double b = Core.getValueBetweenTwoValues(0, night.getBlue(), 1, noon.getBlue(), percent)/255d;
-            double a = Core.getValueBetweenTwoValues(0, night.getAlpha(), 1, noon.getAlpha(), percent)/255d;
-            GL11.glColor4d(r, g, b, a);
+            float percent = newTime/(dayNightCycle/4f);
+            float r = MathUtil.lerp(night.getRed(), noon.getRed(), percent)/255f;
+            float g = MathUtil.lerp(night.getGreen(), noon.getGreen(), percent)/255f;
+            float b = MathUtil.lerp(night.getBlue(), noon.getBlue(), percent)/255f;
+            float a = MathUtil.lerp(night.getAlpha(), noon.getAlpha(), percent)/255f;
+            Renderer.setColor(r, g, b, a);
         }
         BoundingBox bbox = getWorldBoundingBox();
-        drawRect(bbox.getLeft(), bbox.getTop(), bbox.getRight(), bbox.getBottom(), 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.fillRect(bbox.getLeft(), bbox.getTop(), bbox.getRight(), bbox.getBottom(), 0);
+        Renderer.setColor(1, 1, 1, 1);
     }
     private Worker getAvailableWorker(int x, int y){
         Worker closest = null;
         double distance = Double.MAX_VALUE;
         for(Worker worker : workers){
             if(!worker.isWorking()){
-                if(Core.distance(worker, x, y)<distance){
+                if(worker.getCenter().distance(x, y)<distance){
                     closest = worker;
-                    distance = Core.distance(worker, x, y);
+                    distance = worker.getCenter().distance(x, y);
                 }
             }
         }
@@ -1697,17 +1640,7 @@ public class Game{
     public Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
-            int h = structure.getStructureHeight();
-            if(structure instanceof Skyscraper&&hideSkyscrapers)h = 0;
-            if(structure instanceof Skyscraper){
-                if(isClickWithinBounds(x, y, structure.x, structure.y-h-((Skyscraper) structure).fallen, structure.x+structure.width, structure.y+structure.height-((Skyscraper) structure).fallen)){
-                    hit = structure;
-                }
-            }else{
-                if(isClickWithinBounds(x, y, structure.x, structure.y-h, structure.x+structure.width, structure.y+structure.height)){
-                    hit = structure;
-                }
-            }
+            if(structure.getBoundingBox(!hideSkyscrapers).contains((int)x, (int)y))hit = structure;
         }
         return hit;
     }
@@ -1834,10 +1767,10 @@ public class Game{
         worldGenerator.generate(this, boundingBox);
     }
     public double getXGamePadding(){
-        return Math.max(Core.helper.displayWidth()/MenuGame.minZoom/4, getCityBoundingBox().width/2);
+        return Math.max(DizzyEngine.screenSize.x/MenuGame.minZoom/4, getCityBoundingBox().width/2);
     }
     public double getYGamePadding(){
-        return Math.max(Core.helper.displayHeight()/MenuGame.minZoom/4, getCityBoundingBox().height/2);
+        return Math.max(DizzyEngine.screenSize.y/MenuGame.minZoom/4, getCityBoundingBox().height/2);
     }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
@@ -1863,7 +1796,7 @@ public class Game{
             return "/textures/background/level "+level+"/"+texture+".png";
         }
         public void applyTextColor(){
-            GL11.glColor4d(text.getRed()/255d, text.getGreen()/255d, text.getBlue()/255d, text.getAlpha()/255d);
+            Renderer.setColor(text);
         }
     }
     public static void refreshTheme(){
@@ -1871,10 +1804,10 @@ public class Game{
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         Game.theme = Game.Theme.NORMAL;
-        if(MenuOptionsGraphics.theme==2){
+        if(Options.options.theme==2){
             Game.theme = Game.Theme.SNOWY;
         }
-        if(MenuOptionsGraphics.theme==0&&(month==0||month==11)){
+        if(Options.options.theme==0&&(month==0||month==11)){
             Game.theme = Game.Theme.SNOWY;
         }
         if(Game.theme==Game.Theme.NORMAL&&month==9&&day>=25){
@@ -1938,7 +1871,7 @@ public class Game{
         for(Structure s : structures){
             if(!s.type.isDecoration())buildings.add(s);
         }
-        return cachedCityBoundingBox = BoundingBox.enclosing(buildings).expand(100);
+        return cachedCityBoundingBox = BoundingBox.enclosing(buildings, true).expand(100);
     } 
     public BoundingBox getWorldBoundingBox(){
         BoundingBox cityBBox = getCityBoundingBox();

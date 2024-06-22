@@ -1,9 +1,18 @@
 package planetaryprotector.menu;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.joml.Matrix4f;
+import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
+import static org.lwjgl.glfw.GLFW.*;
 import planetaryprotector.Controls;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
@@ -31,40 +40,165 @@ public class MenuGame extends Menu{
     private static final int actionButtonWidth = 375;
     private static final int actionButtonHeight = 60;
     public int actionButtonOffset = 0;
-    public double debugYOffset = 0;
+    public float debugYOffset = 0;
     public MenuComponentOverlay overlay;
     public Game game;
     private MenuComponentPhaseMarker phaseMarker;
-    private double xOff = 0;
-    private double yOff = 0;
-    private double zoom = 1;
-    public static final double minZoom = .5;
-    public static final double maxZoom = 2;
-    private double zoomFac = .05;
-    private double panFac = 7;
+    private float xOff = 0;
+    private float yOff = 0;
+    private float zoom = 1;
+    public static final float minZoom = .5f;
+    public static final float maxZoom = 2;
+    private float zoomFac = .05f;
+    private float panFac = 7;
     public MenuGame(Game game){
         this.game = game;
     }
     @Override
-    public void renderBackground(){
+    public void render(double deltaTime){
+        //<editor-fold defaultstate="collapsed" desc="Tick">
+        if(game.updatePhaseMarker){
+            game.paused = true;
+            game.updatePhaseMarker = false;
+            createPhaseMarker();
+        }
+        if(phaseMarker!=null){
+            if(phaseMarker.opacity<0)phaseMarker = null;
+        }
+        //<editor-fold defaultstate="collapsed" desc="Discord">
+        DiscordPresence.setState("");
+        DiscordPresence.setSmallImage("", "");
+        switch(game.phase){
+            case 1:
+                DiscordPresence.setDetails("Phase 1 - Armogeddon");
+                DiscordPresence.setLargeImage("base", "Phase 1 - Armogeddon");
+                break;
+            case 2:
+                DiscordPresence.setDetails("Phase 2 - Reconstruction");
+                DiscordPresence.setLargeImage("skyscraper", "Phase 2 - Reconstruction");
+                int maxPop = game.calculatePopulationCapacity();
+                DiscordPresence.setState("Pop. Cap.: "+maxPop/1000+"k/"+game.targetPopulation/1000+"k ("+Math.round(maxPop/(double)game.targetPopulation*10000D)/100D+"%)");
+                break;
+            case 3:
+                DiscordPresence.setDetails("Phase 3 - Repopulation");
+                DiscordPresence.setLargeImage("city", "Phase 3 - Repopulation");
+                int pop = game.calculatePopulation();
+                maxPop = game.calculatePopulationCapacity();
+                DiscordPresence.setState("Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
+                break;
+            case 4:
+                int mothershipPhase = 0;
+                for(Enemy e : game.enemies){
+                    if(e instanceof EnemyMothership){
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership)e).phase);
+                    }
+                }
+                if(mothershipPhase>0){
+                    DiscordPresence.setDetails("Boss Fight - Phase "+mothershipPhase);
+                    DiscordPresence.setLargeImage(switch(mothershipPhase){
+                        case 1 ->
+                            "mothership_1";
+                        case 2 ->
+                            "mothership_2";
+                        case 3 ->
+                            "mothership_3";
+                        case 4 ->
+                            "mothership_4";
+                        default ->
+                            "";
+                    }, "Boss Fight - Phase "+mothershipPhase);
+
+                }
+                break;
+        }
+        if(game.meteorShower){
+            DiscordPresence.setState("Meteor Shower!");
+            DiscordPresence.setSmallImage("asteroid_stone", "Meteor Shower!");
+        }
+        if(game.lost){
+            DiscordPresence.setState("Game Over");
+        }
+        if(game.won){
+            DiscordPresence.setState("Victory!");
+        }
+//</editor-fold>
+        if(game.fading)game.blackScreenOpacity += 0.01;
+        if(!game.paused){
+            game.tick();
+            game.story.tick(game);
+        }
+        if(game.lost&&game.phase>3){
+            if(game.lostTimer>game.loseSongLength/10){
+                if(Sounds.songTimer()<game.loseSongLength/20){
+                    if(game.lostTimer>game.loseSongLength/20+20*5){
+                        new MenuLost(game).open();
+                    }
+                }
+            }
+        }
+        if(game.blackScreenOpacity>=1){
+            Epilogue g = new Epilogue();
+            g.blackScreenOpacity = 1;
+            g.fading = false;
+            new MenuGame(g).open();
+        }
+        if(game.addingIron>0){
+            add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.ironOre));
+            game.addingIron--;
+        }
+        if(game.addingCoal>0){
+            add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.coal));
+            game.addingCoal--;
+        }
+        if(game.smeltingIron>0){
+            add(new MenuComponentRising(this, getWidth()-90+game.rand.nextInt(60), getHeight()-20+game.rand.nextInt(10), Item.ironIngot));
+        }
+        if(DizzyEngine.isKeyDown(Controls.left)){
+            xOff -= maxZoom/zoom*panFac;
+        }
+        if(DizzyEngine.isKeyDown(Controls.up)){
+            yOff -= maxZoom/zoom*panFac;
+        }
+        if(DizzyEngine.isKeyDown(Controls.right)){
+            xOff += maxZoom/zoom*panFac;
+        }
+        if(DizzyEngine.isKeyDown(Controls.down)){
+            yOff += maxZoom/zoom*panFac;
+        }
+        BoundingBox bbox = game.getCityBoundingBox();
+        if(xOff>bbox.getRight())xOff = bbox.getRight();
+        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
+        if(yOff>bbox.getBottom())yOff = bbox.getBottom();
+        if(yOff<bbox.getTop())yOff = bbox.getTop();
+        //</editor-fold>
+
+        //<editor-fold defaultstate="collapsed" desc="Render World">
+        Renderer.pushModel(new Matrix4f().translate(getWidth()/2, getHeight()/2, 0).scale(zoom, zoom, 1).translate(-xOff, -yOff, 0));
+        game.render(deltaTime);
+        BoundingBox worldbbox = game.getWorldBoundingBox();
+        Renderer.setColor(0, 0, 0, 1);
+        Renderer.fillRect(worldbbox.getLeft()-getWidth(), worldbbox.getTop()-getHeight(), worldbbox.getLeft(), worldbbox.getBottom()+getHeight(), 0);//left
+        Renderer.fillRect(worldbbox.getRight(), worldbbox.getTop()-getHeight(), worldbbox.getRight()+getWidth(), worldbbox.getBottom()+getHeight(), 0);//right
+        Renderer.fillRect(worldbbox.getLeft(), worldbbox.getTop()-getHeight(), worldbbox.getRight(), worldbbox.getTop(), 0);//top
+        Renderer.fillRect(worldbbox.getLeft(), worldbbox.getBottom(), worldbbox.getRight(), worldbbox.getBottom()+getHeight(), 0);//bottom
+        Renderer.popModel();
+//</editor-fold>
+
         for(Structure structure : game.structures){
             structure.mouseover = 0;
         }
         game.renderBackground();
         Structure structure = game.getMouseoverStructure(getMouseX(), getMouseY());
         if(structure!=null){
-            structure.mouseover = .1;
+            structure.mouseover = .1f;
         }
         if(game.selectedStructure!=null){
-            game.selectedStructure.mouseover+=.2;
+            game.selectedStructure.mouseover += .2;
         }
-    }
-    @Override
-    public synchronized void render(int millisSinceLastTick){
-        game.render(millisSinceLastTick);
+        game.render(deltaTime);
         if(game instanceof Epilogue)return;
-        GL11.glColor4d(1, 1, 1, 1);
-        super.render(millisSinceLastTick);
+        Renderer.setColor(1, 1, 1, 1);
+        super.render(deltaTime);
         //<editor-fold defaultstate="collapsed" desc="Updating Action Buttons">
         if(game.actionUpdateRequired==2){
             game.actionUpdateRequired = 0;
@@ -72,10 +206,10 @@ public class MenuGame extends Menu{
             actionButtons.clear();
             actionButtonOffset = 20;
             for(Action action : game.getActions(this)){
-                actionButtonOffset+=action.divider;
+                actionButtonOffset += action.divider;
                 if(!action.isDivider()){
                     actionButtons.add(add(new MenuComponentActionButton(this, game, 0, actionButtons.size()*actionButtonHeight+actionButtonOffset, actionButtonWidth, actionButtonHeight, action)));
-                    actionButtonOffset+=action.divider;
+                    actionButtonOffset += action.divider;
                 }
             }
         }
@@ -86,132 +220,127 @@ public class MenuGame extends Menu{
         }
 //</editor-fold>
         if(game.isPlayable()){
-            drawRect(gui.helper.displayWidth()-100, gui.helper.displayHeight()-200, gui.helper.displayWidth(), gui.helper.displayHeight(), ImageStash.instance.getTexture("/textures/gui/sidebar.png"));
+            Renderer.fillRect(getWidth()-100, getHeight()-200, getWidth(), getHeight(), ResourceManager.getTexture("/textures/gui/sidebar.png"));
             if(game.selectedStructure!=null){
                 String upgrades = "";
-                for(Upgrade u : game.selectedStructure.getBoughtUpgrades())upgrades+="*";
+                for(Upgrade u : game.selectedStructure.getBoughtUpgrades())upgrades += "*";
                 textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedStructure.getName());
             }
             if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)){
-                GL11.glColor4d(0, Math.sin(game.tick/5d)/4+.75, 0, 1);
-                Game.drawRegularPolygon(gui.helper.displayWidth()-100+5, gui.helper.displayHeight()-100+5, 5, 25, 0);
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(0, (float)(Math.sin(game.tick/5d)/4+.75), 0, 1);
+                Game.drawRegularPolygon(getWidth()-100+5, getHeight()-100+5, 5, 25, 0);
+                Renderer.setColor(1, 1, 1, 1);
             }
-            drawRect(gui.helper.displayWidth()-100, gui.helper.displayHeight()-100, gui.helper.displayWidth(), gui.helper.displayHeight(), ImageStash.instance.getTexture("/textures/furnace "+game.furnaceLevel+".png"));
-            if(gui.mouseX>=gui.helper.displayWidth()-100&&gui.mouseY>=gui.helper.displayHeight()-100&&game.furnaceLevel<Game.maxFurnaceLevel){
-                GL11.glColor4d(0, 1, 0, .25);
-                double percent = game.furnaceXP/Math.pow(20, game.furnaceLevel+1);
-                drawRect(gui.helper.displayWidth()-100,gui.helper.displayHeight()-100,gui.helper.displayWidth()-100+(100*percent), gui.helper.displayHeight(), 0);
-                GL11.glColor4d(1, 1, 1, 1);
+            Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth(), getHeight(), ResourceManager.getTexture("/textures/furnace "+game.furnaceLevel+".png"));
+            var mousePos = DizzyEngine.getLayer(FlatUI.class).cursorPosition[0];
+            if(mousePos!=null&&mousePos.x>=getWidth()-100&&mousePos.y>=getHeight()-100&&game.furnaceLevel<Game.maxFurnaceLevel){
+                Renderer.setColor(0, 1, 0, .25f);
+                float percent = (float)(game.furnaceXP/Math.pow(20, game.furnaceLevel+1));
+                Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth()-100+(100*percent), getHeight(), 0);
+                Renderer.setColor(1, 1, 1, 1);
             }
-            GL11.glColor4d(0, 0, 0, 1);
-            drawText(gui.helper.displayWidth()-90, gui.helper.displayHeight()-60, gui.helper.displayWidth()-10, gui.helper.displayHeight()-40, game.furnaceOre+" Ore");
-            drawText(gui.helper.displayWidth()-90, gui.helper.displayHeight()-40, gui.helper.displayWidth()-10, gui.helper.displayHeight()-20, game.furnaceCoal+" Coal");
-            drawText(gui.helper.displayWidth()-90, gui.helper.displayHeight()-20, gui.helper.displayWidth()-10, gui.helper.displayHeight(), game.furnaceLevel>=game.maxFurnaceLevel?"Maxed":"Level "+(game.furnaceLevel+1));
-            GL11.glColor4d(1, 1, 1, 1);
+            Renderer.setColor(0, 0, 0, 1);
+            Renderer.drawText(getWidth()-90, getHeight()-60, getWidth()-10, getHeight()-40, game.furnaceOre+" Ore");
+            Renderer.drawText(getWidth()-90, getHeight()-40, getWidth()-10, getHeight()-20, game.furnaceCoal+" Coal");
+            Renderer.drawText(getWidth()-90, getHeight()-20, getWidth()-10, getHeight(), game.furnaceLevel>=game.maxFurnaceLevel?"Maxed":"Level "+(game.furnaceLevel+1));
+            Renderer.setColor(1, 1, 1, 1);
             if(game.isPlayable()){
                 for(int i = 0; i<game.resources.size(); i++){
                     int I = 1;
                     if(i==0)I = 0;
                     if(i==game.resources.size()-1)I = 2;
-                    drawRect(gui.helper.displayWidth()-100, i*20, gui.helper.displayWidth(), (i+1)*20+(I==2?5:0), ImageStash.instance.getTexture("/textures/gui/sidebar "+I+".png"));
-                GL11.glColor4d(0, 0, 0, 1);
-                    drawText(gui.helper.displayWidth()-80, i*20, gui.helper.displayWidth(), (i+1)*20, game.resources.get(i).count+"");
-                GL11.glColor4d(1, 1, 1, 1);
-                    drawRect(gui.helper.displayWidth()-100, i*20, gui.helper.displayWidth()-80, (i+1)*20, game.resources.get(i).item.getTexture());
+                    Renderer.fillRect(getWidth()-100, i*20, getWidth(), (i+1)*20+(I==2?5:0), ResourceManager.getTexture("/textures/gui/sidebar "+I+".png"));
+                    Renderer.setColor(0, 0, 0, 1);
+                    Renderer.drawText(getWidth()-80, i*20, getWidth(), (i+1)*20, game.resources.get(i).count+"");
+                    Renderer.setColor(1, 1, 1, 1);
+                    Renderer.fillRect(getWidth()-100, i*20, getWidth()-80, (i+1)*20, game.resources.get(i).item.getTexture());
                 }
             }
         }
         if(game.won){
             if(game.phase>0){
-                centeredTextWithBackground(0, 0, gui.helper.displayWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
+                centeredTextWithBackground(0, 0, getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
                 if(game.winTimer<20&&"VictoryMusic1".equals(Sounds.nowPlaying())){
-                    centeredTextWithBackground(0, 35, gui.helper.displayWidth(), 85, "Only one problem remains...");
+                    centeredTextWithBackground(0, 35, getWidth(), 85, "Only one problem remains...");
                 }
             }
         }else{
             int offset = 0;
             for(Iterator<Notification> it = game.notifications.iterator(); it.hasNext();){
                 Notification n = it.next();
-                double wide = FontManager.getLengthForStringWithHeight(n.toString(), 20);
-                double left = gui.helper.displayWidth()/2-(wide/2*n.width);
-                double right = gui.helper.displayWidth()/2+(wide/2*n.width);
+                float wide = Renderer.getStringWidth(n.toString(), 20);
+                float left = getWidth()/2-(wide/2*n.width);
+                float right = getWidth()/2+(wide/2*n.width);
                 int y = 20-n.height;
-                GL11.glColor4d(0,0,0,.5);
-                drawRectWithBounds(gui.helper.displayWidth()/2-wide/2, offset-y/2, gui.helper.displayWidth()/2+wide/2, offset+20-y/2, left, offset, right, offset+n.height, 0);
-                GL11.glColor4d(1,1,1,1);
-                drawCenteredTextWithBounds(gui.helper.displayWidth()/2-wide/2, offset-y/2, gui.helper.displayWidth()/2+wide/2, offset+20-y/2, left, offset, right, offset+n.height, n.toString());
-                offset+=n.height;
+                Renderer.setColor(0, 0, 0, .5f);
+                Renderer.bound(left, offset, right, offset+n.height);
+                Renderer.fillRect(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, 0);
+                Renderer.setColor(1, 1, 1, 1);
+                Renderer.drawCenteredText(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, n.toString());
+                offset += n.height;
                 if(n.isDead())it.remove();
             }
         }
         if(game.selectedStructure!=null&&game.selectedStructure.task!=null){
             for(int i = 0; i<game.selectedStructure.task.getDetails().length; i++){
-                textWithBackground(actionButtonWidth, 30*i, gui.helper.displayWidth(), 30*(i+1), game.selectedStructure.task.getDetails()[i], game.selectedStructure.task.important);
+                textWithBackground(actionButtonWidth, 30*i, getWidth(), 30*(i+1), game.selectedStructure.task.getDetails()[i], game.selectedStructure.task.important);
             }
         }
         if(game.paused){
-            drawCenteredText(0, gui.helper.displayHeight()/2-50, gui.helper.displayWidth(), gui.helper.displayHeight()/2+50, "Paused");
+            Renderer.drawCenteredText(0, getHeight()/2-50, getWidth(), getHeight()/2+50, "Paused");
         }
-        if(Core.debugMode&&game.cheats){
+        if(game.debugMode&&game.cheats){
             debugYOffset = 0;
             ArrayList<String> debugData = game.getDebugData();
-            double textHeight = gui.helper.displayHeight()/(debugData.size());
+            float textHeight = getHeight()/(debugData.size());
             debugText(textHeight, "("+getMouseX()+", "+getMouseY()+")");
             for(String str : debugData){
                 debugText(textHeight, str);
             }
         }
-        if(phaseMarker!=null)phaseMarker.render(millisSinceLastTick);
-        if(overlay!=null)overlay.render(millisSinceLastTick);
+        if(phaseMarker!=null)phaseMarker.render(deltaTime);
+        if(overlay!=null)overlay.render(deltaTime);
+        Renderer.setColor(0, 0, 0, game.blackScreenOpacity);
+        Renderer.fillRect(0, 0, getWidth(), getHeight(), 0);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
-    public void renderForeground(){
-        GL11.glColor4d(0, 0, 0, game.blackScreenOpacity);
-        drawRect(0, 0, gui.helper.displayWidth(), gui.helper.displayHeight(), 0);
-        GL11.glColor4d(1, 1, 1, 1);
-    }
-    @Override
-    public synchronized void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
+    public void onKey(int id, int key, int scancode, int action, int mods){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
-            overlay.keyEvent(key, scancode, isPress, isRepeat, modifiers);
+            overlay.onKey(id, key, scancode, action, mods);
             return;
         }
-        super.keyEvent(key, scancode, isPress, isRepeat, modifiers);
-        if(!isPress)return;
-        if(!isRepeat){
-            switch(key){
-                case Controls.hideSkyscrapers:
-                    game.hideSkyscrapers = !game.hideSkyscrapers;
-                    break;
-                case Controls.showPowerNetworks:
-                    game.showPowerNetworks = !game.showPowerNetworks;
-                    break;
-                case Controls.menu:
-                    openOverlay(new MenuIngame(this));
-                    game.paused = true;
-                    break;
-                case Controls.pause:
-                    game.paused = !game.paused;
-                    break;
-                case Controls.mute:
-                    Sounds.setVolume(1-Sounds.getVolume());
-                    if(Sounds.getVolume()<.01){
-                        game.notify("Sound ", "Off", 50);
-                    }else{
-                        game.notify("Sound ", "On", 50);
-                    }
-                    break;
-                case Controls.cheat:
-                    if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_ALT)){
-                        game.cheats = !game.cheats;
-                    }
-                    break;
-            }
+        super.onKey(id, key, scancode, action, mods);
+        if(action!=GLFW_PRESS)return;
+        switch(key){
+            case Controls.hideSkyscrapers:
+                game.hideSkyscrapers = !game.hideSkyscrapers;
+                break;
+            case Controls.showPowerNetworks:
+                game.showPowerNetworks = !game.showPowerNetworks;
+                break;
+            case Controls.menu:
+                openOverlay(new MenuIngame(this));
+                game.paused = true;
+                break;
+            case Controls.pause:
+                game.paused = !game.paused;
+                break;
+            case Controls.mute:
+                Sounds.setVolume(1-Sounds.getVolume());
+                if(Sounds.getVolume()<.01){
+                    game.notify("Sound ", "Off", 50);
+                }else{
+                    game.notify("Sound ", "On", 50);
+                }
+                break;
+            case Controls.cheat:
+                if(mods==(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT|GLFW_MOD_ALT))game.cheats = !game.cheats;
+                break;
         }
         if(game.cheats){
-            if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_ALT)&&gui.keyboardWereDown.contains(Controls.CHEAT_SECRET)){
+            if(mods==(GLFW_MOD_SHIFT|GLFW_MOD_ALT)&&DizzyEngine.isKeyDown(Controls.CHEAT_SECRET)){
                 int secret = -1;
                 switch(key){
                     case GLFW.GLFW_KEY_1:
@@ -307,17 +436,16 @@ public class MenuGame extends Menu{
                 }
             }
             switch(key){
-                case Controls.CHEAT_LOSE:
-                    if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)&&!isRepeat){
+                case Controls.CHEAT_LOSE -> {
+                    if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL)&&DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)){
                         game.notify("Cheat: Losing Epilogue");
-                        gui.open(new MenuLost(gui, game));
+                        new MenuLost(game).open();
                     }
-                    break;
-                case Controls.CHEAT_DEBUG:
-                    if(!isRepeat)Core.debugMode = !Core.debugMode;
-                    break;
-                case Controls.CHEAT_PHASE:
-                    if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)){
+                }
+                case Controls.CHEAT_DEBUG ->
+                    game.debugMode = !game.debugMode;
+                case Controls.CHEAT_PHASE -> {
+                    if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)){
                         int oldPhase = game.phase;
                         game.phase(game.phase+1, false);
                         if(game.phase!=oldPhase){
@@ -325,34 +453,34 @@ public class MenuGame extends Menu{
                         }
                         game.paused = false;
                     }
-                    break;
-                case Controls.CHEAT_RESOURCES:
+                }
+                case Controls.CHEAT_RESOURCES -> {
                     game.notify("Cheat: Resources");
                     for(ItemStack resource : game.resources){
-                        resource.count+=100;
+                        resource.count += 100;
                     }
-                    break;
-                case Controls.CHEAT_CLOUD:
+                }
+                case Controls.CHEAT_CLOUD -> {
                     game.notify("Cheat: Cloud");
-                    game.addCloud(getMouseX(),getMouseY());
-                    break;
-                case Controls.CHEAT_FOG:
+                    game.addCloud(getMouseX(), getMouseY());
+                }
+                case Controls.CHEAT_FOG -> {
                     game.notify("Cheat: Fog");
                     game.startFog();
-                    break;
-                case Controls.CHEAT_WORKER:
+                }
+                case Controls.CHEAT_WORKER -> {
                     game.notify("Cheat: Add Worker");
                     game.addWorker();
-                    break;
-                case Controls.CHEAT_ENEMY:
-                    if(gui.keyboardWereDown.contains(Controls.CHEAT_SECRET)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_1)){
+                }
+                case Controls.CHEAT_ENEMY -> {
+                    if(DizzyEngine.isKeyDown(Controls.CHEAT_SECRET)&&DizzyEngine.isKeyDown(GLFW.GLFW_KEY_1)){
                         game.notify("Cheat: Shooting Star");
                         game.addShootingStar(new ShootingStar(game, getMouseX()-25, getMouseY()-25));
-                    }else if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL)){
+                    }else if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL)){
                         Enemy.strength++;
                         game.notify("Cheat: Enemy Strength: ", Enemy.strength+"");
                     }else{
-                        if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)){
+                        if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)){
                             game.notify("Cheat: Add Enemy");
                             game.addRandomEnemy();
                         }else{
@@ -370,62 +498,51 @@ public class MenuGame extends Menu{
                             }
                         }
                     }
-                    break;
-                case Controls.CHEAT_PEACE:
+                }
+                case Controls.CHEAT_PEACE -> {
                     game.notify("Cheat: Disable Meteor shower");
                     for(Enemy e : game.enemies){
                         if(e instanceof EnemyMothership){
                             game.notify("Cheat: Damage Mothership");
-                            EnemyMothership m = (EnemyMothership) e;
-                            m.health-=m.maxHealth/4;
+                            EnemyMothership m = (EnemyMothership)e;
+                            m.health -= m.maxHealth/4;
                         }
                     }
                     game.meteorShower = false;
                     game.meteorShowerTimer += 20*60*60;
                     game.meteorTimer += 20*60*60;
-                    break;
-            }
-        }else if(isPress){
-            if(!actionButtons.isEmpty()&&game.selectedStructure!=null){
-                int hit = -1;
-                switch(key){
-                    case GLFW.GLFW_KEY_1:
-                        hit = 0;
-                        break;
-                    case GLFW.GLFW_KEY_2:
-                        hit = 1;
-                        break;
-                    case GLFW.GLFW_KEY_3:
-                        hit = 2;
-                        break;
-                    case GLFW.GLFW_KEY_4:
-                        hit = 3;
-                        break;
-                    case GLFW.GLFW_KEY_5:
-                        hit = 4;
-                        break;
-                    case GLFW.GLFW_KEY_6:
-                        hit = 5;
-                        break;
-                    case GLFW.GLFW_KEY_7:
-                        hit = 6;
-                        break;
-                    case GLFW.GLFW_KEY_8:
-                        hit = 7;
-                        break;
-                    case GLFW.GLFW_KEY_9:
-                        hit = 8;
-                        break;
-                    case GLFW.GLFW_KEY_0:
-                        hit = 9;
-                        break;
-                    case GLFW.GLFW_KEY_MINUS:
-                        hit = 10;
-                        break;
-                    case GLFW.GLFW_KEY_EQUAL:
-                        hit = 11;
-                        break;
                 }
+            }
+        }else{
+            if(!actionButtons.isEmpty()&&game.selectedStructure!=null){
+                int hit = switch(key){
+                    case GLFW.GLFW_KEY_1 ->
+                        0;
+                    case GLFW.GLFW_KEY_2 ->
+                        1;
+                    case GLFW.GLFW_KEY_3 ->
+                        2;
+                    case GLFW.GLFW_KEY_4 ->
+                        3;
+                    case GLFW.GLFW_KEY_5 ->
+                        4;
+                    case GLFW.GLFW_KEY_6 ->
+                        5;
+                    case GLFW.GLFW_KEY_7 ->
+                        6;
+                    case GLFW.GLFW_KEY_8 ->
+                        7;
+                    case GLFW.GLFW_KEY_9 ->
+                        8;
+                    case GLFW.GLFW_KEY_0 ->
+                        9;
+                    case GLFW.GLFW_KEY_MINUS ->
+                        10;
+                    case GLFW.GLFW_KEY_EQUAL ->
+                        11;
+                    default ->
+                        -1;
+                };
                 if(hit>=0){
                     if(actionButtons.size()>hit){
                         if(actionButtons.get(hit).enabled&&!actionButtons.get(hit).action.isImportant())actionButtons.get(hit).perform();
@@ -435,236 +552,94 @@ public class MenuGame extends Menu{
         }
     }
     @Override
-    public synchronized void onMouseButton(double x, double y, int button, boolean pressed, int mods){
+    public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
-            overlay.onMouseButton(x, y, button, pressed, mods);
+            overlay.onMouseButton(id, pos, button, action, mods);
             return;
         }
         if(phaseMarker!=null){
-            phaseMarker.onMouseButton(x, y, button, pressed, mods);
+            phaseMarker.onMouseButton(id, pos, button, action, mods);
             return;
         }
-        super.onMouseButton(x, y, button, pressed, mods);
-        for(MenuComponent c : components){
-            if(c instanceof MenuComponentButton){
-                if(Core.isPointWithinComponent(x, y, c))return;
+        super.onMouseButton(id, pos, button, action, mods);
+        for(Component c : components){
+            if(c instanceof Button){
+                if(new BoundingBox((int)c.x, (int)c.y, (int)c.getWidth(), (int)c.getHeight()).contains((int)x, (int)y))return;//TODO just use components like a normal person
+                if(Core.isPointWithinComponent(x, y, c))return;// W A T
             }
         }
-        if(pressed)game.click(getMouseX(x), getMouseY(y), button);
-        if(button==0&&pressed&&game.isPlayable()){
+        if(action!=GLFW_PRESS)return;
+        game.click(getMouseX(x), getMouseY(y), button);
+        if(button==0&&game.isPlayable()){
             int amount = 1;
-            if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT))amount*=100;
-            if(gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL))amount*=10;
-            if(isClickWithinBounds(x, y, gui.helper.displayWidth()-100, 20, gui.helper.displayWidth()-80, 40)){
+            if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))amount *= 100;
+            if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL))amount *= 10;
+            if(new BoundingBox((int)getWidth()-100, 20, (int)getWidth()-80, 40).contains((int)x, (int)y)){
                 game.addCoalToFurnace(amount);
             }
-            if(isClickWithinBounds(x, y, gui.helper.displayWidth()-100, 40, gui.helper.displayWidth()-80, 60)){
+            if(new BoundingBox((int)getWidth()-100, 40, (int)getWidth()-80, 60).contains((int)x, (int)y)){
                 game.addIronToFurnace(amount);
             }
-            if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)&&gui.mouseX>=gui.helper.displayWidth()-100&&gui.mouseY>=gui.helper.displayHeight()-100){
+            if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)&&DizzyEngine.getLayer(FlatUI.class).cursorPosition[0].x>=getWidth()-100&&DizzyEngine.getLayer(FlatUI.class).cursorPosition[0].y>=getHeight()-100){
                 game.furnaceLevel++;
             }
         }
     }
     @Override
-    public synchronized void onMouseMove(double x, double y){
+    public void onCursorPos(int id, double xpos, double ypos){
         if(game instanceof Epilogue)return;
         if(overlay!=null){
-            overlay.onMouseMove(x, y);
+            overlay.onCursorPos(id, xpos, ypos);
             return;
         }
         if(phaseMarker!=null){
-            phaseMarker.onMouseMove(x, y);
+            phaseMarker.onCursorPos(id, xpos, ypos);
             return;
         }
-        super.onMouseMove(x, y);
-        for(MenuComponent c : components){
-            if(c instanceof MenuComponentButton){
-                if(Core.isPointWithinComponent(x, y, c))return;
-            }
-        }
+        super.onCursorPos(id, xpos, ypos);
     }
     @Override
-    public synchronized boolean onMouseScrolled(double x, double y, double dx, double dy){
+    public boolean onScroll(int id, Vector2d pos, double dx, double dy){
         if(game instanceof Epilogue)return true;
         if(overlay!=null){
-            return overlay.onMouseScrolled(x, y, dx, dy);
+            return overlay.onScroll(id, pos, dx, dy);
         }
         if(phaseMarker!=null){
-            return phaseMarker.onMouseScrolled(x, y, dx, dy);
+            return phaseMarker.onScroll(id, pos, dx, dy);
         }
-        super.onMouseScrolled(x, y, dx, dy);
-        for(MenuComponent c : components){
-            if(c instanceof MenuComponentButton){
-                if(Core.isPointWithinComponent(x, y, c))return true;
-            }
-        }
-        zoom+=dy*zoomFac;
+        if(super.onScroll(id, pos, dx, dy))return true;
+        zoom += dy*zoomFac;
         zoom = Math.min(maxZoom, Math.max(minZoom, zoom));
         return true;
     }
-    @Override
-    public synchronized void tick(){
-        if(overlay!=null)overlay.tick();
-        if(game.updatePhaseMarker){
-            game.paused = true;
-            game.updatePhaseMarker = false;
-            createPhaseMarker();
-        }
-        if(phaseMarker!=null){
-            phaseMarker.tick();
-            if(phaseMarker.opacity<0)phaseMarker = null;
-        }
-        super.tick();
-        //<editor-fold defaultstate="collapsed" desc="Discord">
-        Core.discordState = "";
-        Core.discordSmallImageKey = "";
-        Core.discordSmallImageText = "";
-        switch(game.phase){
-            case 1:
-                Core.discordDetails = "Phase 1 - Armogeddon";
-                Core.discordLargeImageKey = "base";
-                Core.discordLargeImageText = "Phase 1 - Armogeddon";
-                break;
-            case 2:
-                Core.discordDetails = "Phase 2 - Reconstruction";
-                Core.discordLargeImageKey = "skyscraper";
-                Core.discordLargeImageText = "Phase 2 - Reconstruction";
-                int maxPop = game.calculatePopulationCapacity();
-                Core.discordState = "Pop. Cap.: "+maxPop/1000+"k/"+game.targetPopulation/1000+"k ("+Math.round(maxPop/(double)game.targetPopulation*10000D)/100D+"%)";
-                break;
-            case 3:
-                Core.discordDetails = "Phase 3 - Repopulation";
-                Core.discordLargeImageKey = "city";
-                Core.discordLargeImageText = "Phase 3 - Repopulation";
-                int pop = game.calculatePopulation();
-                maxPop = game.calculatePopulationCapacity();
-                Core.discordState = "Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)";
-                break;
-            case 4:
-                int mothershipPhase = 0;
-                for(Enemy e : game.enemies){
-                    if(e instanceof EnemyMothership){
-                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
-                    }
-                }
-                if(mothershipPhase>0){
-                    Core.discordDetails = "Boss Fight - Phase "+mothershipPhase;
-                    Core.discordLargeImageText = "Boss Fight - Phase "+mothershipPhase;
-                    switch(mothershipPhase){
-                        case 1:
-                            Core.discordLargeImageKey = "mothership_1";
-                            break;
-                        case 2:
-                            Core.discordLargeImageKey = "mothership_2";
-                            break;
-                        case 3:
-                            Core.discordLargeImageKey = "mothership_3";
-                            break;
-                        case 4:
-                            Core.discordLargeImageKey = "mothership_4";
-                            break;
-                    }
-                }
-                break;
-        }
-        if(game.meteorShower){
-            Core.discordState = "Meteor Shower!";
-            Core.discordSmallImageKey = "asteroid_stone";
-            Core.discordSmallImageText = "Meteor Shower!";
-        }
-        if(game.lost){
-            Core.discordState = "Game Over";
-        }
-        if(game.won){
-            Core.discordState = "Victory!";
-        }
-//</editor-fold>
-        if(game.fading)game.blackScreenOpacity+=0.01;
-        if(!game.paused){
-            game.tick();
-            game.story.tick(game);
-        }
-        if(game.lost&&game.phase>3){
-            if(game.lostTimer>game.loseSongLength/10){
-                if(Sounds.songTimer()<game.loseSongLength/20){
-                    if(game.lostTimer>game.loseSongLength/20+20*5){
-                        gui.open(new MenuLost(gui, game));
-                    }
-                }
-            }
-        }
-        if(game.blackScreenOpacity>=1){
-            Epilogue g = new Epilogue();
-            g.blackScreenOpacity = 1;
-            g.fading = false;
-            gui.open(new MenuGame(gui, g));
-        }
-        if(game.addingIron>0){
-            add(new MenuComponentFalling(this, gui.helper.displayWidth()-90+game.rand.nextInt(60), gui.helper.displayHeight()-180+game.rand.nextInt(50), Item.ironOre));
-            game.addingIron--;
-        }
-        if(game.addingCoal>0){
-            add(new MenuComponentFalling(this, gui.helper.displayWidth()-90+game.rand.nextInt(60), gui.helper.displayHeight()-180+game.rand.nextInt(50), Item.coal));
-            game.addingCoal--;
-        }
-        if(game.smeltingIron>0){
-            add(new MenuComponentRising(this, gui.helper.displayWidth()-90+game.rand.nextInt(60), gui.helper.displayHeight()-20+game.rand.nextInt(10), Item.ironIngot));
-        }
-        if(gui.keyboardWereDown.contains(Controls.left)){
-            xOff-=maxZoom/zoom*panFac;
-        }
-        if(gui.keyboardWereDown.contains(Controls.up)){
-            yOff-=maxZoom/zoom*panFac;
-        }
-        if(gui.keyboardWereDown.contains(Controls.right)){
-            xOff+=maxZoom/zoom*panFac;
-        }
-        if(gui.keyboardWereDown.contains(Controls.down)){
-            yOff+=maxZoom/zoom*panFac;
-        }
-        BoundingBox bbox = game.getCityBoundingBox();
-        if(xOff>bbox.getRight())xOff = bbox.getRight();
-        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
-        if(yOff>bbox.getBottom())yOff = bbox.getBottom();
-        if(yOff<bbox.getTop())yOff = bbox.getTop();
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button){
-        for(MenuComponentActionButton actionButton : actionButtons){
-            if(button==actionButton){
-                actionButton.perform();
-                game.actionUpdateRequired = 2;
-            }
-        }
-    }
-    public String debugText(double textHeight, String text){
-        GL11.glColor4d(0, 0, 0, .5);
-        drawRect(0, debugYOffset, FontManager.getLengthForStringWithHeight(text, textHeight-1)+1, debugYOffset+textHeight, 0);
-        GL11.glColor4d(1, 1, 1, 1);
-        text = drawTextWithWrap(1, debugYOffset+1, gui.helper.displayWidth()-1, debugYOffset+textHeight-1, text);
-        debugYOffset+=textHeight;
+    public String debugText(float textHeight, String text){
+        Renderer.setColor(0, 0, 0, .5f);
+        Renderer.fillRect(0, debugYOffset, Renderer.getStringWidth(text, textHeight-1)+1, debugYOffset+textHeight, 0);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.drawText(1, debugYOffset+1, getWidth()-1, debugYOffset+textHeight-1, text);//TODO withWrap
+        text = null;
+        debugYOffset += textHeight;
         return text;
     }
-    private void textWithBackground(double left, double top, double right, double bottom, String str){
+    private void textWithBackground(float left, float top, float right, float bottom, String str){
         textWithBackground(left, top, right, bottom, str, false);
     }
-    private void textWithBackground(double left, double top, double right, double bottom, String str, boolean pulsing){
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1); 
+    private void textWithBackground(float left, float top, float right, float bottom, String str, boolean pulsing){
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(left, top, Renderer.getStringWidth(str, bottom-top)+left, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1);
         if(pulsing){
-            GL11.glColor4d(Math.sin(game.tick/5d)/4+.75, 0, 0, 1);
+            Renderer.setColor((float)(Math.sin(game.tick/5f)/4+.75f), 0, 0, 1);
         }
-        drawText(left,top,right,bottom, str);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.drawText(left, top, right, bottom, str);
+        Renderer.setColor(1, 1, 1, 1);
     }
-    public void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, right, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
-        drawCenteredText(left,top,right,bottom, str);
+    public void centeredTextWithBackground(float left, float top, float right, float bottom, String str){
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(left, top, right, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.drawCenteredText(left, top, right, bottom, str);
     }
     private void createPhaseMarker(){
         components.remove(phaseMarker = add(new MenuComponentPhaseMarker(this)));
@@ -673,34 +648,24 @@ public class MenuGame extends Menu{
         if(overlay!=null)return;
         components.remove(overlay = add(lay));
     }
-    public void renderWorld(int millisSinceLastTick){
-        GL11.glPushMatrix();
-        GL11.glTranslated(gui.helper.displayWidth()/2, gui.helper.displayHeight()/2, 0);
-        GL11.glScaled(zoom, zoom, 1);
-        GL11.glTranslated(-xOff, -yOff, 0);
-        game.renderWorld(millisSinceLastTick);
-        BoundingBox bbox = game.getWorldBoundingBox();
-        GL11.glColor4d(0, 0, 0, 1);
-        drawRect(bbox.getLeft()-gui.helper.displayWidth(),bbox.getTop()-gui.helper.displayHeight(),bbox.getLeft(),bbox.getBottom()+gui.helper.displayHeight(),0);//left
-        drawRect(bbox.getRight(), bbox.getTop()-gui.helper.displayHeight(), bbox.getRight()+gui.helper.displayWidth(), bbox.getBottom()+gui.helper.displayHeight(), 0);//right
-        drawRect(bbox.getLeft(),bbox.getTop()-gui.helper.displayHeight(),bbox.getRight(),bbox.getTop(),0);//top
-        drawRect(bbox.getLeft(),bbox.getBottom(),bbox.getRight(),bbox.getBottom()+gui.helper.displayHeight(),0);//bottom
-        GL11.glPopMatrix();
-    }
     public int getMouseX(double x){
-        x-=gui.helper.displayWidth()/2;
+        x -= getWidth()/2;
         double scaledX = x/zoom;
         return (int)(scaledX+xOff);
     }
     public int getMouseY(double y){
-        y-=gui.helper.displayHeight()/2;
+        y -= getHeight()/2;
         double scaledY = y/zoom;
         return (int)(scaledY+yOff);
     }
     public int getMouseX(){
-        return getMouseX(gui.mouseX);
+        var pos = DizzyEngine.getLayer(FlatUI.class).cursorPosition[0];
+        if(pos==null)return -1;
+        return getMouseX(pos.x);
     }
     public int getMouseY(){
-        return getMouseY(gui.mouseY);
+        var pos = DizzyEngine.getLayer(FlatUI.class).cursorPosition[0];
+        if(pos==null)return -1;
+        return getMouseY(pos.y);
     }
 }

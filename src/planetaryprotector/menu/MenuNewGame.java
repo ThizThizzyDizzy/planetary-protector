@@ -7,7 +7,6 @@ import com.thizthizzydizzy.dizzyengine.ui.component.TextBox;
 import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
 import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.game.Game;
-import planetaryprotector.Core;
 import java.io.File;
 import java.util.ArrayList;
 import planetaryprotector.Main;

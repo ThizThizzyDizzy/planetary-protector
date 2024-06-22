@@ -1,5 +1,7 @@
 package planetaryprotector;
 import java.util.Random;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.Game;
 public abstract class GameObject{
@@ -22,5 +24,11 @@ public abstract class GameObject{
     }
     public BoundingBox getBoundingBox(boolean includeHeight){
         return new BoundingBox(x, y, width, height);
+    }
+    public Vector2i getPosition(){
+        return new Vector2i(x, y);
+    }
+    public Vector2f getCenter(){
+        return new Vector2f(x+width/2f, y+height/2f);
     }
 }

@@ -11,18 +11,18 @@ import simplelibrary.config2.Config;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.game.BoundingBox;
 public class ShieldGenerator extends Structure implements PowerConsumer, StructureDemolishable, StructureChangeEventListener{
-    public double shieldSize = 0;
-    public double maxShieldSize = 500;
-    public double shieldStrength = 1;
-    public double oldPower;
-    public double blastRecharge = 0;
+    public float shieldSize = 0;
+    public float maxShieldSize = 500;
+    public float shieldStrength = 1;
+    public float oldPower;
+    public float blastRecharge = 0;
     public boolean canBlast = false;//replace with special upgrade
     public final Shield shield;
-    private double power = 0;
+    private float power = 0;
     public Structure projectorTarget;
     int shieldDecalTimer = 0;
     public static final int shieldDecalInterval = 240;
-    public static final double shieldDecalSpeed = 1;
+    public static final float shieldDecalSpeed = 1;
     public ArrayList<Double> shieldDecals = new ArrayList<>();
     public ShieldGenerator(Game game, int x, int y){
         super(StructureType.SHIELD_GENERATOR, game, x, y, 100, 100);
@@ -151,8 +151,8 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         generator.oldPower = cfg.get("oldPower", 0d);
         return generator;
     }
-    private double getStats(int level){
-        return Math.max(level, (49/400d)*Math.pow(level, 2)+1);
+    private float getStats(int level){
+        return (float)Math.max(level, (49/400d)*Math.pow(level, 2)+1);
     }
     @Override
     public void upgrade(){
@@ -225,7 +225,7 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         setShieldSize(0);
         return false;
     }
-    public double getProjectedShieldStrength(){
+    public float getProjectedShieldStrength(){
         return Math.min(1, shieldSize/100);
     }
     @Override
