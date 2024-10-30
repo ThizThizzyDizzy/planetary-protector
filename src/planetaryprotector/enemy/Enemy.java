@@ -6,6 +6,7 @@ import planetaryprotector.structure.Wreck;
 import planetaryprotector.structure.Skyscraper;
 import java.util.ArrayList;
 import java.util.Iterator;
+import org.joml.Vector2f;
 import planetaryprotector.GameObject;
 import planetaryprotector.structure.Structure;
 public abstract class Enemy extends GameObject{
@@ -46,7 +47,7 @@ public abstract class Enemy extends GameObject{
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
         for(Structure structure : game.structures){
             if(structure instanceof ShieldGenerator){
-                shieldGen.add((ShieldGenerator) structure);
+                shieldGen.add((ShieldGenerator)structure);
             }
         }
         ArrayList<int[]> possibleStrikes = new ArrayList<>();
@@ -58,24 +59,26 @@ public abstract class Enemy extends GameObject{
             }
             int[] hitBox = new int[]{structure.x, structure.y, structure.x+structure.width, structure.y+structure.height};
             if(structure instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) structure;
+                Skyscraper sky = (Skyscraper)structure;
                 hitBox = new int[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
             }
-            int[][] corners = new int[][]{new int[]{hitBox[0]+1,hitBox[1]+1}, new int[]{hitBox[2]-1,hitBox[1]+1}, new int[]{hitBox[0]+1,hitBox[3]-1}, new int[]{hitBox[2]-1,hitBox[3]-1}};
-            FOR:for(int[] d : corners){
+            int[][] corners = new int[][]{new int[]{hitBox[0]+1, hitBox[1]+1}, new int[]{hitBox[2]-1, hitBox[1]+1}, new int[]{hitBox[0]+1, hitBox[3]-1}, new int[]{hitBox[2]-1, hitBox[3]-1}};
+            FOR:
+            for(int[] d : corners){
                 int X = d[0];
                 int Y = d[1];
                 if(Y<0)continue;
-                for (Iterator<Enemy> it = game.enemies.iterator(); it.hasNext();) {
+                for(Iterator<Enemy> it = game.enemies.iterator(); it.hasNext();){
                     Enemy enemy = it.next();
-                    if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50) continue FOR;
+                    if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50)
+                        continue FOR;
                 }
                 if(shieldGen.isEmpty()){
-                    possibleStrikes.add(new int[]{X,Y,0});
+                    possibleStrikes.add(new int[]{X, Y, 0});
                 }
                 for(ShieldGenerator gen : shieldGen){
-                    double dist = Core.distance(gen,X,Y);
-                    possibleStrikes.add(new int[]{X,Y,(int)dist});
+                    double dist = Vector2f.distance(gen.x, gen.y, X, Y);
+                    possibleStrikes.add(new int[]{X, Y, (int)dist});
                 }
             }
         }
@@ -85,7 +88,7 @@ public abstract class Enemy extends GameObject{
         }
         for(int[] strike : possibleStrikes){
             if(strike[2]==max){
-                return new int[]{strike[0],strike[1]};
+                return new int[]{strike[0], strike[1]};
             }
         }
         return null;

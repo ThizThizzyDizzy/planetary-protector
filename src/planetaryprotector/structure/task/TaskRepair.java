@@ -20,14 +20,14 @@ public class TaskRepair extends Task{
     public int getRepairTime(StructureType type){
         int repairTime = 0;
         for(ItemStack stack : type.getRepairCosts()){
-            repairTime+=stack.item.getRepairTime();
+            repairTime += stack.item.getRepairTime();
         }
         return repairTime;
     }
     @Override
     public boolean canPerform(){
         if(structure.type==StructureType.SKYSCRAPER){
-            Skyscraper sky = (Skyscraper) structure;
+            Skyscraper sky = (Skyscraper)structure;
             if(sky.falling){
                 return false;
             }
@@ -38,19 +38,19 @@ public class TaskRepair extends Task{
     public String[] getDetails(){
         ArrayList<String> strs = new ArrayList<>();
         if(getWorkers()==0){
-            
+
         }else{
             int ticks = time-progress;
-            ticks/=getWorkers();
+            ticks /= getWorkers();
             int seconds = 0;
             int minutes = 0;
             while(ticks>=20){
                 seconds++;
-                ticks-=20;
+                ticks -= 20;
             }
             while(seconds>=60){
                 minutes++;
-                seconds-=60;
+                seconds -= 60;
             }
             strs.add("Repairing "+structure.type.getDisplayName());
             if(minutes>0){
@@ -82,7 +82,7 @@ public class TaskRepair extends Task{
     public void begin(){
         structure.fireIncreaseRate = 0;
         initialFire = structure.fire;
-        if(damage!=null)progress = (int) Math.round((1-damage.opacity)*time);
+        if(damage!=null)progress = (int)Math.round((1-damage.opacity)*time);
         game.removeResources(structure.type.getRepairCosts());
     }
     @Override
@@ -91,8 +91,8 @@ public class TaskRepair extends Task{
             for(int i = 0; i<stack.count*progress()-1; i++){
                 int itemX = structure.x+game.rand.nextInt(79)+11;
                 int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
+                itemX -= 5;
+                itemY -= 5;
                 game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
             }
         }

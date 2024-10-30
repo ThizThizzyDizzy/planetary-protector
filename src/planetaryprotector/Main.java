@@ -2,7 +2,6 @@ package planetaryprotector;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
-import com.thizthizzydizzy.dizzyengine.flat.FlatGame;
 import com.thizthizzydizzy.dizzyengine.graphics.Font;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
@@ -35,18 +34,17 @@ public class Main{
         DiscordPresence.init("592509210277838848");
         DiscordPresence.setLargeImage("city", "Starting up...");
         DiscordPresence.setDetails("Starting up...");
-        DizzyEngine.addLayer(new FlatGame());//TODO FPS tracker (also tick tracking in each fixed update thread)
         FlatUI ui = DizzyEngine.addLayer(new FlatUI());
         ui.setDefaultComponentBackground(Button.class, ButtonBackgroundLayer::new);
-        ui.setDefaultComponentBackground(TextBox.class, ()->new TexturedBackgroundLayer(ResourceManager.getTexture("/assets/textures/ui/text_box.png")));
-        ui.setDefaultComponentBackground(Slider.class, ()->new TexturedBackgroundLayer(ResourceManager.getTexture("/assets/textures/ui/slider/background.png")));
+        ui.setDefaultComponentBackground(TextBox.class, () -> new TexturedBackgroundLayer(ResourceManager.getTexture("/assets/textures/ui/text_box.png")));
+        ui.setDefaultComponentBackground(Slider.class, () -> new TexturedBackgroundLayer(ResourceManager.getTexture("/assets/textures/ui/slider/background.png")));
         ui.setDefaultComponentLabel(() -> new TextLabelLayer("", Color.BLACK));
-        ui.setDefaultComponentHandle(Slider.class, ()->new TexturedLinearHandle(ResourceManager.getTexture("/assets/textures/ui/slider/handle.png")));
+        ui.setDefaultComponentHandle(Slider.class, () -> new TexturedLinearHandle(ResourceManager.getTexture("/assets/textures/ui/slider/handle.png")));
         ui.open(new MenuLoadTextures());
         Logger.info("Loading fonts");
         Renderer.setDefaultFont(Font.loadFont(ResourceManager.loadData(ResourceManager.getInternalResource("/assets/fonts/high_resolution.ttf"))));
         Sounds.init();
-//        Game.refreshTheme();
+        Game.refreshTheme();
         loadOptions();
         DizzyEngine.start();
     }
@@ -61,7 +59,7 @@ public class Main{
             Logger.pop();
         }
         Sounds.tick(tickCounter);
-//        DizzyEngine.getLayer(FlatGame.class).tick();
+        DizzyEngine.getLayer(Game.class).tick();
     }
     public static void saveOptions(){
         try(FileWriter writer = new FileWriter("options.json")){
@@ -81,7 +79,8 @@ public class Main{
     public static void loadGame(String name, int level, WorldGenerator gen, Story story, boolean tutorial){
         Game g = Game.load(name);
         if(g==null){
-            if(gen==null)throw new IllegalArgumentException("Tried to load invalid game!");
+            if(gen==null)
+                throw new IllegalArgumentException("Tried to load invalid game!");
             new MenuGame(Game.generate(name, level, gen, new BoundingBox(-960, -540, 1920, 1080), story, tutorial)).open();
         }else{
             new MenuGame(g).open();

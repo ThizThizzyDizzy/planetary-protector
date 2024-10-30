@@ -1,15 +1,15 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.config2.Config;
 public class CoalGenerator extends Structure implements PowerProducer, StarlightConsumer, StructureDemolishable{
     public int coal = 0;
-    public double burning = 0;//how much time is left on current coal burning
+    public float burning = 0;//how much time is left on current coal burning
     private static final int BURN_TIME = 500;
     public double power;
     public boolean autoFuel = false;
@@ -61,36 +61,36 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
     }
     @Override
     public void render(){
-        drawRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        drawRect(x, y, x+width, y+height, type.getTexture(), getVariant()/(double)getVariants(), frame/(double)frames, (getVariant()+1)/(double)getVariants(), (frame+1)/(double)frames);
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, type.getTexture(), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
         for(Upgrade upgrade : type.upgrades){
             int count = getUpgrades(upgrade);
             if(count==0)continue;
-            drawRect(x, y, x+width, y+height, upgrade.getTexture(type, count), getVariant()/(double)getVariants(), frame/(double)frames, (getVariant()+1)/(double)getVariants(), (frame+1)/(double)frames);
+            Renderer.fillRect(x, y, x+width, y+height, upgrade.getTexture(type, count), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
         }
         renderDamages();
     }
     @Override
     public void renderForeground(){
         super.renderForeground();
-        GL11.glColor4d(1,.1,0,1);
-        drawRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
+        Renderer.setColor(1,.1f,0,1);
+        Renderer.fillRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
         Game.theme.applyTextColor();
-        if(coal>0)drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);//TODO level markings
-        GL11.glColor4d(1, 1, 1, 1);
+        if(coal>0)Renderer.drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
+        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);//TODO level markings
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
-    public Config save(Config cfg){
-        super.save(cfg);
-        cfg.set("power", power);
-        cfg.set("autofuel", autoFuel);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.coalGenerator = new GameState.Structure.CoalGenerator();
+        state.coalGenerator.autoFuel = autoFuel;
+        return state;
     }
-    public static CoalGenerator loadSpecific(Config cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+    public static CoalGenerator loadSpecific(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         CoalGenerator generator = new CoalGenerator(game, x, y, level, upgrades);
-        generator.power = cfg.get("power", 0d);
-        generator.autoFuel = cfg.get("autofuel", false);
+        generator.power = state.power;
+        generator.autoFuel = state.coalGenerator.autoFuel;
         return generator;
     }
     @Override
@@ -121,8 +121,8 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
     public void addStarlight(double starlight){
         this.starlight+=starlight;
     }
-    private double getBurnTime(){
-        return BURN_TIME*Math.pow(1.38, getUpgrades(Upgrade.ECOLOGICAL));
+    private float getBurnTime(){
+        return (float)(BURN_TIME*Math.pow(1.38, getUpgrades(Upgrade.ECOLOGICAL)));
     }
     @Override
     public boolean isPowerActive(){

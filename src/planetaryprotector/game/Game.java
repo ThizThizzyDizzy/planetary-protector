@@ -2,10 +2,10 @@ package planetaryprotector.game;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
-import com.thizthizzydizzy.dizzyengine.flat.FlatGame;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
+import com.thizthizzydizzy.dizzyengine.world.WorldLayer;
 import planetaryprotector.Core;
 import planetaryprotector.Expedition;
 import planetaryprotector.item.Item;
@@ -43,6 +43,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import org.joml.Vector2f;
+import org.joml.Vector3i;
 import planetaryprotector.GameObject;
 import planetaryprotector.Options;
 import planetaryprotector.structure.PowerNetwork;
@@ -60,7 +62,7 @@ import planetaryprotector.structure.StructureType;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureDemolishable;
-public class Game extends FlatGame{
+public class Game extends WorldLayer{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Random rand = new Random();
@@ -97,7 +99,7 @@ public class Game extends FlatGame{
     public ArrayList<Enemy> nextEnemies = new ArrayList<>();
     public ArrayList<Drone> drones = new ArrayList<>();
     private int enemyTimer = 20*30;
-    
+
     public float damageReportTimer = 0;
     public float damageReportTime = 20*10;
     public int civilianCooldown = rand.nextInt(20*60*5);
@@ -189,7 +191,7 @@ public class Game extends FlatGame{
         Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
     }
     @Override
-    public void render(double deltaTime){
+    public void renderWorld(Vector3i chunk, double deltaTime){
         //675x365
         int chunkWidth = 1350;
         int chunkHeight = 730;
@@ -200,7 +202,7 @@ public class Game extends FlatGame{
         int bottom = bbox.getBottom()/chunkHeight+1;
         for(int x = left; x<right; x++){
             for(int y = top; y<bottom; y++){
-                Renderer.fillRect(x*chunkWidth,y*chunkHeight, x*chunkWidth+chunkWidth,y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
+                Renderer.fillRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
             }
         }
         for(Structure structure : structures){
@@ -252,7 +254,7 @@ public class Game extends FlatGame{
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) structure;
+                ShieldGenerator gen = (ShieldGenerator)structure;
                 gen.shield.render(deltaTime);
             }
         }
@@ -334,7 +336,7 @@ public class Game extends FlatGame{
         if(time>=dayNightCycle){
             time -= dayNightCycle;
         }
-        fogTime+=fogTimeIncrease;
+        fogTime += fogTimeIncrease;
         if(fogTime>1){
             stopFog();
         }
@@ -391,12 +393,14 @@ public class Game extends FlatGame{
                 actionUpdateRequired = 2;
             }
             if(setTarget==start){
-                if(end instanceof ShieldGenerator)setTarget = (ShieldGenerator)end;
-                else setTarget = null;
+                if(end instanceof ShieldGenerator)
+                    setTarget = (ShieldGenerator)end;
+                else
+                    setTarget = null;
             }
             for(Structure s : structures){
                 if(s instanceof StructureChangeEventListener){
-                    ((StructureChangeEventListener) s).onStructureChange(start, end);
+                    ((StructureChangeEventListener)s).onStructureChange(start, end);
                 }
             }
             structures.add(end);
@@ -408,7 +412,7 @@ public class Game extends FlatGame{
             enemy.tick();
             if(enemy.dead)it.remove();
         }
-        tickingEnemies = false; 
+        tickingEnemies = false;
         enemies.addAll(nextEnemies);
         nextEnemies.clear();
         for(Iterator<Drone> it = drones.iterator(); it.hasNext();){
@@ -424,22 +428,22 @@ public class Game extends FlatGame{
                 it.remove();
             }
         }
-        for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){ 
+        for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){
             DroppedItem item = it.next();
             item.tick();
             if(item.dead)it.remove();
         }
-        for(Iterator<Asteroid> it = asteroids.iterator(); it.hasNext();){ 
+        for(Iterator<Asteroid> it = asteroids.iterator(); it.hasNext();){
             Asteroid asteroid = it.next();
             asteroid.tick();
             if(asteroid.dead)it.remove();
         }
-        for(Iterator<ShootingStar> it = shootingStars.iterator(); it.hasNext();){ 
+        for(Iterator<ShootingStar> it = shootingStars.iterator(); it.hasNext();){
             ShootingStar shootingStar = it.next();
             shootingStar.tick();
             if(shootingStar.dead)it.remove();
         }
-        for(Iterator<Particle> it = particles.iterator(); it.hasNext();){ 
+        for(Iterator<Particle> it = particles.iterator(); it.hasNext();){
             Particle particle = it.next();
             particle.tick();
             if(particle.dead)it.remove();
@@ -464,14 +468,14 @@ public class Game extends FlatGame{
             winTimer--;
             if(winTimer==0){
                 fading = true;
-                Sounds.stopSound("music");
+                Sounds.stopMusic();
 //                Sounds.playSoundOneChannel("music", "VictoryMusic1");
             }
         }
         if(phase<3){
             for(Structure structure : structures){
                 if(structure instanceof Skyscraper){
-                    ((Skyscraper) structure).pop = 0;//TODO you shouldn't have to do that...
+                    ((Skyscraper)structure).pop = 0;//TODO you shouldn't have to do that...
                 }
             }
         }
@@ -479,7 +483,7 @@ public class Game extends FlatGame{
             civilianIncreasePerSec = calculatePopulation()/1000D;
             double civilianIncreasePerTick = civilianIncreasePerSec/20D;
             if(civilianIncreasePerTick>=1){
-                addCivilians((int) civilianIncreasePerTick);
+                addCivilians((int)civilianIncreasePerTick);
             }else{
                 civilianTimer++;
                 if(civilianTimer>=(1/civilianIncreasePerTick)){
@@ -492,7 +496,7 @@ public class Game extends FlatGame{
         if(workerCooldown<0&&safe()&&!lost){
             notify("Worker spawned", 50);
             addWorker();
-            workerCooldown += Math.max(1200,6000-workers.size()*20);
+            workerCooldown += Math.max(1200, 6000-workers.size()*20);
         }
         //<editor-fold defaultstate="collapsed" desc="Armogeddon">
         if(lost){
@@ -520,7 +524,7 @@ public class Game extends FlatGame{
             meteorShower = !meteorShower;
             if(!meteorShower){
                 if(Sounds.nowPlaying()!=null&&Sounds.nowPlaying().equals("Music1")){
-                    Sounds.fadeSound("music");
+                    Sounds.fadeMusic();
                 }
             }
             meteorShowerTimer = (int)Math.round((meteorShower||(lost&&allowArmogeddon)?-(rand.nextInt(250)+750):rand.nextInt(2500)+7500)*meteorShowerDelayMultiplier);
@@ -537,8 +541,8 @@ public class Game extends FlatGame{
             if(fogTimer<=0){
                 startFog();
                 fogTimer = rand.nextInt(maxFogTime-minFogTime)+minFogTime;
-                if(theme==Theme.SNOWY)fogTimer/=fogWinter;
-                if(theme==Theme.SPOOKY)fogTimer/=fogSpooky;
+                if(theme==Theme.SNOWY)fogTimer /= fogWinter;
+                if(theme==Theme.SPOOKY)fogTimer /= fogSpooky;
             }
         }
         if(meteorShowerTimer>3000){
@@ -547,7 +551,7 @@ public class Game extends FlatGame{
                 addCloud();
                 cloudTimer = rand.nextInt(750)+500;
                 if(lost){
-                    cloudTimer*=1.5;
+                    cloudTimer *= 1.5;
                 }
             }
             if(rand.nextDouble()<.002){
@@ -557,7 +561,7 @@ public class Game extends FlatGame{
         //<editor-fold defaultstate="collapsed" desc="Meteors">
         BoundingBox box = getWorldBoundingBox();
         double intensity = METEOR_INTENSITY*(meteorShower?METEOR_SHOWER_MULT:1)*meteorManualIntensityMult*meteorPhaseIntensityMult*(rand.nextDouble()+1)*box.area()/100_00;
-        meteorTimer-=intensity;
+        meteorTimer -= intensity;
         while(meteorTimer<0){
             addAsteroid(new Asteroid(this, box.randX(rand), box.randY(rand), AsteroidMaterial.random(rand), 1));
             meteorTimer++;
@@ -579,7 +583,7 @@ public class Game extends FlatGame{
                 pendingExpedition = null;
             }
         }
-        for (Iterator<Expedition> it = activeExpeditions.iterator(); it.hasNext();){
+        for(Iterator<Expedition> it = activeExpeditions.iterator(); it.hasNext();){
             Expedition e = it.next();
             e.tick();
             if(e.done){
@@ -598,7 +602,7 @@ public class Game extends FlatGame{
             enemyTimer--;
             if(enemyTimer<=0){
                 addRandomEnemy();
-                enemyTimer+=rand.nextInt((int)Math.max(20*60*4-Math.round(Enemy.strength*60*4),1))+20*60;
+                enemyTimer += rand.nextInt((int)Math.max(20*60*4-Math.round(Enemy.strength*60*4), 1))+20*60;
             }
             for(int i = 0; i<6; i++){
                 civilianCooldown--;
@@ -606,7 +610,7 @@ public class Game extends FlatGame{
                     civilianCooldown = rand.nextInt(20*60*5);
                     double newCivilians = Math.min(50, Math.max(-100, rand.nextGaussian()));
                     if(newCivilians<0){
-                        newCivilians*=-2;
+                        newCivilians *= -2;
                     }
                     while(newCivilians>0){
                         newCivilians--;
@@ -633,15 +637,15 @@ public class Game extends FlatGame{
             boolean base = false;
             for(Structure s : structures){
                 if(s instanceof Base){
-                    if(((Base) s).deathTick>=0)continue;
+                    if(((Base)s).deathTick>=0)continue;
                     base = true;
                 }
             }
             if(!base)losing = 0;
         }else if(canLose()){
             if(losing==0){
-                Sounds.stopSound("music");
-                Sounds.playSound("music", "EndMusic1");
+                Sounds.stopMusic();
+                Sounds.playMusic("EndMusic1");
             }
             losing++;
             if(losing>=450){
@@ -654,8 +658,8 @@ public class Game extends FlatGame{
                 int shieldArea = 0;
                 for(Structure structure : structures){
                     if(structure instanceof ShieldGenerator){
-                        ShieldGenerator shield = (ShieldGenerator) structure;
-                        shieldArea += Math.PI*Math.pow(shield.shieldSize/2,2);
+                        ShieldGenerator shield = (ShieldGenerator)structure;
+                        shieldArea += Math.PI*Math.pow(shield.shieldSize/2, 2);
                     }
                 }
                 BoundingBox bbox = getCityBoundingBox();
@@ -664,7 +668,8 @@ public class Game extends FlatGame{
                     if(phaseCounter>=phaseTime){
                         phase(2);
                     }
-                }else phaseCounter = 0;
+                }else
+                    phaseCounter = 0;
             }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 2 Rendering and advancing">
@@ -676,7 +681,8 @@ public class Game extends FlatGame{
                     if(phaseCounter>=phaseTime){
                         phase(3);
                     }
-                }else phaseCounter = 0;
+                }else
+                    phaseCounter = 0;
             }
 //</editor-fold>
             //<editor-fold defaultstate="collapsed" desc="Phase 3 rendering and advancing">
@@ -691,7 +697,8 @@ public class Game extends FlatGame{
                         phase(4);
                         paused = false;
                     }
-                }else phaseCounter = 0;
+                }else
+                    phaseCounter = 0;
             }
             //</editor-fold>
         }
@@ -701,23 +708,25 @@ public class Game extends FlatGame{
         if(amount<=0)return;
         if(hasResources(new ItemStack(Item.ironOre, amount))){
             removeResources(new ItemStack(Item.ironOre, amount));
-            furnaceOre+=amount;
+            furnaceOre += amount;
             researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironOre, amount));
-            addingIron+=amount;
-        }else addIronToFurnace(getResources(Item.ironOre));
+            addingIron += amount;
+        }else
+            addIronToFurnace(getResources(Item.ironOre));
     }
     public void addCoalToFurnace(int amount){
         if(amount<=0)return;
         if(hasResources(new ItemStack(Item.coal, amount))){
             removeResources(new ItemStack(Item.coal, amount));
-            furnaceCoal+=amount;
+            furnaceCoal += amount;
             researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.coal, amount));
-            addingCoal+=amount;
-        }else addCoalToFurnace(getResources(Item.coal));
+            addingCoal += amount;
+        }else
+            addCoalToFurnace(getResources(Item.coal));
     }
     public void win(){
         if(lost)return;
-        Core.winLevel(1);
+//        Core.winLevel(1);
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
         for(Enemy e : enemies){
@@ -727,7 +736,7 @@ public class Game extends FlatGame{
         }
         meteorPhaseIntensityMult = 0;
         won = true;
-        Sounds.fadeSound("music", "WinMusic");
+        Sounds.fadeMusic("WinMusic");
         winTimer = 20*30;
     }
     public void lose(){
@@ -735,10 +744,10 @@ public class Game extends FlatGame{
         losing = -1;
         meteorShower = false;
         meteorShowerTimer = Integer.MAX_VALUE;
-        Sounds.fadeSound("music", "SadMusic7");//cryptic sorrow
+        Sounds.fadeMusic("SadMusic7");//cryptic sorrow
         for(Enemy e : enemies){
             if(e instanceof EnemyMothership){
-                ((EnemyMothership) e).leaving = true;
+                ((EnemyMothership)e).leaving = true;
             }
         }
         lost = true;
@@ -746,7 +755,7 @@ public class Game extends FlatGame{
     public void addItem(DroppedItem item){
         droppedItems.add(item);
     }
-    public void addResources(Item item) {
+    public void addResources(Item item){
         if(actionUpdateRequired<1)actionUpdateRequired = 1;
         for(ItemStack stack : resources){
             if(stack.item==item){
@@ -756,7 +765,7 @@ public class Game extends FlatGame{
         }
         resources.add(new ItemStack(item, 1));
     }
-    public boolean hasResources(ItemStack[] resources) {
+    public boolean hasResources(ItemStack[] resources){
         for(ItemStack s : resources){
             if(!hasResources(s)){
                 return false;
@@ -764,18 +773,18 @@ public class Game extends FlatGame{
         }
         return true;
     }
-    public boolean hasResources(ItemStack stack) {
+    public boolean hasResources(ItemStack stack){
         return resources.stream().anyMatch((s) -> (s.item==stack.item&&s.count>=stack.count));
     }
-    public void removeResources(ItemStack[] resources) {
+    public void removeResources(ItemStack[] resources){
         for(ItemStack s : resources){
             removeResources(s);
         }
     }
-    public void removeResources(ItemStack stack) {
+    public void removeResources(ItemStack stack){
         for(ItemStack s : resources){
             if(s.item==stack.item){
-                s.count-=stack.count;
+                s.count -= stack.count;
                 return;
             }
         }
@@ -784,7 +793,7 @@ public class Game extends FlatGame{
         int count = 0;
         for(ItemStack s : resources){
             if(s.item==item){
-                count+=s.count;
+                count += s.count;
             }
         }
         return count;
@@ -802,7 +811,7 @@ public class Game extends FlatGame{
         }
     }
     public void replaceStructure(Structure start, Structure end){
-        structuresToReplace.put(start,end);
+        structuresToReplace.put(start, end);
     }
     @Deprecated
     private void textWithBackground(float left, float top, float right, float bottom, String str){
@@ -812,39 +821,39 @@ public class Game extends FlatGame{
     private void textWithBackground(float left, float top, float right, float bottom, String str, boolean pulsing){
         Renderer.setColor(0, 0, 0, 0.75f);
         Renderer.fillRect(left, top, Renderer.getStringWidth(str, bottom-top)+left, bottom, 0);
-        Renderer.setColor(1, 1, 1, 1); 
+        Renderer.setColor(1, 1, 1, 1);
         if(pulsing){
             Renderer.setColor((float)(Math.sin(tick/5d)/4+.75), 0, 0, 1);
         }
-        Renderer.drawText(left,top,right,bottom, str);
+        Renderer.drawText(left, top, right, bottom, str);
         Renderer.setColor(1, 1, 1, 1);
     }
     @Deprecated
-    public void centeredTextWithBackground(float left, float top, float right, float bottom, String str) {
+    public void centeredTextWithBackground(float left, float top, float right, float bottom, String str){
         Renderer.setColor(0, 0, 0, 0.75f);
         Renderer.fillRect(left, top, right, bottom, 0);
         Renderer.setColor(1, 1, 1, 1);
-        Renderer.drawCenteredText(left,top,right,bottom, str);
+        Renderer.drawCenteredText(left, top, right, bottom, str);
     }
     public void startAnim(TaskAnimated task){
         taskAnimations.add(new TaskAnimation(this, task));
     }
-    public boolean safe(Worker worker) {
+    public boolean safe(Worker worker){
         if(superSafe(worker))return true;
         if(lost){
             return false;
         }
         return !meteorShower;
     }
-    public boolean superSafe(Worker worker) {
+    public boolean superSafe(Worker worker){
         if(lost){
             return false;
         }
         boolean safe = false;
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) structure;
-                if(gen.shieldSize/2-50>=Core.distance(gen, worker)){
+                ShieldGenerator gen = (ShieldGenerator)structure;
+                if(gen.shieldSize/2-50>=Vector2f.distance(gen.x, gen.y, worker.x, worker.y)){
                     safe = true;
                 }
             }
@@ -858,7 +867,7 @@ public class Game extends FlatGame{
         boolean safe = !meteorShower;
         for(Structure structure : structures){
             if(structure instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) structure;
+                Skyscraper sky = (Skyscraper)structure;
                 if(sky.falling){
                     safe = false;
                 }
@@ -869,11 +878,11 @@ public class Game extends FlatGame{
     public void expedition(int workers){
         pendingExpedition = new Expedition(this, workers);
     }
-    public int calculatePopulationCapacity() {
+    public int calculatePopulationCapacity(){
         int pop = 0;
         for(Structure structure : structures){
             if(structure instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) structure;
+                Skyscraper sky = (Skyscraper)structure;
                 pop += sky.getMaxPop();
             }
         }
@@ -1012,8 +1021,10 @@ public class Game extends FlatGame{
         game.meteorShowerDelayMultiplier = state.meteorShowerDelay;
         game.meteorPhaseIntensityMult = state.meteorShowerIntensity;
         game.pendingExpedition = Expedition.load(state.pendingExpedition, game);
-        for(var exp : state.activeExpeditions)game.activeExpeditions.add(Expedition.load(exp, game));
-        for(var exp : state.finishedExpeditions)game.finishedExpeditions.add(Expedition.load(exp, game));
+        for(var exp : state.activeExpeditions)
+            game.activeExpeditions.add(Expedition.load(exp, game));
+        for(var exp : state.finishedExpeditions)
+            game.finishedExpeditions.add(Expedition.load(exp, game));
         game.fogTimer = state.fogTimer;
         game.cloudTimer = state.cloudTimer;
         game.fogTime = state.fogTime;
@@ -1040,9 +1051,9 @@ public class Game extends FlatGame{
     public void addCivilians(int civilians){
         for(Structure s : structures){
             if(s instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper) s;
+                Skyscraper sky = (Skyscraper)s;
                 civilians = sky.addPop(civilians);
-                if(civilians<=0) break;
+                if(civilians<=0)break;
             }
         }
     }
@@ -1055,7 +1066,7 @@ public class Game extends FlatGame{
     }
     public void addRandomEnemy(){
         if(rand.nextDouble()<(Enemy.strength)/100D){
-            for(int i = 0; i<Math.min(10,Math.abs(rand.nextGaussian()*3)); i++){
+            for(int i = 0; i<Math.min(10, Math.abs(rand.nextGaussian()*3)); i++){
                 addEnemy(Enemy.randomEnemy(this));
             }
         }else{
@@ -1063,81 +1074,36 @@ public class Game extends FlatGame{
         }
     }
     @Deprecated
-    public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
-        if(quality<3){
-            throw new IllegalArgumentException("A polygon must have at least 3 sides!");
-        }
-        ImageStash.instance.bindTexture(texture);
-        GL11.glBegin(GL11.GL_TRIANGLES);
-        double angle = 0;
-        for(int i = 0; i<quality; i++){
-            GL11.glVertex2d(x, y);
-            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
-            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-            GL11.glVertex2d(X, Y);
-            angle+=(360D/quality);
-            X = x+Math.cos(Math.toRadians(angle-90))*radius;
-            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-            GL11.glVertex2d(X, Y);
-        }
-        GL11.glEnd();
-    }
-    @Deprecated
-    public static void drawTorus(double x, double y, double outerRadius, double innerRadius, int quality, int texture){
-        if(quality<3){
-            throw new IllegalArgumentException("A torus must have at least 3 sides!");
-        }
-        ImageStash.instance.bindTexture(texture);
-        GL11.glBegin(GL11.GL_QUADS);
-        double angle = 0;
-        for(int i = 0; i<quality; i++){
-            double innerX = x+Math.cos(Math.toRadians(angle-90))*innerRadius;
-            double innerY = y+Math.sin(Math.toRadians(angle-90))*innerRadius;
-            double outerX = x+Math.cos(Math.toRadians(angle-90))*outerRadius;
-            double outerY = y+Math.sin(Math.toRadians(angle-90))*outerRadius;
-            GL11.glVertex2d(innerX, innerY);
-            GL11.glVertex2d(outerX, outerY);
-            angle+=(360D/quality);
-            innerX = x+Math.cos(Math.toRadians(angle-90))*innerRadius;
-            innerY = y+Math.sin(Math.toRadians(angle-90))*innerRadius;
-            outerX = x+Math.cos(Math.toRadians(angle-90))*outerRadius;
-            outerY = y+Math.sin(Math.toRadians(angle-90))*outerRadius;
-            GL11.glVertex2d(outerX, outerY);
-            GL11.glVertex2d(innerX, innerY);
-        }
-        GL11.glEnd();
-    }
-    @Deprecated
-    public static void drawLaser(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
-        double xDiff = x2-x1;
-        double yDiff = y2-y1;
-        double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+    public static void drawLaser(float x1, float y1, float x2, float y2, float size, float innerR, float innerG, float innerB, float outerR, float outerG, float outerB){
+        float xDiff = x2-x1;
+        float yDiff = y2-y1;
+        float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
         Renderer.setColor(outerR, outerG, outerB, 1);
         for(int i = 0; i<dist; i++){
-            double percent = i/dist;
-            Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), size/2D,5,0);
+            float percent = i/dist;
+            Renderer.fillRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), 5, size/2f);
         }
         Renderer.setColor((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
         for(int i = 0; i<dist; i++){
-            double percent = i/dist;
-            Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(2/3D))/2D,5,0);
+            float percent = i/dist;
+            Renderer.fillRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), 5, (size*(2/3f))/2f);
         }
         Renderer.setColor(innerR, innerG, innerB, 1);
         for(int i = 0; i<dist; i++){
-            double percent = i/dist;
-            Game.drawRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), (size*(1/3D))/2D,5,0);
+            float percent = i/dist;
+            Renderer.fillRegularPolygon(x1+(xDiff*percent), y1+(yDiff*percent), 5, (size*(1/3f))/2f);
         }
         Renderer.setColor(1, 1, 1, 1);
     }
     @Deprecated
-    public static void drawConnector(double x1, double y1, double x2, double y2, double size, double innerR, double innerG, double innerB, double outerR, double outerG, double outerB){
+    public static void drawConnector(float x1, float y1, float x2, float y2, float size, float innerR, float innerG, float innerB, float outerR, float outerG, float outerB){
         drawLaser(x1, y1, x2, y2, size, innerR, innerG, innerB, outerR, outerG, outerB);
-        Renderer.setColor(outerR,outerG,outerB,1);
-        drawRegularPolygon(x1, y1, size*1.5, 5, 0);
-        drawRegularPolygon(x2, y2, size*1.5, 5, 0);
+        Renderer.setColor(outerR, outerG, outerB, 1);
+        Renderer.fillRegularPolygon(x1, y1, 5, size*1.5f);
+        Renderer.fillRegularPolygon(x2, y2, 5, size*1.5f);
         Renderer.setColor((innerR+outerR)/2, (innerG+outerG)/2, (innerB+outerB)/2, 1);
-        drawRegularPolygon(x1, y1, size, 5, 0);
-        drawRegularPolygon(x2, y2, size, 5, 0);
+        Renderer.fillRegularPolygon(x1, y1, 5, size);
+        Renderer.fillRegularPolygon(x2, y2, 5, size);
     }
     public void damageReport(){
         damageReportTimer = damageReportTime;
@@ -1150,7 +1116,8 @@ public class Game extends FlatGame{
         ArrayList<Task> tasks = new ArrayList<>();
         for(Worker worker : workers){
             if(worker.task!=null){
-                if(worker.task instanceof TaskDemolish||worker.task.type==TaskType.REPAIR) continue;
+                if(worker.task instanceof TaskDemolish||worker.task.type==TaskType.REPAIR)
+                    continue;
                 tasks.add(worker.task);
             }
         }
@@ -1166,7 +1133,7 @@ public class Game extends FlatGame{
         while(!available.isEmpty()){
             for(Task task : tasks){
                 available.remove(0).targetTask = task;
-                if(available.isEmpty()) break;
+                if(available.isEmpty())break;
             }
         }
     }
@@ -1182,7 +1149,7 @@ public class Game extends FlatGame{
         phase(i, true);
     }
     public void phase(int i, boolean normal){
-        i = Math.min(4,i);
+        i = Math.min(4, i);
         phaseCounter = 0;
         phase = i;
         switch(i){
@@ -1207,7 +1174,7 @@ public class Game extends FlatGame{
                 }
                 if(!mothership&&!isDestroyed()&&isPlayable()){
                     enemies.add(new EnemyMothership(this));
-                    Sounds.fadeSound("music");
+                    Sounds.fadeMusic();
                 }
                 break;
             default:
@@ -1217,7 +1184,7 @@ public class Game extends FlatGame{
     public void addCloud(){
         if(!Options.options.clouds)return;
         BoundingBox worldBBox = getWorldBoundingBox();
-        addCloud(worldBBox.getLeft(),worldBBox.randY(rand));
+        addCloud(worldBBox.getLeft(), worldBBox.randY(rand));
     }
     public void addCloud(int x, int y){
         if(!Options.options.clouds)return;
@@ -1227,61 +1194,61 @@ public class Game extends FlatGame{
         double mod = 1;
         switch(phase){
             case 2:
-                min+=2;
-                mod+=.05;
+                min += 2;
+                mod += .05;
                 break;
             case 3:
-                min+=5;
-                mod+=.1;
+                min += 5;
+                mod += .1;
                 break;
             case 4:
                 int mothershipPhase = 0;
                 for(Enemy e : enemies){
                     if(e instanceof EnemyMothership){
-                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership)e).phase);
                     }
                 }
                 if(mothershipPhase>0){
                     switch(mothershipPhase){
                         case 2:
-                            min+=12;
-                            mod+=.15;
+                            min += 12;
+                            mod += .15;
                             break;
                         case 3:
-                            min+=17;
-                            mod+=.175;
+                            min += 17;
+                            mod += .175;
                             break;
                         case 4:
-                            min+=22;
-                            mod+=.2;
+                            min += 22;
+                            mod += .2;
                             break;
                         case 1:
                         default:
-                            min+=10;
-                            mod+=.125;
+                            min += 10;
+                            mod += .125;
                             break;
                     }
                 }
                 break;
         }
         if(Game.theme==Theme.SPOOKY){
-            min+=12;
-            mod+=.15;
+            min += 12;
+            mod += .15;
         }
         if(lost){
             min = Particle.rainThreshold;
             rateOfChange = Math.max(0, rateOfChange);
-            speed*=.75;
+            speed *= .75;
         }
         float strength = rand.nextInt(42-min)+min;
-        rateOfChange*=mod;
+        rateOfChange *= mod;
         if(won){
             strength = rand.nextInt(10);
         }
         int wide = rand.nextInt(25+(Game.theme==Theme.SPOOKY?8:(Game.theme==Theme.SNOWY?-3:0)))+5;
         int high = rand.nextInt(wide/5)+2;
         int height = 1;
-        for(double X = 0; X<wide; X+=.5){
+        for(double X = 0; X<wide; X += .5){
             double percent = X/wide;
             if(percent>.75){
                 if(rand.nextBoolean()&&rand.nextBoolean()&&height>1){
@@ -1297,14 +1264,14 @@ public class Game extends FlatGame{
                 int Y = y;
                 for(int i = 0; i<height; i++){
                     addParticleEffect(new Particle(this, xx+x, y, strength, rateOfChange, speed));
-                    y-=40;
+                    y -= 40;
                 }
                 y = Y;
             }else{
                 int Y = y;
                 for(int i = 0; i<height; i++){
                     addParticleEffect(new Particle(this, xx+x, y-20, strength, rateOfChange, speed));
-                    y-=40;
+                    y -= 40;
                 }
                 y = Y;
             }
@@ -1317,9 +1284,9 @@ public class Game extends FlatGame{
         fogHeightIntensity = rand.nextDouble()*.4;
         fogTimeIncrease = (rand.nextInt(125)+25)*.000005;
         if(lost){
-            fogIntensity*=1.25;
-            fogHeightIntensity*=2;
-            fogTimeIncrease/=2.5;
+            fogIntensity *= 1.25;
+            fogHeightIntensity *= 2;
+            fogTimeIncrease /= 2.5;
         }
         //.9 intensity MAX
     }
@@ -1343,19 +1310,20 @@ public class Game extends FlatGame{
         fogTimeIncrease = fogTime = 0;
     }
     public void damage(int x, int y){
-        damage(x,y,1);
+        damage(x, y, 1);
     }
     public void damage(int x, int y, int damage){
-        damage(x,y,damage,null);
+        damage(x, y, damage, null);
     }
     public void damage(int x, int y, AsteroidMaterial material){
-        damage(x,y,1,material);
+        damage(x, y, 1, material);
     }
     public void damage(int x, int y, int damage, AsteroidMaterial material){
-        DAMAGE:for(int i = 0; i<damage; i++){
+        DAMAGE:
+        for(int i = 0; i<damage; i++){
             for(Structure structure : structures){
                 if(structure instanceof ShieldGenerator){
-                    ShieldGenerator shield = (ShieldGenerator) structure;
+                    ShieldGenerator shield = (ShieldGenerator)structure;
                     if(structure.getCenter().distance(x, y)<=shield.getShieldSize()/2){
                         if(shield.shieldHit()){
                             continue DAMAGE;
@@ -1365,12 +1333,16 @@ public class Game extends FlatGame{
                     }
                 }
             }
-            Structure hit = getStructure(x,y);
-            if(hit==null||!hit.onHit(x,y)||material!=null&&material.forceDrop){
+            Structure hit = getStructure(x, y);
+            if(hit==null||!hit.onHit(x, y)||material!=null&&material.forceDrop){
                 //<editor-fold defaultstate="collapsed" desc="Hit ground">
                 int dmgRad = 25;//TODO make this depend on asteroid and worker size
-                for(Worker worker : workers)if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains(x,y))worker.damage(x,y);
-                for(DroppedItem item : droppedItems)if(new BoundingBox(item.x-dmgRad, item.y-dmgRad, item.width+dmgRad*2, item.height+dmgRad*2).contains(x,y))item.damage(x,y);
+                for(Worker worker : workers)
+                    if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains(x, y))
+                        worker.damage(x, y);
+                for(DroppedItem item : droppedItems)
+                    if(new BoundingBox(item.x-dmgRad, item.y-dmgRad, item.width+dmgRad*2, item.height+dmgRad*2).contains(x, y))
+                        item.damage(x, y);
                 if(material!=null){
                     if(material.forceDrop){
                         addItem(new DroppedItem(this, x, y, material.item));
@@ -1395,11 +1367,13 @@ public class Game extends FlatGame{
     }
     public Structure getStructure(int x, int y){
         Structure hit = null;
-        for(Structure structure : structures)if(structure.getBoundingBox(true).contains(x, y))hit = structure;
+        for(Structure structure : structures)
+            if(structure.getBoundingBox(true).contains(x, y))hit = structure;
         return hit;
     }
     /**
      * Push particles away from a location.
+     *
      * @param x the X value
      * @param y the Y value
      * @param radius The radius of the push field
@@ -1410,6 +1384,7 @@ public class Game extends FlatGame{
     }
     /**
      * Push particles away from a location.
+     *
      * @param x the X value
      * @param y the Y value
      * @param radius The radius of the push field
@@ -1419,23 +1394,23 @@ public class Game extends FlatGame{
      */
     public void pushParticles(int x, int y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
         for(Particle particle : particles){
-            if(particle.getPosition().distance(x,y)<=radius){
+            if(particle.getPosition().distance(x, y)<=radius){
                 double mult = 1-(particle.getPosition().distance(x, y)/radius);
                 double distX = particle.getX()-x;
                 double distY = particle.getY()-y;
                 double totalDist = Math.sqrt(distX*distX+distY*distY);
-                distX/=totalDist;
-                distY/=totalDist;
+                distX /= totalDist;
+                distY /= totalDist;
                 if(Double.isNaN(distX)){
                     continue;
                 }
-                particle.push(distX*distance*mult,distY*distance*mult, cause);
+                particle.push(distX*distance*mult, distY*distance*mult, cause);
                 particle.fade(fadeFactor*mult);
             }
         }
     }
     public void addWorker(int x, int y){
-        thingsToAdd.add(new Worker(this,x,y));
+        thingsToAdd.add(new Worker(this, x, y));
     }
     public void playSecret(ArrayList<String> playableMusic){
         playSecret(secretWaiting, playableMusic);
@@ -1484,7 +1459,7 @@ public class Game extends FlatGame{
         if(time<dayNightCycle/8||time>=dayNightCycle-dayNightCycle/8){
             float newTime = time+dayNightCycle/8;
             if(newTime>=dayNightCycle){
-                newTime-=dayNightCycle;
+                newTime -= dayNightCycle;
             }
             float percent = newTime/(dayNightCycle/4f);
             float r = MathUtil.lerp(night.getRed(), noon.getRed(), percent)/255f;
@@ -1527,7 +1502,7 @@ public class Game extends FlatGame{
         if(time<dayNightCycle/8||time>=dayNightCycle-dayNightCycle/8){
             double newTime = time+dayNightCycle/8;
             if(newTime>=dayNightCycle){
-                newTime-=dayNightCycle;
+                newTime -= dayNightCycle;
             }
             double percent = newTime/(dayNightCycle/4d);
             return percent;
@@ -1640,14 +1615,15 @@ public class Game extends FlatGame{
     public Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
-            if(structure.getBoundingBox(!hideSkyscrapers).contains((int)x, (int)y))hit = structure;
+            if(structure.getBoundingBox(!hideSkyscrapers).contains((int)x, (int)y))
+                hit = structure;
         }
         return hit;
     }
     public boolean canLose(){
         return isPlayable();
     }
-    public ArrayList<String> getDebugData() {
+    public ArrayList<String> getDebugData(){
         ArrayList<String> debug = new ArrayList<>();
         debug.clear();
         debug.add("Level "+level);
@@ -1752,12 +1728,12 @@ public class Game extends FlatGame{
             for(Structure structure : structures){
                 if(structure instanceof Skyscraper){
                     Skyscraper sky = (Skyscraper)structure;
-                    floorCount+=sky.floorCount;
+                    floorCount += sky.floorCount;
                 }
             }
             double d = rand.nextDouble()/10+.7;
-            targetPopulation = (int) Math.round(100*floorCount*d);
-            popPerFloor = (int) Math.round(targetPopulation/(double)floorCount);
+            targetPopulation = (int)Math.round(100*floorCount*d);
+            popPerFloor = (int)Math.round(targetPopulation/(double)floorCount);
         }
         //</editor-fold>
         addWorker();
@@ -1773,9 +1749,9 @@ public class Game extends FlatGame{
         return Math.max(DizzyEngine.screenSize.y/MenuGame.minZoom/4, getCityBoundingBox().height/2);
     }
     public static enum Theme{
-        NORMAL("normal", new Color(255, 216, 0, 32),new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
-        SNOWY("snowy", new Color(255, 244, 179, 15),new Color(20, 33, 107, 72), new Color(31, 31, 31, 255)),
-        SPOOKY("normal", new Color(255, 200, 0, 32),new Color(16, 27, 86, 72), new Color(255, 252, 250, 255));
+        NORMAL("normal", new Color(255, 216, 0, 32), new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
+        SNOWY("snowy", new Color(255, 244, 179, 15), new Color(20, 33, 107, 72), new Color(31, 31, 31, 255)),
+        SPOOKY("normal", new Color(255, 200, 0, 32), new Color(16, 27, 86, 72), new Color(255, 252, 250, 255));
         private final String texture;
         private final Color day;
         private final Color night;
@@ -1872,9 +1848,9 @@ public class Game extends FlatGame{
             if(!s.type.isDecoration())buildings.add(s);
         }
         return cachedCityBoundingBox = BoundingBox.enclosing(buildings, true).expand(100);
-    } 
+    }
     public BoundingBox getWorldBoundingBox(){
         BoundingBox cityBBox = getCityBoundingBox();
         return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
-    } 
+    }
 }

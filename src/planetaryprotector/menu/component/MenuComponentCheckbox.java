@@ -28,22 +28,22 @@ public class MenuComponentCheckbox extends MenuComponent{
         if(enabled){
             if(isChecked){
                 if(isMouseOver){
-                    drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+"CheckedMouseover.png"));
+                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"CheckedMouseover.png"));
                 }else{
-                    drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+"Checked.png"));
+                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Checked.png"));
                 }
             }else{
                 if(isMouseOver){
-                    drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+"Mouseover.png"));
+                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Mouseover.png"));
                 }else{
-                    drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+".png"));
+                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+".png"));
                 }
             }
         }else{
             if(isChecked){
-                drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+"CheckedDisabled.png"));
+                Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"CheckedDisabled.png"));
             }else{
-                drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(textureRoot+"Disabled.png"));
+                Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Disabled.png"));
             }
             
         }

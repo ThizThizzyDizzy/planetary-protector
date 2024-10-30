@@ -1,11 +1,12 @@
 package planetaryprotector.enemy;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.ShieldGenerator;
 import planetaryprotector.structure.Wreck;
 import planetaryprotector.structure.Skyscraper;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
+import org.joml.Vector2f;
 import planetaryprotector.structure.Structure;
 public class EnemyMeteorStrike extends Enemy{
     public int initialDelay = 20*10;
@@ -29,10 +30,10 @@ public class EnemyMeteorStrike extends Enemy{
     }
     @Override
     public void draw(){
-        GL11.glColor4d(1, 1, 0, .25);
-        drawRect(x-width/2, y-game.getCityBoundingBox().height, x+width/2, y+height/2, 0);//TODO redo
-        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 0, .25f);
+        Renderer.fillRect(x-width/2, y-game.getCityBoundingBox().height, x+width/2, y+height/2, 0);//TODO redo
+        Renderer.fillRect(x-width/2, y-height/2, x+width/2, y+height/2, 0);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void tick(){
@@ -81,7 +82,7 @@ public class EnemyMeteorStrike extends Enemy{
                 }
                 for(ShieldGenerator gen : shieldGen){
                     double shieldRadius = gen.shieldSize/2;
-                    double dist = Core.distance(gen,X,Y);
+                    double dist = Vector2f.distance(gen.x,gen.y,X,Y);
                     if(dist>shieldRadius){
                         return new int[]{X,Y};
                     }

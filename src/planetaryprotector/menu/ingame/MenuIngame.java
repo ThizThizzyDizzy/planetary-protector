@@ -15,13 +15,13 @@ public class MenuIngame extends MenuComponentOverlay{
     private final MenuComponentButton exitNosave;
     public MenuIngame(MenuGame menu){
         super(menu);
-        controls = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 240, 800, 80, "Controls", true));
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 80, 800, 80, "Back to game", true));
-        saveAs = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-320, 800, 80, "Save As...", true));
-        save = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-240, 800, 80, "Save Game", true));
-        exit = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, "Exit to menu", true));
-        exitSave = add(new MenuComponentButton(Core.helper.displayWidth()/2-600, Core.helper.displayHeight()-80, 600, 80, "Save and Exit", false));
-        exitNosave = add(new MenuComponentButton(Core.helper.displayWidth()/2, Core.helper.displayHeight()-80, 600, 80, "Don't save", false));
+        controls = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 240, 800, 80, "Controls", true));
+        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 80, 800, 80, "Back to game", true));
+        saveAs = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-320, 800, 80, "Save As...", true));
+        save = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-240, 800, 80, "Save Game", true));
+        exit = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Exit to menu", true));
+        exitSave = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-600, DizzyEngine.screenSize.y-80, 600, 80, "Save and Exit", false));
+        exitNosave = add(new MenuComponentButton(DizzyEngine.screenSize.x/2, DizzyEngine.screenSize.y-80, 600, 80, "Don't save", false));
     }
     @Override
     public void render(){}

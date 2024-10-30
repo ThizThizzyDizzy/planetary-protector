@@ -1,14 +1,18 @@
 package planetaryprotector.menu.component;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-public class MenuComponentClickable extends MenuComponentButton{
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+public class MenuComponentClickable extends Button{
     private final String texture;
     public MenuComponentClickable(float x, float y, float width, float height, String texture){
-        super(x,y,width,height,"",true);
-        this.texture=texture;
+        super();
+        this.x = x;
+        this.y = y;
+        setSize(width, height);
+        this.texture = texture;
     }
     @Override
-    public void render(){
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(texture));
+    public void draw(double deltaTime){
+        Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(texture));
     }
 }

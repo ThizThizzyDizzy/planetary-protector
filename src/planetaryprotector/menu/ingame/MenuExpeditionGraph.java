@@ -18,16 +18,16 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
     private final Expedition e;
     public MenuExpeditionGraph(MenuGame menu, Expedition e){
         super(menu);
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-80, 800, 80, "Back", true));
-        recall = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, e.recalled?"Cancel Recall":"Recall", !e.returned));
+        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-80, 800, 80, "Back", true));
+        recall = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, e.recalled?"Cancel Recall":"Recall", !e.returned));
         this.e = e;
         menu.game.paused = e.returned;
     }
     @Override
     public void render(){
         recall.enabled = !e.returned;
-        drawGraphs(e,0,1,Core.helper.displayWidth(),Core.helper.displayHeight()-200);
-        GL11.glColor4d(1, 1, 1, 1);
+        drawGraphs(e,0,1,DizzyEngine.screenSize.x,DizzyEngine.screenSize.y-200);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
@@ -50,7 +50,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
         }
     }
     private void drawGraphs(Expedition e, int left, int top, int right, int bottom){
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         ArrayList<Entry<Integer, Integer>> civilianGraph = sort(e.civilianGraph);
         ArrayList<Entry<Integer, Integer>> workerGraph = sort(e.workerGraph);
         //civilians
@@ -67,7 +67,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
         for(Entry<Integer, Integer> entry : civilianGraph){
             points.add(new double[]{entry.getKey(),entry.getValue()});
         }
-        GL11.glColor4d(0, 0, 1, 1);
+        Renderer.setColor(0, 0, 1, 1);
         drawText(left, top, right, top+20, max+"");
         drawText(left, top+bottom/2-10, right, top+bottom/2+10, (max/2)+"");
         drawText(left, bottom-20, right, bottom, "0");
@@ -92,7 +92,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
         for(Entry<Integer, Integer> entry : workerGraph){
             points.add(new double[]{entry.getKey(),entry.getValue()});
         }
-        GL11.glColor4d(1, 1, 0, 1);
+        Renderer.setColor(1, 1, 0, 1);
         drawText(left+100, top, right, top+20, max+"");
         drawText(left+100, top+bottom/2-10, right, top+bottom/2+10, (max/2)+"");
         drawText(left+100, bottom-20, right, bottom, "0");
@@ -104,7 +104,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
             GL11.glVertex2d(left+lastPoint[0]*xMultiplier, top+(max-lastPoint[1])*yMultiplier);
         }
         GL11.glEnd();
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         //promotions
         ArrayList<Double> locations = new ArrayList<>();
         for(int key : e.civilianPromotionGraph.keySet()){
@@ -116,7 +116,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
             GL11.glVertex2d(left+X, top);
             GL11.glVertex2d(left+X, bottom);
             GL11.glEnd();
-            drawRect(X-12.5, top+25, X+12.5, top+50, ImageStash.instance.getTexture("/textures/icons/up.png"));
+            Renderer.fillRect(X-12.5, top+25, X+12.5, top+50, ResourceManager.getTexture("/textures/icons/up.png"));
         }
         //returns
         locations.clear();
@@ -129,7 +129,7 @@ public class MenuExpeditionGraph extends MenuComponentOverlay{
             GL11.glVertex2d(left+X, top);
             GL11.glVertex2d(left+X, bottom);
             GL11.glEnd();
-            drawRect(X-12.5, top+25, X+12.5, top+50, ImageStash.instance.getTexture("/textures/icons/return.png"));
+            Renderer.fillRect(X-12.5, top+25, X+12.5, top+50, ResourceManager.getTexture("/textures/icons/return.png"));
         }
     }
     private ArrayList<Entry<Integer, Integer>> sort(HashMap<Integer, Integer> graph) {

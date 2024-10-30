@@ -48,7 +48,7 @@ public class HorizontalLang extends Lang{
         try{
             p = getPhrase(english);
         }catch(Exception ex){
-            drawCenteredText(0, startY-size/6, Core.helper.displayWidth(), startY+size/6, ex.getMessage().split("\n")[0]);
+            drawCenteredText(0, startY-size/6, DizzyEngine.screenSize.x, startY+size/6, ex.getMessage().split("\n")[0]);
             return;
         }
         x = 0;

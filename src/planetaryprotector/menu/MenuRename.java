@@ -15,22 +15,22 @@ public class MenuRename extends Menu{
     private final MenuComponentButton rename;
     public MenuRename(String save){
         super(gui, null);
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Back", true));
-        rename = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-160, 400, 40, "Rename", false));
-        name = add(new MenuComponentTextBox(Core.helper.displayWidth()/2-200, 120, 400, 40, "", true));
+        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-80, 400, 40, "Back", true));
+        rename = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-160, 400, 40, "Rename", false));
+        name = add(new MenuComponentTextBox(DizzyEngine.screenSize.x/2-200, 120, 400, 40, "", true));
         this.save=save;
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
+        Renderer.fillRect(0,0,DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
         File file = new File(Main.getAppdataRoot()+"\\"+name.text);
         if(!file.exists()){
             rename.enabled = true;
         }else{
             rename.enabled = false;
         }
-        back.x = Core.helper.displayWidth()/2-200;
-        back.y = Core.helper.displayHeight()-80;
+        back.x = DizzyEngine.screenSize.x/2-200;
+        back.y = DizzyEngine.screenSize.y-80;
         rename.x = back.x;
         rename.y = back.y-80;
         name.x = rename.x;

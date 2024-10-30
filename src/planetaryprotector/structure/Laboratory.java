@@ -1,13 +1,14 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Action;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.ingame.MenuResearch;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
-import simplelibrary.config2.Config;
 public class Laboratory extends Structure implements StructureDemolishable, PowerConsumer, StarlightConsumer{
     public Research targetResearch;
     public double power;
@@ -62,17 +63,18 @@ public class Laboratory extends Structure implements StructureDemolishable, Powe
     }
     @Override
     public void renderBackground(){
-        drawRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
         super.renderBackground();
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("target", targetResearch==null?"null":targetResearch.name());
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.laboratory = new GameState.Structure.Laboratory();
+        state.laboratory.target = targetResearch==null?"null":targetResearch.name();
+        return state;
     }
-    public static Laboratory loadSpecific(Config cfg, Game game, int x, int y){
-        String target = cfg.get("target", "null");
+    public static Laboratory loadSpecific(GameState.Structure state, Game game, int x, int y){
+        String target = state.laboratory.target;
         Laboratory lab = new Laboratory(game, x, y);
         if(!target.equals("null"))lab.targetResearch = Research.valueOf(target);
         return lab;

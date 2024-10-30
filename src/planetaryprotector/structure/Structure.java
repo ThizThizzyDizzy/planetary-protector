@@ -101,7 +101,7 @@ public abstract class Structure extends GameObject{
         drawOverlay();
         Renderer.setColor(1, 1, 1, 1);
         if(shield!=null){
-            Renderer.setColor(.75f, .875f, 1, shield.getProjectedShieldStrength()/10f);
+            Renderer.setColor(.75f, .875f, 1, (float)(shield.getProjectedShieldStrength()/10f));
             drawOverlay();
             Renderer.setColor(1, 1, 1, 1);
         }

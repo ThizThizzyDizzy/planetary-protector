@@ -1,4 +1,5 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.item.Item;
@@ -13,8 +14,8 @@ import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Action;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.config2.Config;
 public class Silo extends Structure implements PowerConsumer, StructureDemolishable{
     public int drones = 0;
     int missiles = 0;
@@ -41,14 +42,14 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         super.renderForeground();
         Game.theme.applyTextColor();
         if(drones>0){
-            drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
+            Renderer.drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
         }
         if(missiles>0){
-            drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
+            Renderer.drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
         }
-        drawCenteredText(x, y, x+width, y+20, ""+power);
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.drawCenteredText(x, y, x+width, y+20, ""+power);
+        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void tick(){
@@ -58,7 +59,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         }
         if(droneList.size()<drones){
             if(power>=20*600*5){
-                power-=20*600*5;
+                power -= 20*600*5;
                 droneList.add(game.addDrone(new Drone(this, 20*60*5)));
             }
         }
@@ -97,22 +98,23 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         return missiles>0;
     }
     public void buildMissile(){
-        if(!canBuildMissile()) return;
+        if(!canBuildMissile())return;
         game.removeResources(new ItemStack(missileCost));
-        power-=missilePowerCost;
+        power -= missilePowerCost;
         missiles++;
     }
     public void buildDrone(){
-        if(!canBuildDrone()) return;
+        if(!canBuildDrone())return;
         game.removeResources(new ItemStack(droneCost));
-        power-=dronePowerCost;
+        power -= dronePowerCost;
         drones++;
     }
     public void launchMissile(){
-        if(!canLaunchMissile()) return;
+        if(!canLaunchMissile())return;
         Enemy target = null;
         if(target==null){
-            DO:do{
+            DO:
+            do{
                 for(Enemy enemy : game.enemies){
                     if(enemy instanceof EnemyMothership){
                         target = enemy;
@@ -120,12 +122,13 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
                     }
                 }
                 for(Enemy enemy : game.enemies){
-                    if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyAlien) continue;
+                    if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyAlien)
+                        continue;
                     target = enemy;
                     break DO;
                 }
                 for(Enemy enemy : game.enemies){
-                    if(enemy instanceof EnemyMeteorStrike) continue;
+                    if(enemy instanceof EnemyMeteorStrike)continue;
                     target = enemy;
                     break DO;
                 }
@@ -143,25 +146,23 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         return super.onDamage(x, y);
     }
     @Override
-    public Config save(Config cfg){
-        super.save(cfg);
-        cfg.set("energy", power);
-        cfg.set("drones", drones);
-        cfg.set("missiles", missiles);
-        cfg.set("x", x);
-        cfg.set("y", y);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.silo = new GameState.Structure.Silo();
+        state.silo.drones = drones;
+        state.silo.missiles = missiles;
+        return state;
     }
-    public static Silo loadSpecific(Config config, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades) {
+    public static Silo loadSpecific(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         Silo silo = new Silo(game, x, y, level, upgrades);
-        silo.power = config.get("energy", 0);
-        silo.drones = config.get("drones", 0);
-        silo.missiles = config.get("missiles", 0);
+        silo.power = (int)state.power;
+        silo.drones = state.silo.drones;
+        silo.missiles = state.silo.missiles;
         return silo;
     }
     public void explosionInHangar(){
         for(int i = 0; i<missiles; i++){
-            damages.add(new StructureDamage(this, game.rand.nextInt((int) width), game.rand.nextInt((int) height)));
+            damages.add(new StructureDamage(this, game.rand.nextInt((int)width), game.rand.nextInt((int)height)));
         }
         game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
     }
@@ -184,7 +185,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
     }
     @Override
     public void addPower(double power){
-        this.power+=power;
+        this.power += power;
     }
     @Override
     public double getPower(){
@@ -195,7 +196,7 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         return true;
     }
     @Override
-    public void getDebugInfo(ArrayList<String> data) {
+    public void getDebugInfo(ArrayList<String> data){
         super.getDebugInfo(data);
         data.add("Drones: "+drones);
         data.add("Missiles: "+missiles);

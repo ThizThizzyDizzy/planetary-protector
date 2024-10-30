@@ -223,12 +223,13 @@ public class MenuGame extends Menu{
             Renderer.fillRect(getWidth()-100, getHeight()-200, getWidth(), getHeight(), ResourceManager.getTexture("/textures/gui/sidebar.png"));
             if(game.selectedStructure!=null){
                 String upgrades = "";
-                for(Upgrade u : game.selectedStructure.getBoughtUpgrades())upgrades += "*";
+                for(Upgrade u : game.selectedStructure.getBoughtUpgrades())
+                    upgrades += "*";
                 textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedStructure.getName());
             }
             if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)){
                 Renderer.setColor(0, (float)(Math.sin(game.tick/5d)/4+.75), 0, 1);
-                Game.drawRegularPolygon(getWidth()-100+5, getHeight()-100+5, 5, 25, 0);
+                Renderer.fillRegularPolygon(getWidth()-100+5, getHeight()-100+5, 25, 5);
                 Renderer.setColor(1, 1, 1, 1);
             }
             Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth(), getHeight(), ResourceManager.getTexture("/textures/furnace "+game.furnaceLevel+".png"));
@@ -336,7 +337,8 @@ public class MenuGame extends Menu{
                 }
                 break;
             case Controls.cheat:
-                if(mods==(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT|GLFW_MOD_ALT))game.cheats = !game.cheats;
+                if(mods==(GLFW_MOD_CONTROL|GLFW_MOD_SHIFT|GLFW_MOD_ALT))
+                    game.cheats = !game.cheats;
                 break;
         }
         if(game.cheats){
@@ -545,7 +547,8 @@ public class MenuGame extends Menu{
                 };
                 if(hit>=0){
                     if(actionButtons.size()>hit){
-                        if(actionButtons.get(hit).enabled&&!actionButtons.get(hit).action.isImportant())actionButtons.get(hit).perform();
+                        if(actionButtons.get(hit).enabled&&!actionButtons.get(hit).action.isImportant())
+                            actionButtons.get(hit).perform();
                     }
                 }
             }
@@ -565,8 +568,8 @@ public class MenuGame extends Menu{
         super.onMouseButton(id, pos, button, action, mods);
         for(Component c : components){
             if(c instanceof Button){
-                if(new BoundingBox((int)c.x, (int)c.y, (int)c.getWidth(), (int)c.getHeight()).contains((int)x, (int)y))return;//TODO just use components like a normal person
-                if(Core.isPointWithinComponent(x, y, c))return;// W A T
+                if(new BoundingBox((int)c.x, (int)c.y, (int)c.getWidth(), (int)c.getHeight()).contains((int)x, (int)y))
+                    return;//TODO just use components like a normal person
             }
         }
         if(action!=GLFW_PRESS)return;

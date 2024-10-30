@@ -39,13 +39,13 @@ public class MenuComponentActionButton extends Button{
         if(!action.isImportant()){
             int id = menu.actionButtons.indexOf(this);
             if(id>=0&&id<=11){
-                GL11.glColor4d(1, 1, 1, .75);
+                Renderer.setColor(1, 1, 1, .75);
                 String num = (id+1)+"";
                 if(id==9)num = "0";
                 if(id==10)num = "-";
                 if(id==11)num = "=";
                 Renderer.drawText(x+label.labelInset, y+getHeight()/2, x+getWidth()-label.labelInset, y+getHeight()-label.labelInset, num);
-                GL11.glColor4d(1, 1, 1, 1);
+                Renderer.setColor(1, 1, 1, 1);
             }
         }
     }

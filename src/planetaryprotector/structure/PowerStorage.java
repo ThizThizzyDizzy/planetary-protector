@@ -1,12 +1,11 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.ingame.MenuPowerStorageConfiguration;
-import simplelibrary.config2.Config;
-import static simplelibrary.opengl.Renderer2D.drawCenteredText;
 public class PowerStorage extends Structure implements StructurePowerStorage, StructureDemolishable{
     private double power;
     public boolean charge = true;
@@ -27,7 +26,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
     private boolean lastMeteor = false;
     public int rechargeRate = 100;
     public int dischargeRate = 100;
-    public PowerStorage(Game game, int x, int y) {
+    public PowerStorage(Game game, int x, int y){
         super(StructureType.POWER_STORAGE, game, x, y, 100, 100);
     }
     public PowerStorage(Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
@@ -38,7 +37,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
         super.tick();
         if(automaticControl){
             if(daylightControl){
-                int daylight = (int) Math.round(game.getSunlight()*100);
+                int daylight = (int)Math.round(game.getSunlight()*100);
                 if(lastDaylight!=daylight){
                     if(daylight>=daylightThreshold&&lastDaylight<daylightThreshold){
                         charge = daylightRecharge;
@@ -76,71 +75,71 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
     }
     @Override
     public void renderBackground(){
-        drawRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
         super.renderBackground();
     }
     @Override
     public void renderForeground(){
         super.renderForeground();
         Game.theme.applyTextColor();
-        drawCenteredText(x, y, x+width, y+20, (int)power+"");
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.drawCenteredText(x, y, x+width, y+20, (int)power+"");
+        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("power", power);
-        cfg.set("charge", charge);
-        cfg.set("discharge", discharge);
-        cfg.set("daylightThreshold", daylightThreshold);
-        cfg.set("automaticControl", automaticControl);
-        cfg.set("daylightControl", daylightControl);
-        cfg.set("daylightRecharge", daylightRecharge);
-        cfg.set("daylightDischarge", daylightDischarge);
-        cfg.set("nightRecharge", nightRecharge);
-        cfg.set("nightDischarge", nightDischarge);
-        cfg.set("neutralRecharge", neutralRecharge);
-        cfg.set("neutralDischarge", neutralDischarge);
-        cfg.set("meteorOverride", meteorOverride);
-        cfg.set("meteorRecharge", meteorRecharge);
-        cfg.set("meteorDischarge", meteorDischarge);
-        cfg.set("lastDaylight", lastDaylight);
-        cfg.set("lastMeteor", lastMeteor);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.powerStorage = new GameState.Structure.PowerStorage();
+        state.powerStorage.charge = charge;
+        state.powerStorage.discharge = discharge;
+        state.powerStorage.daylightThreshold = daylightThreshold;
+        state.powerStorage.automaticControl = automaticControl;
+        state.powerStorage.daylightControl = daylightControl;
+        state.powerStorage.daylightRecharge = daylightRecharge;
+        state.powerStorage.daylightDischarge = daylightDischarge;
+        state.powerStorage.nightRecharge = nightRecharge;
+        state.powerStorage.nightDischarge = nightDischarge;
+        state.powerStorage.neutralRecharge = neutralRecharge;
+        state.powerStorage.neutralDischarge = neutralDischarge;
+        state.powerStorage.meteorOverride = meteorOverride;
+        state.powerStorage.meteorRecharge = meteorRecharge;
+        state.powerStorage.meteorDischarge = meteorDischarge;
+        state.powerStorage.lastDaylight = lastDaylight;
+        state.powerStorage.lastMeteor = lastMeteor;
+        return state;
     }
-    public static PowerStorage loadSpecific(Config cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+    public static PowerStorage loadSpecific(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         PowerStorage powerStorage = new PowerStorage(game, x, y, level, upgrades);
-        powerStorage.power = cfg.get("power", powerStorage.power);
-        powerStorage.charge = cfg.get("charge", powerStorage.charge);
-        powerStorage.discharge = cfg.get("discharge", powerStorage.discharge);
-        powerStorage.daylightThreshold = cfg.get("daylightThreshold", powerStorage.daylightThreshold);
-        powerStorage.automaticControl = cfg.get("automaticControl", powerStorage.automaticControl);
-        powerStorage.daylightControl = cfg.get("daylightControl", powerStorage.daylightControl);
-        powerStorage.daylightRecharge = cfg.get("daylightRecharge", powerStorage.daylightRecharge);
-        powerStorage.daylightDischarge = cfg.get("daylightDischarge", powerStorage.daylightDischarge);
-        powerStorage.nightRecharge = cfg.get("nightRecharge", powerStorage.nightRecharge);
-        powerStorage.nightDischarge = cfg.get("nightDischarge", powerStorage.nightDischarge);
-        powerStorage.neutralRecharge = cfg.get("neutralRecharge", powerStorage.neutralRecharge);
-        powerStorage.neutralDischarge = cfg.get("neutralDischarge", powerStorage.neutralDischarge);
-        powerStorage.meteorOverride = cfg.get("meteorOverride", powerStorage.meteorOverride);
-        powerStorage.meteorRecharge = cfg.get("meteorRecharge", powerStorage.meteorRecharge);
-        powerStorage.meteorDischarge = cfg.get("meteorDischarge", powerStorage.meteorDischarge);
-        powerStorage.lastDaylight = cfg.get("lastDaylight", powerStorage.lastDaylight);
-        powerStorage.lastMeteor = cfg.get("lastMeteor", powerStorage.lastMeteor);
+        powerStorage.power = state.power;
+        powerStorage.charge = state.powerStorage.charge;
+        powerStorage.discharge = state.powerStorage.discharge;
+        powerStorage.daylightThreshold = state.powerStorage.daylightThreshold;
+        powerStorage.automaticControl = state.powerStorage.automaticControl;
+        powerStorage.daylightControl = state.powerStorage.daylightControl;
+        powerStorage.daylightRecharge = state.powerStorage.daylightRecharge;
+        powerStorage.daylightDischarge = state.powerStorage.daylightDischarge;
+        powerStorage.nightRecharge = state.powerStorage.nightRecharge;
+        powerStorage.nightDischarge = state.powerStorage.nightDischarge;
+        powerStorage.neutralRecharge = state.powerStorage.neutralRecharge;
+        powerStorage.neutralDischarge = state.powerStorage.neutralDischarge;
+        powerStorage.meteorOverride = state.powerStorage.meteorOverride;
+        powerStorage.meteorRecharge = state.powerStorage.meteorRecharge;
+        powerStorage.meteorDischarge = state.powerStorage.meteorDischarge;
+        powerStorage.lastDaylight = state.powerStorage.lastDaylight;
+        powerStorage.lastMeteor = state.powerStorage.lastMeteor;
         return powerStorage;
     }
     @Override
     public double getProduction(){
         if(!discharge)return 0;
-        return Math.min(getMaxProduction()*dischargeRate/100,power);
+        return Math.min(getMaxProduction()*dischargeRate/100, power);
     }
     public double getMaxProduction(){
         return 32+32*level;
     }
     @Override
     public void producePower(double power){
-        this.power-=power;
+        this.power -= power;
     }
     @Override
     public boolean isRenewable(){
@@ -153,7 +152,7 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
     @Override
     public double getDemand(){
         if(!charge)return 0;
-        return Math.min(getMaxDemand()*rechargeRate/100,getMaxPower()-getPower());
+        return Math.min(getMaxDemand()*rechargeRate/100, getMaxPower()-getPower());
     }
     public double getMaxDemand(){
         return 4+4*level;

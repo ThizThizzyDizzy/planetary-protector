@@ -12,17 +12,17 @@ public class MenuSaveAs extends Menu{
     private final Game game;
     public MenuSaveAs(GUI gui, MenuGame game){
         super(gui, game);
-        cancel = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-80, 400, 40, "Cancel", true));
-        save = add(new MenuComponentButton(Core.helper.displayWidth()/2-200, Core.helper.displayHeight()-160, 400, 40, "Save", false));
-        name = add(new MenuComponentTextBox(Core.helper.displayWidth()/2-200, 120, 400, 40, game.game.name==null?"":game.game.name, true));
+        cancel = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-80, 400, 40, "Cancel", true));
+        save = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-160, 400, 40, "Save", false));
+        name = add(new MenuComponentTextBox(DizzyEngine.screenSize.x/2-200, 120, 400, 40, game.game.name==null?"":game.game.name, true));
         this.game = game.game;
     }
     @Override
     public void renderBackground(){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
+        Renderer.fillRect(0,0,DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
         save.enabled = !name.text.isEmpty();
-        cancel.x = Core.helper.displayWidth()/2-200;
-        cancel.y = Core.helper.displayHeight()-80;
+        cancel.x = DizzyEngine.screenSize.x/2-200;
+        cancel.y = DizzyEngine.screenSize.y-80;
         save.x = cancel.x;
         save.y = cancel.y-80;
         name.x = save.x;

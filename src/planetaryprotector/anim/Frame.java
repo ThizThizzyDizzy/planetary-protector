@@ -1,5 +1,5 @@
 package planetaryprotector.anim;
-import simplelibrary.opengl.ImageStash;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
 public class Frame{
     private Type type;
     private String path;
@@ -18,7 +18,7 @@ public class Frame{
     public int getTexture(){
         switch(type){
             case PATH:
-                texture = ImageStash.instance.getTexture(path);
+                texture = ResourceManager.getTexture(path);
                 type = Type.TEXTURE;
             case TEXTURE:
                 return texture;

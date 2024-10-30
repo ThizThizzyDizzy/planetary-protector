@@ -144,7 +144,8 @@ public class Particle extends GameObjectAnimated{
                 }
                 opacity = (float)(Math.log10(strength/(rainThreshold/4))*.75f);
                 float lightness = 1-((strength-(rainThreshold*(3/4f)))/50);
-                if(Game.theme==Game.Theme.SNOWY)lightness = (float)Math.sqrt(lightness);
+                if(Game.theme==Game.Theme.SNOWY)
+                    lightness = (float)Math.sqrt(lightness);
                 Renderer.setColor(lightness, lightness, lightness, opacity*Options.options.cloudIntensity);
                 Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
                 Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
@@ -153,8 +154,8 @@ public class Particle extends GameObjectAnimated{
                 return;
             case FIRE:
                 for(float[] i : smoke){
-                    float r = Math.max(0,Math.min(1,(10-i[4])/10));
-                    float g = Math.max(0,Math.min(1,(10-i[4])/20));
+                    float r = Math.max(0, Math.min(1, (10-i[4])/10));
+                    float g = Math.max(0, Math.min(1, (10-i[4])/20));
                     Renderer.setColor(r, g, 0, i[3]);
                     Renderer.pushModel(new Matrix4f().translate(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0).rotate(i[2], 0, 0, 1));
                     Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
@@ -184,12 +185,12 @@ public class Particle extends GameObjectAnimated{
             return;
         }
         if(type==ParticleEffectType.EXPLOSION){
-            opacity-=0.005*(11-size);
-            radius+=5+0.5*((11-size));
+            opacity -= 0.005*(11-size);
+            radius += 5+0.5*((11-size));
             game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
             if(size>=10){
                 for(Structure structure : game.structures){
-                    if(structure.getCenter().distance(x,y)<=radius&&!structure.type.isBackgroundStructure()){
+                    if(structure.getCenter().distance(x, y)<=radius&&!structure.type.isBackgroundStructure()){
                         structure.onHit(structure.x-25, structure.y+structure.height-25);
                     }
                 }
@@ -197,25 +198,25 @@ public class Particle extends GameObjectAnimated{
             return;
         }
         if(type==ParticleEffectType.SMOKE){
-            rotation+=0.01;
-            opacity-=0.05;
+            rotation += 0.01;
+            opacity -= 0.05;
         }
         if(type==ParticleEffectType.CLOUD){
-            strength+=rateOfChange;
-            rotation+=rotSpeed;
+            strength += rateOfChange;
+            rotation += rotSpeed;
             if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
                 dead = true;
             }
-            xing+=speed;
+            xing += speed;
             int actualX = (int)xing;
-            x+=actualX;
-            xing-=actualX;
-            for (Iterator<float[]> it = snow.iterator(); it.hasNext();) {
+            x += actualX;
+            xing -= actualX;
+            for(Iterator<float[]> it = snow.iterator(); it.hasNext();){
                 float[] i = it.next();
                 if(game.rand.nextBoolean()){
-                    i[0]+=game.rand.nextInt(3)-1;
+                    i[0] += game.rand.nextInt(3)-1;
                 }
-                i[0]-=speed*.1;
+                i[0] -= speed*.1;
                 i[2]++;
                 if(i[2]>=500){
                     it.remove();
@@ -224,7 +225,7 @@ public class Particle extends GameObjectAnimated{
             for(int i = 0; i<strength/100; i++){
                 float X = game.rand.nextInt((int)width)-width/2;
                 float Y = game.rand.nextInt((int)height)-height/2;
-                snow.add(new float[]{X,Y,0});
+                snow.add(new float[]{X, Y, 0});
             }
         }
         if(type==ParticleEffectType.FIRE){
@@ -244,7 +245,7 @@ public class Particle extends GameObjectAnimated{
             }
             if(smokeTimer>=delay&&!fading){
                 smokeTimer = 0;
-                smoke.add(new float[]{0,0,0,0,0,0});
+                smoke.add(new float[]{0, 0, 0, 0, 0, 0});
             }
             for(Iterator<float[]> it = smoke.iterator(); it.hasNext();){
                 float[] i = it.next();
@@ -262,44 +263,45 @@ public class Particle extends GameObjectAnimated{
     /**
      * move sub-particles up.
      * used to move smoke up on falling skyscrapers.
+     *
      * @param i how far to move them.
      */
     public void offsetSubParticles(int i){
         for(float[] d : smoke){
-            d[5]+=i;
+            d[5] += i;
         }
     }
     public void push(double x, double y, PushCause cause){
         if(type==ParticleEffectType.EXPLOSION)return;
         if(type==ParticleEffectType.SMOKE){
             if(x>1||y>1){
-                x/=Math.max(x,y);
-                y/=Math.max(x,y);
+                x /= Math.max(x, y);
+                y /= Math.max(x, y);
             }
         }
         if(type==ParticleEffectType.FIRE){
             if(cause==PushCause.ASTEROID)return;
             for(float[] d : smoke){
-                d[1]+=x;
-                d[2]+=y;
+                d[1] += x;
+                d[2] += y;
             }
             return;
         }
         if(type==ParticleEffectType.CLOUD){
             for(float[] d : snow){
-                d[0]-=x;
-                d[1]-=y;
+                d[0] -= x;
+                d[1] -= y;
             }
         }
-        this.x+=x;
-        this.y+=y;
+        this.x += x;
+        this.y += y;
     }
     public void fade(double amount){
         if(this instanceof ParticleFog){
-            ((ParticleFog)this).opacity-=amount/10;
+            ((ParticleFog)this).opacity -= amount/10;
         }
         if(type==ParticleEffectType.CLOUD){
-            strength-=amount;
+            strength -= amount;
         }
     }
     private static class Lightning{
@@ -341,7 +343,7 @@ public class Particle extends GameObjectAnimated{
         }
         public void render(){
             if(first&&goBack){
-                opacity-=.375;
+                opacity -= .375;
             }
             if(nextLine!=null){
                 nextLine.opacity = opacity;
@@ -350,11 +352,12 @@ public class Particle extends GameObjectAnimated{
                 branch.opacity = opacity;
             }
             Renderer.setColor(1, 1, .25f, opacity*Options.options.cloudIntensity);
-            ResourceManager.bindTexture(0);
-            GL11.glBegin(GL11.GL_LINES);
-            GL11.glVertex2d(x1, y1);
-            GL11.glVertex2d(x2, y2);
-            GL11.glEnd();
+            Renderer.drawText((float)x1, (float)y1, "TODO Lightning lines", 40);
+//            ResourceManager.bindTexture(0);
+//            GL11.glBegin(GL11.GL_LINES);
+//            GL11.glVertex2d(x1, y1);
+//            GL11.glVertex2d(x2, y2);
+//            GL11.glEnd();
             if(hasRendered){
                 if(nextLine==null){
                     goBack = true;
@@ -401,6 +404,6 @@ public class Particle extends GameObjectAnimated{
         return y+height/2;
     }
     public static enum PushCause{
-        ASTEROID,EXPLOSION,LASER, SHEILD_BLAST;
+        ASTEROID, EXPLOSION, LASER, SHEILD_BLAST;
     }
 }

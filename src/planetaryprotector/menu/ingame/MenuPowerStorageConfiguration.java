@@ -52,7 +52,7 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
     }
     @Override
     public void render(){
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         Y = 20;
         for(MenuComponent c : components){
             c.y = -c.height;
@@ -80,18 +80,18 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
             if(powerStorage.daylightControl){
                 daylightThreshold.y = Y+spacing;
                 daylightThreshold.x = text("Daylight Threshold:");
-                int X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "During daylight:", textHeight);
+                int X = drawText(spacing, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight*2+spacing*2, "During daylight:", textHeight);
                 daylightRecharge.y = Y+spacing;
                 daylightRecharge.x = X+text(X+spacing, "Recharge:");
                 daylightDischarge.y = Y+spacing;
                 daylightDischarge.x = X+text(X+spacing, "Discharge:");
-                X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "During night:", textHeight);
+                X = drawText(spacing, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight*2+spacing*2, "During night:", textHeight);
                 nightRecharge.y = Y+spacing;
                 nightRecharge.x = X+text(X+spacing, "Recharge:");
                 nightDischarge.y = Y+spacing;
                 nightDischarge.x = X+text(X+spacing, "Discharge:");
             }else{
-                int X = drawText(spacing, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight*2+spacing*2, "Neutral settings:", textHeight);
+                int X = drawText(spacing, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight*2+spacing*2, "Neutral settings:", textHeight);
                 neutralRecharge.y = Y+spacing;
                 neutralRecharge.x = X+text(X+spacing, "Recharge:");
                 neutralDischarge.y = Y+spacing;
@@ -131,7 +131,7 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
         return text(0, text, textHeight);
     }
     private int text(int X, String text, double textHeight){
-        drawText(spacing+X, Y+spacing, Core.helper.displayWidth(), Y+spacing+textHeight, text);
+        drawText(spacing+X, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight, text);
         Y+=spacing*2+textHeight;
         return (int) Math.round(FontManager.getLengthForStringWithHeight(text, textHeight));
     }

@@ -67,6 +67,14 @@ public class GameState{
     }
     public static class Structure{
         public Skyscraper skyscraper;
+        public ShieldGenerator shieldGenerator;
+        public Silo silo;
+        public CoalGenerator coalGenerator;
+        public Laboratory laboratory;
+        public Mine mine;
+        public Observatory observatory;
+        public PowerStorage powerStorage;
+        public Wreck wreck;
         public String type;
         public int level;
         public ArrayList<String> upgrades = new ArrayList<>();
@@ -105,6 +113,56 @@ public class GameState{
                 public SkyscraperDecal.Type type;
                 public int variant;
             }
+        }
+        public static class ShieldGenerator{
+            public float blastRecharge;
+            public double shieldSize;
+            public double maxShieldSize = 500;
+            public float shieldStrength = 1;
+            public double oldPower;
+            public int target = -1;
+        }
+        public static class Silo{
+            public int drones;
+            public int missiles;
+        }
+        public static class CoalGenerator{
+            public boolean autoFuel;
+        }
+        public static class Laboratory{
+            public String target = "null";
+        }
+        public static class Mine{
+            public int timer;
+            public int delay;
+            public boolean powerTools;
+        }
+        public static class Observatory{
+            public double starlight;
+            public int scanning;
+            public double collecting;
+        }
+        public static class PowerStorage{
+            public boolean charge;
+            public boolean discharge;
+            public int daylightThreshold;
+            public boolean automaticControl;
+            public boolean daylightControl;
+            public boolean daylightRecharge;
+            public boolean daylightDischarge;
+            public boolean nightRecharge;
+            public boolean nightDischarge;
+            public boolean neutralRecharge;
+            public boolean neutralDischarge;
+            public boolean meteorOverride;
+            public boolean meteorRecharge;
+            public boolean meteorDischarge;
+            public int lastDaylight;
+            public boolean lastMeteor;
+        }
+        public static class Wreck{
+            public int ingots = 1;
+            public int progress;
         }
     }
     public static class Expedition{

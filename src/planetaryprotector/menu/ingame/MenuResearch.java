@@ -19,10 +19,10 @@ public class MenuResearch extends MenuComponentOverlayStructure{
     public MenuResearch(MenuGame menu, Laboratory laboratory){
         super(menu, laboratory);
         this.laboratory = laboratory;
-        undiscovered = add(new MenuComponentMulticolumnList(spacing, spacing+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
-        available = add(new MenuComponentMulticolumnList(spacing, undiscovered.y+undiscovered.height+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
-        finished = add(new MenuComponentMulticolumnList(spacing, available.y+available.height+textSize, Core.helper.displayWidth()/2-spacing*2, (Core.helper.displayHeight()-spacing*2)/3-textSize, researchSize, researchSize, researchSize/10, false));
-        selected = add(new MenuComponentSelectedResearch(laboratory, Core.helper.displayWidth()/2+spacing, spacing, Core.helper.displayWidth()/2-spacing*2, Core.helper.displayHeight()-spacing*2));
+        undiscovered = add(new MenuComponentMulticolumnList(spacing, spacing+textSize, DizzyEngine.screenSize.x/2-spacing*2, (DizzyEngine.screenSize.y-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
+        available = add(new MenuComponentMulticolumnList(spacing, undiscovered.y+undiscovered.height+textSize, DizzyEngine.screenSize.x/2-spacing*2, (DizzyEngine.screenSize.y-spacing*2)/3-textSize, researchSize, researchSize, 20, false));
+        finished = add(new MenuComponentMulticolumnList(spacing, available.y+available.height+textSize, DizzyEngine.screenSize.x/2-spacing*2, (DizzyEngine.screenSize.y-spacing*2)/3-textSize, researchSize, researchSize, researchSize/10, false));
+        selected = add(new MenuComponentSelectedResearch(laboratory, DizzyEngine.screenSize.x/2+spacing, spacing, DizzyEngine.screenSize.x/2-spacing*2, DizzyEngine.screenSize.y-spacing*2));
         for(Research research : Research.values()){
             if(research.isCompleted())finished.add(new MenuComponentResearch(this, research));
             else if(research.isDiscovered())available.add(new MenuComponentResearch(this, research));
@@ -59,10 +59,10 @@ public class MenuResearch extends MenuComponentOverlayStructure{
     }
     @Override
     public void render(){
-        GL11.glColor4d(1, 1, 1, 1);
-        drawText(spacing, undiscovered.y-textSize, Core.helper.displayWidth()/2-spacing, undiscovered.y, "Undiscovered Research");
-        drawText(spacing, available.y-textSize, Core.helper.displayWidth()/2-spacing, available.y, "Available Research");
-        drawText(spacing, finished.y-textSize, Core.helper.displayWidth()/2-spacing, finished.y, "Finished Research");
+        Renderer.setColor(1, 1, 1, 1);
+        drawText(spacing, undiscovered.y-textSize, DizzyEngine.screenSize.x/2-spacing, undiscovered.y, "Undiscovered Research");
+        drawText(spacing, available.y-textSize, DizzyEngine.screenSize.x/2-spacing, available.y, "Available Research");
+        drawText(spacing, finished.y-textSize, DizzyEngine.screenSize.x/2-spacing, finished.y, "Finished Research");
     }
     @Override
     public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){

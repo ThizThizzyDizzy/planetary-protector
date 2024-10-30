@@ -1,4 +1,7 @@
 package planetaryprotector.game;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import planetaryprotector.structure.Wreck;
@@ -9,8 +12,10 @@ import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.joml.Vector3i;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
+import planetaryprotector.Options;
 import planetaryprotector.structure.ShieldGenerator;
 import planetaryprotector.structure.task.TaskAnimation;
 import planetaryprotector.enemy.Asteroid;
@@ -18,19 +23,16 @@ import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.menu.MenuEpilogue2;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.structure.Structure;
-import simplelibrary.Queue;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Epilogue extends Game{//TODO no Display
     private int timer = 195;
     private int i;
     private String[] texts = new String[]{"All of the other cities on the planet are still in ruins.", "Let the people of the city set out and rebuild.", "Thanks for playing!"};
-    private Queue<int[]> w = new Queue<>();
+    private ArrayList<int[]> w = new ArrayList<>();
     private static double offset = 0;
     private ArrayList<Particle> clouds = new ArrayList<>();
     public Epilogue(){
         super(null, 1, WorldGenerator.getWorldGenerator(1, "chaotic"), Story.stories.get(1).get(0), false);
-        int buildingCount = (Core.helper.displayWidth()/100)*(Core.helper.displayHeight()/100);
+        int buildingCount = (DizzyEngine.screenSize.x/100)*(DizzyEngine.screenSize.y/100);
         for(int i = 0; i<buildingCount; i++){
             Structure structure = genBuilding(this, structures);
             if(structure==null){
@@ -56,24 +58,20 @@ public class Epilogue extends Game{//TODO no Display
         int buildingX;
         int buildingY;
         int i = 0;
-        WHILE:while(true){
+        WHILE:
+        while(true){
             i++;
             if(i>1000){
                 return null;
             }
-            buildingX = game.rand.nextInt(Core.helper.displayWidth()-100);
-            buildingY = game.rand.nextInt(Core.helper.displayHeight()-100);
+            buildingX = game.rand.nextInt(DizzyEngine.screenSize.x-100);
+            buildingY = game.rand.nextInt(DizzyEngine.screenSize.y-100);
             for(Structure structure : structures){
-                double Y = structure.y;
-                if(structure instanceof Skyscraper){
-                    Y-=((Skyscraper) structure).fallen;
-                }
-                if(isClickWithinBounds(buildingX, buildingY, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                     isClickWithinBounds(buildingX+100, buildingY, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                     isClickWithinBounds(buildingX, buildingY+100, structure.x, Y, structure.x+structure.width, Y+structure.height)||
-                     isClickWithinBounds(buildingX+100, buildingY+100, structure.x, Y, structure.x+structure.width, Y+structure.height)){
-                    continue WHILE;
-                }
+                var bbox = structure.getBoundingBox(true);
+                if(bbox.contains(buildingX, buildingY))continue WHILE;
+                if(bbox.contains(buildingX+100, buildingY))continue WHILE;
+                if(bbox.contains(buildingX, buildingY+100))continue WHILE;
+                if(bbox.contains(buildingX+100, buildingY+100))continue WHILE;
             }
             break;
         }
@@ -96,9 +94,9 @@ public class Epilogue extends Game{//TODO no Display
                 timer--;
             }
         }else{
-            if(i==0&&Sounds.songTimer()>=191||
-               i==1&&Sounds.songTimer()>=384||
-               i==2&&Sounds.songTimer()>=576){
+            if(i==0&&Sounds.songTimer()>=191
+                ||i==1&&Sounds.songTimer()>=384
+                ||i==2&&Sounds.songTimer()>=576){
                 restart();
             }
         }
@@ -108,10 +106,10 @@ public class Epilogue extends Game{//TODO no Display
         if(i>2&&Sounds.songTimer()>=1726){
             offset = (Sounds.songTimer()-1726)/97.5D;
             if(offset>=2){
-                Core.gui.open(new MenuEpilogue2(Core.gui));
+                new MenuEpilogue2().open();
             }
         }
-        if(offset>=Core.helper.displayHeight())return;
+        if(offset>=DizzyEngine.screenSize.y)return;
         if((Sounds.songTimer()>576&&i>1)||i>=10){
             for(Particle p : clouds){
                 p.tick();
@@ -120,11 +118,11 @@ public class Epilogue extends Game{//TODO no Display
                 addCloud();
             }
             for(int[] p : w){
-                p[0] = rand.nextInt(Core.helper.displayWidth());
-                p[1] = rand.nextInt(Core.helper.displayHeight());
+                p[0] = rand.nextInt(DizzyEngine.screenSize.x);
+                p[1] = rand.nextInt(DizzyEngine.screenSize.y);
             }
-            for(int i = 0; i<Core.helper.displayHeight()/100; i++){
-                w.enqueue(new int[]{rand.nextInt(Core.helper.displayWidth()), rand.nextInt(Core.helper.displayHeight())});
+            for(int i = 0; i<DizzyEngine.screenSize.y/100; i++){
+                w.add(new int[]{rand.nextInt(DizzyEngine.screenSize.x), rand.nextInt(DizzyEngine.screenSize.y)});
             }
             for(Structure structure : structures){
                 if(structure instanceof Wreck&&rand.nextInt(25)==1){
@@ -134,7 +132,7 @@ public class Epilogue extends Game{//TODO no Display
                     replaceStructure(structure, new Skyscraper(this, structure.x, structure.y, 1));
                 }
                 if(structure instanceof Skyscraper&&rand.nextInt(4)==1){
-                    Skyscraper sky = (Skyscraper) structure;
+                    Skyscraper sky = (Skyscraper)structure;
                     sky.floorCount++;
                 }
             }
@@ -156,13 +154,13 @@ public class Epilogue extends Game{//TODO no Display
         }
     }
     @Override
-    public void renderWorld(int millisSinceLastTick){
-        drawRect(0,0,Core.helper.displayWidth(), Core.helper.displayHeight(), Game.theme.getBackgroundTexture(1));
+    public void renderWorld(Vector3i chunk, double deltaTime){
+        Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
         for(Structure structure : structures){
             structure.renderBackground();
         }
         for(int[] p : w){
-            drawRect(p[0]-5, p[1]-5, p[0]+5, p[1]+5, ImageStash.instance.getTexture("/textures/worker.png"));
+            Renderer.fillRect(p[0]-5, p[1]-5, p[0]+5, p[1]+5, ResourceManager.getTexture("/textures/worker.png"));
         }
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())anim.draw();
@@ -181,17 +179,9 @@ public class Epilogue extends Game{//TODO no Display
         }
         Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
             int y1 = (int)o1.y;
-            int height1 = (int)o1.height;
+            int height1 = (int)o1.getBoundingBox(false).height;
             int y2 = (int)o2.y;
-            int height2 = (int)o2.height;
-            if(o1 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o1;
-                y1 -= sky.fallen;
-            }
-            if(o2 instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)o2;
-                y2 -= sky.fallen;
-            }
+            int height2 = (int)o2.getBoundingBox(false).height;
             y1 += height1/2;
             y2 += height2/2;
             return y1-y2;
@@ -205,8 +195,8 @@ public class Epilogue extends Game{//TODO no Display
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator) structure;
-                gen.shield.render(millisSinceLastTick);
+                ShieldGenerator gen = (ShieldGenerator)structure;
+                gen.shield.render(deltaTime);
             }
         }
         //</editor-fold>
@@ -219,42 +209,43 @@ public class Epilogue extends Game{//TODO no Display
         drawDayNightCycle();
     }
     @Override
-    public void render(int millisSinceLastTick){
-        GL11.glTranslated(0, -Core.helper.displayHeight()*offset, 0);
-        renderWorld(millisSinceLastTick);
-        drawRect(0, Core.helper.displayHeight(), Core.helper.displayWidth(), Core.helper.displayHeight()*2, ImageStash.instance.getTexture("/textures/background/dirt "+Game.theme.tex()+".png"));
-        drawRect(0, Core.helper.displayHeight()*2, Core.helper.displayWidth(), Core.helper.displayHeight()*3, ImageStash.instance.getTexture("/textures/background/stone.png"));
+    public void render(double deltaTime){
+        GL11.glTranslated(0, -DizzyEngine.screenSize.y*offset, 0);
+        renderWorld(null, deltaTime);
+        Renderer.fillRect(0, DizzyEngine.screenSize.y, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y*2, ResourceManager.getTexture("/textures/background/dirt "+Game.theme.tex()+".png"));
+        Renderer.fillRect(0, DizzyEngine.screenSize.y*2, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y*3, ResourceManager.getTexture("/textures/background/stone.png"));
         if(blackScreenOpacity>0&&i<10){
-            blackScreenOpacity-=.01;
+            blackScreenOpacity -= .01;
         }
         if(i<texts.length){
-            centeredTextWithBackground(0, 0, Core.helper.displayWidth(), 50, texts[i]);
+            centeredTextWithBackground(0, 0, DizzyEngine.screenSize.x, 50, texts[i]);
         }
-        GL11.glTranslated(0, Core.helper.displayHeight()*offset, 0);
+        GL11.glTranslated(0, DizzyEngine.screenSize.y*offset, 0);
     }
     @Override
-    public void save(){}
+    public void save(){
+    }
     @Override
     public boolean isDestroyed(){
         return false;
     }
     private void restart(){
-        Core.gui.open(new MenuGame(Core.gui, new Epilogue(i+1)));
+        new MenuGame(new Epilogue(i+1)).open();
     }
     @Override
     public void addCloud(){
-        if(!MenuOptionsGraphics.clouds)return;
-        double strength = rand.nextInt(42);
-        double rateOfChange = (rand.nextDouble()-.4)/80;
-        double speed = rand.nextGaussian()/10+1;
-        speed*=250;
-        rateOfChange*=250;
-        int y = rand.nextInt(Core.helper.displayHeight());
+        if(!Options.options.clouds)return;
+        float strength = rand.nextInt(42);
+        float rateOfChange = (float)((rand.nextDouble()-.4)/80);
+        float speed = (float)(rand.nextGaussian()/10+1);
+        speed *= 250;
+        rateOfChange *= 250;
+        int y = rand.nextInt(DizzyEngine.screenSize.y);
         int wide = rand.nextInt(25)+5;
         int high = rand.nextInt(wide/5)+2;
         int height = 1;
-        for(double X = 0; X<wide; X+=.5){
-            double percent = X/wide;
+        for(float X = 0; X<wide; X += .5){
+            float percent = X/wide;
             if(percent>.75){
                 if(rand.nextBoolean()&&rand.nextBoolean()&&height>1){
                     height--;
@@ -271,7 +262,7 @@ public class Epilogue extends Game{//TODO no Display
                     Particle p = new Particle(this, x, y, strength, rateOfChange, speed);
                     clouds.add(p);
                     addParticleEffect(p);
-                    y-=40;
+                    y -= 40;
                 }
                 y = Y;
             }else{
@@ -280,14 +271,14 @@ public class Epilogue extends Game{//TODO no Display
                     Particle p = new Particle(this, x, y-20, strength, rateOfChange, speed);
                     clouds.add(p);
                     addParticleEffect(p);
-                    y-=40;
+                    y -= 40;
                 }
                 y = Y;
             }
         }
     }
     @Override
-    public boolean canLose() {
+    public boolean canLose(){
         return false;
     }
 }

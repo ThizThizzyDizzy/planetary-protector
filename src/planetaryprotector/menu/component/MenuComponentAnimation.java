@@ -12,7 +12,7 @@ import simplelibrary.opengl.gui.components.MenuComponentButton;
     }
     @Override
     public void render(){
-        drawRect(x, y, x+width, y+height, images[frame]);
+        Renderer.fillRect(x, y, x+width, y+height, images[frame]);
     }
     @Override
     public void tick(){

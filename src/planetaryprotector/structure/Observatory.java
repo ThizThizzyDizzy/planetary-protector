@@ -1,12 +1,12 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.config2.Config;
 public class Observatory extends Structure implements PowerConsumer, StarlightProducer, StructureDemolishable{
     public double starlight = 0;
     private static final double powerPerStarlight = 2000;
@@ -18,7 +18,7 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
     private double collecting;
     private ArrayList<String> scan = new ArrayList<>();
     private int textHeight = 15;
-    private double yOff;
+    private float yOff;
     private double power;
     private double summonThreshold = 500;
     private int shootTimer = -1;
@@ -57,25 +57,25 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
     @Override
     public void render(){
         super.render();
-        GL11.glColor4d(1, 1, 1, 1);
-        double laserSize = Math.max((size/starlightSpeed)*collecting,shootTimer>10?20-shootTimer:shootTimer);
+        Renderer.setColor(1, 1, 1, 1);
+        float laserSize = (float)Math.max((size/starlightSpeed)*collecting,shootTimer>10?20-shootTimer:shootTimer);
         if(laserSize>0){
-            double yDiff = -y-100;
-            double dist = Math.abs(yDiff);
-            GL11.glColor4d(.8, .8, 1, 1);//big outer one
+            float yDiff = -y-100;
+            float dist = Math.abs(yDiff);
+            Renderer.setColor(.8f, .8f, 1, 1);//big outer one
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                Game.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, laserSize/2D,10,0);
+                float percent = i/dist;
+                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, laserSize/2f);
             }
-            GL11.glColor4d(.5, .5, 1, 1);
-            drawRect(x, y+60, x+width, y+70, 0);
-            GL11.glColor4d(.9, .9, 1, 1);//small inner one
+            Renderer.setColor(.5f, .5f, 1, 1);
+            Renderer.fillRect(x, y+60, x+width, y+70, 0);
+            Renderer.setColor(.9f, .9f, 1, 1);//small inner one
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                Game.drawRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, (laserSize*(1/3D))/2D,10,0);
+                float percent = i/dist;
+                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, (laserSize*(1/3f))/2f);
             }
-//            drawRect(x+1, y+61, x+(width*(1-game.getSunlight()))-1, y+69, 0);
-            GL11.glColor4d(1, 1, 1, 1);
+//            Renderer.fillRect(x+1, y+61, x+(width*(1-game.getSunlight()))-1, y+69, 0);
+            Renderer.setColor(1, 1, 1, 1);
         }
     }
     @Override
@@ -83,10 +83,10 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         super.renderForeground();
         Game.theme.applyTextColor();
         if(scanning==1){
-            drawCenteredText(x, y, x+width, y+15, "Charging");
+            Renderer.drawCenteredText(x, y, x+width, y+15, "Charging");
         }
         if(scanning==2){
-            drawCenteredText(x, y, x+width, y+15, "Scanning");
+            Renderer.drawCenteredText(x, y, x+width, y+15, "Scanning");
         }
         if(!scan.isEmpty()){
             yOff = height-scan.size()*textHeight;
@@ -95,27 +95,28 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
             }
         }
         if(starlight>0){
-            drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
+            Renderer.drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
         }
         if(collecting>0){
-            drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
+            Renderer.drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("starlight", starlight);
-        cfg.set("scanning", scanning);
-        cfg.set("collecting", collecting);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.observatory = new GameState.Structure.Observatory();
+        state.observatory.starlight = starlight;
+        state.observatory.scanning = scanning;
+        state.observatory.collecting = collecting;
+        return state;
     }
-    public static Observatory loadSpecific(Config cfg, Game game, int x, int y) {
+    public static Observatory loadSpecific(GameState.Structure state, Game game, int x, int y) {
         Observatory observatory = new Observatory(game, x, y);
-        observatory.power = cfg.get("power", observatory.power);
-        observatory.starlight = cfg.get("starlight", observatory.starlight);
-        observatory.scanning = cfg.get("scanning", observatory.scanning);
-        observatory.collecting = cfg.get("collecting", observatory.collecting);
+        observatory.power = state.power;
+        observatory.starlight = state.observatory.starlight;
+        observatory.scanning = state.observatory.scanning;
+        observatory.collecting = state.observatory.collecting;
         return observatory;
     }
     public void toggleScan(){
@@ -156,7 +157,7 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         }
     }
     private void text(String str){
-        drawText(x, y+yOff, x+width, y+yOff+textHeight, str);
+        Renderer.drawText(x, y+yOff, x+width, y+yOff+textHeight, str);
         yOff+=textHeight;
     }
     public boolean canAddStar(){

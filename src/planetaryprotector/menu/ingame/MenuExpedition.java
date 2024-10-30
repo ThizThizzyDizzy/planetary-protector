@@ -16,10 +16,10 @@ public class MenuExpedition extends MenuComponentOverlay{
     HashMap<Double[], Expedition> rects = new HashMap<>();
     public MenuExpedition(MenuGame game){
         super(game);
-        add = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 80, 800, 80, "Add worker to expedition", true));
-        remove = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, 240, 800, 80, "Remove worker from expedition", false));
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-320, 800, 80, "Close", true));
-        send = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, "Send Expedition", false));
+        add = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 80, 800, 80, "Add worker to expedition", true));
+        remove = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 240, 800, 80, "Remove worker from expedition", false));
+        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-320, 800, 80, "Close", true));
+        send = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Send Expedition", false));
     }
     @Override
     public void renderBackground(){
@@ -41,7 +41,7 @@ public class MenuExpedition extends MenuComponentOverlay{
         for(Expedition e : menu.game.activeExpeditions){
             drawTextRight(e);
         }
-        drawCenteredText(0, remove.y+remove.height+25, Core.helper.displayWidth(), back.y-25, workers+"/"+menu.game.workers.size());
+        drawCenteredText(0, remove.y+remove.height+25, DizzyEngine.screenSize.x, back.y-25, workers+"/"+menu.game.workers.size());
     }
     Expedition close = null;
     @Override
@@ -118,7 +118,7 @@ public class MenuExpedition extends MenuComponentOverlay{
             drawTextRight(str, e);
         }
         double bottom = rightTextOffset;
-        double right = Core.helper.displayWidth();
+        double right = DizzyEngine.screenSize.x;
         rects.put(new Double[]{left,top,right,bottom}, e);
     }
     private void drawText(String text, Expedition e){
@@ -130,7 +130,7 @@ public class MenuExpedition extends MenuComponentOverlay{
     }
     private void drawTextRight(String text, Expedition e){
         double len = FontManager.getLengthForStringWithHeight(text, textHeight);
-        String str = drawTextWithWrap(Math.max(add.x+add.width, Core.helper.displayWidth()-len), rightTextOffset, Core.helper.displayWidth(), rightTextOffset+textHeight, text);
+        String str = drawTextWithWrap(Math.max(add.x+add.width, DizzyEngine.screenSize.x-len), rightTextOffset, DizzyEngine.screenSize.x, rightTextOffset+textHeight, text);
         rightTextOffset+=textHeight;
         if(str!=null&&!str.isEmpty()){
             drawTextRight(str, e);

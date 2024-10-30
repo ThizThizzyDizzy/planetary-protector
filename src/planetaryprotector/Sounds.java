@@ -12,6 +12,7 @@ import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuLost;
+import planetaryprotector.sound.NamedSound;
 public class Sounds{
     private static SoundSource musicSource;
     private static int musicFading;
@@ -83,7 +84,7 @@ public class Sounds{
      * time (One will be randomly chosen)
      */
     private static void getPlayableMusic(ArrayList<String> playableMusic){
-        Game game = Core.getGame();
+        Game game = DizzyEngine.getLayer(Game.class);
         if(DizzyEngine.getLayer(FlatUI.class).menu instanceof MenuLost){
             playableMusic.add("SadMusic3");
             return;
@@ -122,7 +123,7 @@ public class Sounds{
                             playableMusic.add("Boss2Music2");
                             break;
                         case 3:
-//                            playableMusic.add("Boss3Music1");
+                            //                            playableMusic.add("Boss3Music1");
                             playableMusic.add("Boss3Music2");
                             break;
                         case 4:
@@ -156,7 +157,7 @@ public class Sounds{
         if(musicFading>0){//TODO get redo music fading
             musicFading--;
             if(musicFading==0){
-                musicSource.playSound(fadeInto);
+                if(fadeInto!=null)musicSource.playSound(fadeInto);
                 musicSource.setGain(vol);
                 fadeInto = null;
             }else
@@ -179,7 +180,7 @@ public class Sounds{
      * @return song time in TICKS
      */
     public static int songTimer(){
-        return musicChannel.getPlayheadPosition()/50;
+        return (int)(musicSource.getPlayhead()*20);
     }
     private static void addSong(String name, String songName){
         soundNames.put(name, "/assets/sounds/music/"+songName+".mp3");
@@ -196,11 +197,8 @@ public class Sounds{
         }
     }
     public static String nowPlaying(){
-        for(String sound : soundNames.keySet()){
-            String path = soundNames.get(sound);
-            if(path.equals(musicChannel.getCurrentSound())){
-                return sound;
-            }
+        if(musicSource.currentSound instanceof NamedSound sound){
+            return sound.name;
         }
         return null;
     }
@@ -208,10 +206,23 @@ public class Sounds{
         return vol;
     }
     private static Sound getSong(String path){
-        return new Sound(path);
+        String name = path;
+        for(String sound : soundNames.keySet()){
+            if(path.equals(soundNames.get(sound)))name = sound;
+        }
+        return new NamedSound(name, path);
     }
     public static void fadeMusic(String music1){
         if(musicFading<=0)musicFading = 40;
         fadeInto = getSong(soundNames.get(music1));
+    }
+    public static void fadeMusic(){
+        if(musicFading<=0)musicFading = 40;
+    }
+    public static void stopMusic(){
+        musicSource.stopPlaying();
+    }
+    public static void playMusic(String song){
+        musicSource.playSound(getSong(song));
     }
 }

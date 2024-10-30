@@ -1,8 +1,9 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import org.lwjgl.opengl.GL11;
+import org.joml.Vector2f;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.Structure;
@@ -43,9 +44,10 @@ public class StarlightNetwork{
             double supplySoFar = 0;
             for(StarlightProducer producer : supply){
                 double production = producer.getStarlightProduction();
-                if(supplySoFar+production>=totalDemand)production = totalDemand-supplySoFar;
+                if(supplySoFar+production>=totalDemand)
+                    production = totalDemand-supplySoFar;
                 producer.produceStarlight(production);
-                supplySoFar+=production;
+                supplySoFar += production;
                 if(supplySoFar>=totalDemand)break;
             }
             for(StarlightConsumer consumer : demand){
@@ -69,13 +71,15 @@ public class StarlightNetwork{
                 for(Structure other : structures){
                     if(other instanceof StarlightUser&&!network.contains(other)){
                         if(!((StarlightUser)other).isStarlightActive())continue;
-                        if(Core.distance((Structure)user, other)>POWER_TRANSFER_RADIUS)continue;
+                        var struc = (Structure)user;
+                        if(Vector2f.distance(struc.x, struc.y, other.x, other.y)>POWER_TRANSFER_RADIUS)
+                            continue;
                         if(other instanceof StarlightConsumer){
-                            demand.add((StarlightConsumer) other);
+                            demand.add((StarlightConsumer)other);
                             foundNew = true;
                         }
                         if(other instanceof StarlightProducer){
-                            supply.add((StarlightProducer) other);
+                            supply.add((StarlightProducer)other);
                             foundNew = true;
                         }
                     }
@@ -99,19 +103,19 @@ public class StarlightNetwork{
     private void distributeStarlight(double starlight){
         HashMap<StarlightConsumer, Double> demands = new HashMap<>();
         for(StarlightConsumer consumer : demand){
-            demands.put(consumer,consumer.getStarlightDemand());
+            demands.put(consumer, consumer.getStarlightDemand());
         }
         while(starlight>0.01){
             if(demands.isEmpty())return;
             double avg = starlight/demands.size();
             double min = avg;
             for(StarlightConsumer c : demands.keySet()){
-                min = Math.min(min,demands.get(c));
+                min = Math.min(min, demands.get(c));
             }
             for(StarlightConsumer c : new ArrayList<>(demands.keySet())){
                 c.addStarlight(min);
-                starlight-=min;
-                demands.put(c,demands.get(c)-min);
+                starlight -= min;
+                demands.put(c, demands.get(c)-min);
                 if(demands.get(c)<=.01)demands.remove(c);//satisfied demand!
             }
         }
@@ -119,41 +123,41 @@ public class StarlightNetwork{
     public void draw(){
         if(demand.size()+supply.size()==1)return;
         for(StarlightConsumer consumer : demand){
-            Structure s = (Structure) consumer;
+            Structure s = (Structure)consumer;
             if(Core.debugMode){
-                GL11.glColor4d(.8, 0, 0, 1);
-                Game.drawTorus(s.x+s.width/2, s.y+s.height/2, 50, 40, 10, 0);
+                Renderer.setColor(.8f, 0, 0, 1);
+                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 40, 50);
             }
             drawConnectors(s);
-            GL11.glColor4d(0, .5, 1, 1);
-            Game.drawTorus(s.x+s.width/2, s.y+s.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
-            GL11.glColor4d(0, .5, 1, 1);
+            Renderer.setColor(0, .5f, 1, 1);
+            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+            Renderer.setColor(0, .5f, 1, 1);
         }
         for(StarlightProducer producer : supply){
-            Structure s = (Structure) producer;
+            Structure s = (Structure)producer;
             if(Core.debugMode){
-                GL11.glColor4d(0, .3, .9, 1);
-                Game.drawTorus(s.x+s.width/2, s.y+s.height/2, 35, 25, 10, 0);
+                Renderer.setColor(0, .3f, .9f, 1);
+                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 25, 35);
             }
             drawConnectors(s);
-            GL11.glColor4d(0, .5, 1, 1);
-            Game.drawTorus(s.x+s.width/2, s.y+s.height/2, POWER_TRANSFER_RADIUS, POWER_TRANSFER_RADIUS-5, 50, 0);
-            GL11.glColor4d(0, .5, 1, 1);
+            Renderer.setColor(0, .5f, 1, 1);
+            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+            Renderer.setColor(0, .5f, 1, 1);
         }
     }
     private void drawConnectors(Structure s){
         for(StarlightConsumer consumer : demand){
             Structure other = (Structure)consumer;
             if(other==s)continue;
-            if(Core.distance(s, other)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
+            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
+                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
             }
         }
         for(StarlightProducer producer : supply){
             Structure other = (Structure)producer;
             if(other==s)continue;
-            if(Core.distance(s, other)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2, .9, .8, 0, .45, .4);
+            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
+                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
             }
         }
     }

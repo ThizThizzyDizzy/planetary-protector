@@ -1,24 +1,24 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import planetaryprotector.enemy.Enemy;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.particle.Particle;
-import simplelibrary.config2.Config;
 import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.game.BoundingBox;
+import planetaryprotector.game.GameState;
 public class ShieldGenerator extends Structure implements PowerConsumer, StructureDemolishable, StructureChangeEventListener{
-    public float shieldSize = 0;
-    public float maxShieldSize = 500;
+    public double shieldSize = 0;
+    public double maxShieldSize = 500;
     public float shieldStrength = 1;
-    public float oldPower;
+    public double oldPower;
     public float blastRecharge = 0;
     public boolean canBlast = false;//replace with special upgrade
     public final Shield shield;
-    private float power = 0;
+    private double power = 0;
     public Structure projectorTarget;
     int shieldDecalTimer = 0;
     public static final int shieldDecalInterval = 240;
@@ -36,7 +36,7 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         shield = new Shield(this, width/2, height/4);
     }
     public void blast(){
-        if(!canBlast||blastRecharge!=0) return;
+        if(!canBlast||blastRecharge!=0)return;
         blastRecharge = -50;
     }
     @Override
@@ -44,21 +44,21 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         super.tick();
         shieldDecalTimer--;
         if(shieldDecalTimer<0){
-            shieldDecalTimer+=shieldDecalInterval;
+            shieldDecalTimer += shieldDecalInterval;
             shieldDecals.add(0d);
         }
         for(int i = 0; i<shieldDecals.size(); i++){
             shieldDecals.set(i, shieldDecals.get(i)+shieldDecalSpeed);
         }
-        for (Iterator<Double> it = shieldDecals.iterator(); it.hasNext();) {
+        for(Iterator<Double> it = shieldDecals.iterator(); it.hasNext();){
             Double next = it.next();
             if(next>getShieldSize()/2)it.remove();
         }
-        if(blastRecharge>0) blastRecharge--;
+        if(blastRecharge>0)blastRecharge--;
         if(blastRecharge<0){//<editor-fold defaultstate="collapsed" desc="Shield blast">
             blastRecharge++;
             BoundingBox city = game.getCityBoundingBox();
-            double size = (city.width*1.8)-(((-blastRecharge)%10)*(city.width/5));
+            double size = ((city.width*1.8)-(((-blastRecharge)%10)*(city.width/5)));
             shieldSize = size;
             game.pushParticles(x+width/2, y+height/2, size, size/50, Particle.PushCause.SHEILD_BLAST);
             if(size==0){
@@ -74,9 +74,9 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
                 power = 0;
             }
         }//</editor-fold>
-        double surface = 2*Math.PI*Math.pow(shieldSize/2,2);
+        double surface = 2*Math.PI*Math.pow(shieldSize/2, 2);
         if(projectorTarget!=null){
-            surface+=projectorTarget.getStructureHeight()*4+10_000;
+            surface += projectorTarget.getStructureHeight()*4+10_000;
         }
         double powerDrawFactor = 50_000D;
         power -= surface/powerDrawFactor;
@@ -85,7 +85,7 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         if(shieldSize>maxSize){
             shieldSize--;
         }
-        shieldSize+=(maxSize-shieldSize)/100;
+        shieldSize += (maxSize-shieldSize)/100;
         oldPower = power;
         if(power<=0){
             shieldSize = 0;
@@ -95,15 +95,15 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     }
     @Override
     public void renderBackground(){
-        drawRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
         super.renderBackground();
     }
     @Override
     public void renderForeground(){
         super.renderForeground();
         Game.theme.applyTextColor();
-        drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+        Renderer.setColor(1, 1, 1, 1);
     }
     /**
      * @return the shieldSize
@@ -131,24 +131,26 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         }
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("blastRecharge", blastRecharge);
-        cfg.set("size", shieldSize);
-        cfg.set("maxSize", maxShieldSize);
-        cfg.set("strength", shieldStrength);
-        cfg.set("oldPower", oldPower);
-        cfg.set("target", projectorTarget==null?-1:projectorTarget.getIndex());
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.power = power;
+        state.shieldGenerator = new GameState.Structure.ShieldGenerator();
+        state.shieldGenerator.blastRecharge = blastRecharge;
+        state.shieldGenerator.shieldSize = shieldSize;
+        state.shieldGenerator.maxShieldSize = maxShieldSize;
+        state.shieldGenerator.shieldStrength = shieldStrength;
+        state.shieldGenerator.oldPower = oldPower;
+        state.shieldGenerator.target = projectorTarget==null?-1:projectorTarget.getIndex();
+        return state;
     }
-    public static ShieldGenerator loadSpecific(Config cfg, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
+    public static ShieldGenerator loadSpecific(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         ShieldGenerator generator = new ShieldGenerator(game, x, y, level, upgrades);
-        generator.power = cfg.get("power", 0d);
-        generator.blastRecharge = cfg.get("blastRecharge", 0d);
-        generator.shieldSize = cfg.get("size", 0d);
-        generator.maxShieldSize = cfg.get("maxSize", 500d);
-        generator.shieldStrength = cfg.get("strength", 1d);
-        generator.oldPower = cfg.get("oldPower", 0d);
+        generator.power = state.power;
+        generator.blastRecharge = state.shieldGenerator.blastRecharge;
+        generator.shieldSize = state.shieldGenerator.shieldSize;
+        generator.maxShieldSize = state.shieldGenerator.maxShieldSize;
+        generator.shieldStrength = state.shieldGenerator.shieldStrength;
+        generator.oldPower = state.shieldGenerator.oldPower;
         return generator;
     }
     private float getStats(int level){
@@ -175,14 +177,14 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     }
     @Override
     public void addPower(double power){
-        this.power+=power;
+        this.power += power;
     }
     @Override
     public boolean isPowerActive(){
         return true;
     }
     @Override
-    public void getDebugInfo(ArrayList<String> data) {
+    public void getDebugInfo(ArrayList<String> data){
         super.getDebugInfo(data);
         data.add("Shield size: "+shieldSize+"/"+maxShieldSize);
         data.add("Shield Strength: "+shieldStrength);
@@ -206,26 +208,27 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         if(projectorTarget==from)setProjectorTarget(to);
     }
     @Override
-    public void postLoad(Game game, Config config) {
-        super.postLoad(game, config);
-        int index = config.get("target", -1);
+    public void postLoad(Game game, GameState.Structure state){
+        super.postLoad(game, state);
+        int index = state.shieldGenerator.target;
         if(index!=-1){
             projectorTarget = game.structures.get(index);
         }
     }
     /**
      * Damage the shield
+     *
      * @return true if the shield successfully absorbed the hit
      */
     public boolean shieldHit(){
-        setShieldSize(getShieldSize() - 100);
+        setShieldSize(getShieldSize()-100);
         if(getShieldSize()>0){
             return true;
         }
         setShieldSize(0);
         return false;
     }
-    public float getProjectedShieldStrength(){
+    public double getProjectedShieldStrength(){
         return Math.min(1, shieldSize/100);
     }
     @Override

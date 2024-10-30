@@ -1,28 +1,29 @@
 package planetaryprotector.enemy;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Core;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.ShieldGenerator;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
+import org.joml.Vector2f;
 import planetaryprotector.structure.Structure;
-import simplelibrary.opengl.ImageStash;
 public class EnemyLandingParty extends Enemy{
     public int initialDelay = 20*10;
-    public double laserPower = 1.25;
-    public double laserTime = 20*30;
-    public double laserSize = 20;
-    public double laserSizing = 1/3D;
+    public float laserPower = 1.25f;
+    public float laserTime = 20*30;
+    public float laserSize = 20;
+    public float laserSizing = 1/3f;
     public EnemyLandingParty(Game game){
         super(game, 0, 0, 50, 50, 250);
         int[] location = getFurthestCorner(game);
         if(location==null){
             location = game.getCityBoundingBox().getCenter();
         }
-        x=location[0];
-        y=location[1];
-        laserPower*=strength;
+        x = location[0];
+        y = location[1];
+        laserPower *= strength;
         for(int i = 0; i<strength-7; i++){
             crew.add(new EnemyAlien(game, x, y));
         }
@@ -30,30 +31,30 @@ public class EnemyLandingParty extends Enemy{
     @Override
     public void draw(){
         if(laserFiring!=null){
-            double xDiff = laserFiring[0]-x;
-            double yDiff = laserFiring[1]-y;
-            double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+            float xDiff = laserFiring[0]-x;
+            float yDiff = laserFiring[1]-y;
+            float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 0, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, 0, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, laserSize/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, .5, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, .5f, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(2/3f))/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 1, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
-                GL11.glColor4d(1, 1, 1, 1);
+                float percent = i/dist;
+                Renderer.setColor(1, 1, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(1/3f))/2f);
+                Renderer.setColor(1, 1, 1, 1);
             }
         }
         width = height = (int)(50*((initialDelay/20D)+1));
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/ship.png"));
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRect(x-width/2, y-height/2, x+width/2, y+height/2, ResourceManager.getTexture("/textures/enemies/ship.png"));
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void tick(){
@@ -64,17 +65,18 @@ public class EnemyLandingParty extends Enemy{
             increase = true;
             game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, 1, true));
             if(increase&&strength<10){
-                strength+=.5;
+                strength += .5;
             }
             return;
         }
-        DO:do{
+        DO:
+        do{
             for(EnemyAlien alien : crew){
                 if(!alien.dead){
                     break DO;
                 }
             }
-            if(crew.isEmpty()) break;
+            if(crew.isEmpty())break;
             running = true;
         }while(false);
         if(laserTime<=0||running){
@@ -92,7 +94,7 @@ public class EnemyLandingParty extends Enemy{
                     }
                 }
                 if(increase&&strength<10){
-                    strength+=.5;
+                    strength += .5;
                 }
                 dead = true;
             }
@@ -108,7 +110,7 @@ public class EnemyLandingParty extends Enemy{
         }
     }
     boolean running = false;
-    double[] laserFiring = null;
+    float[] laserFiring = null;
     boolean landing = false;
     public boolean landed = false;
     boolean increase = false;
@@ -118,12 +120,12 @@ public class EnemyLandingParty extends Enemy{
         ShieldGenerator gen = null;
         for(Structure structure : game.structures){
             if(structure instanceof ShieldGenerator){
-                ShieldGenerator g = (ShieldGenerator) structure;
-                dist = Math.min(dist,Core.distance(this, g));
+                ShieldGenerator g = (ShieldGenerator)structure;
+                dist = Math.min(dist, Vector2f.distance(x, y, g.x, g.y));
                 gen = g;
             }
         }
-        if(gen==null) return;
+        if(gen==null)return;
         if(gen.getShieldSize()/2>dist-25&&initialDelay<20*5){
             dead = true;
             increase = true;
@@ -132,34 +134,34 @@ public class EnemyLandingParty extends Enemy{
             landing = true;
             return;
         }
-        laserSize+=laserSizing;
+        laserSize += laserSizing;
         if(laserSize>=25){
-            laserSizing*=-1;
+            laserSizing *= -1;
         }
         if(laserSize<=15){
-            laserSizing*=-1;
+            laserSizing *= -1;
         }
         laserTime--;
-        laserFiring = new double[]{gen.x+gen.width/2,gen.y+gen.height/2};
+        laserFiring = new float[]{gen.x+gen.width/2, gen.y+gen.height/2};
         gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
     public static int[] getFurthestCorner(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
         for(Structure structure : game.structures){
             if(structure instanceof ShieldGenerator){
-                shieldGen.add((ShieldGenerator) structure);
+                shieldGen.add((ShieldGenerator)structure);
             }
         }
         ArrayList<int[]> possibleStrikes = new ArrayList<>();//TODO redo!
         for(ShieldGenerator gen : shieldGen){
-            int dist = (int)Core.distance(gen,25,25);
-            possibleStrikes.add(new int[]{25,25,dist});
-            dist = (int)Core.distance(gen,game.getCityBoundingBox().width-25,25);
-            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25,25,dist});
-            dist = (int)Core.distance(gen,25,game.getCityBoundingBox().height-25);
-            possibleStrikes.add(new int[]{25,game.getCityBoundingBox().height-25,dist});
-            dist = (int)Core.distance(gen,game.getCityBoundingBox().width-25,game.getCityBoundingBox().height-25);
-            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25,game.getCityBoundingBox().height-25,dist});
+            int dist = (int)Vector2f.distance(gen.x, gen.y, 25, 25);
+            possibleStrikes.add(new int[]{25, 25, dist});
+            dist = (int)Vector2f.distance(gen.x, gen.y, game.getCityBoundingBox().width-25, 25);
+            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25, 25, dist});
+            dist = (int)Vector2f.distance(gen.x, gen.y, 25, game.getCityBoundingBox().height-25);
+            possibleStrikes.add(new int[]{25, game.getCityBoundingBox().height-25, dist});
+            dist = (int)Vector2f.distance(gen.x, gen.y, game.getCityBoundingBox().width-25, game.getCityBoundingBox().height-25);
+            possibleStrikes.add(new int[]{game.getCityBoundingBox().width-25, game.getCityBoundingBox().height-25, dist});
         }
         int max = Integer.MIN_VALUE;
         for(int[] strike : possibleStrikes){
@@ -167,7 +169,7 @@ public class EnemyLandingParty extends Enemy{
         }
         for(int[] strike : possibleStrikes){
             if(strike[2]==max){
-                return new int[]{strike[0],strike[1]};
+                return new int[]{strike[0], strike[1]};
             }
         }
         return null;
@@ -176,8 +178,8 @@ public class EnemyLandingParty extends Enemy{
     private void land(){
         landed = true;
         for(EnemyAlien alien : crew){
-            if(game.enemies.contains(alien)) break;  
-            if(alien.dead) continue;
+            if(game.enemies.contains(alien))break;
+            if(alien.dead)continue;
             game.enemies.add(alien);
             break;
         }

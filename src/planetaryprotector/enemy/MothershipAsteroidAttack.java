@@ -1,5 +1,5 @@
 package planetaryprotector.enemy;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import planetaryprotector.GameObject;
 public class MothershipAsteroidAttack extends GameObject{
     private final EnemyMothership ship;
@@ -7,7 +7,7 @@ public class MothershipAsteroidAttack extends GameObject{
     int types = 2;
     int time = 0;
     public MothershipAsteroidAttack(EnemyMothership ship){//TODO redo entirely
-        super(ship.game, 0, 0, Core.helper.displayWidth(), Core.helper.displayHeight());
+        super(ship.game, 0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y);
         this.ship = ship;
         type = game.rand.nextInt(types);
     }
@@ -18,11 +18,11 @@ public class MothershipAsteroidAttack extends GameObject{
         switch(type){
             case 0:
                 if((!out&&time%10==0)||(out&&time%20==0)){
-                    int radius = (int) (Math.sqrt(Math.pow(Core.helper.displayWidth(),2)+Math.pow(Core.helper.displayHeight(), 2))/2D)-time;
+                    int radius = (int) (Math.sqrt(Math.pow(DizzyEngine.screenSize.x,2)+Math.pow(DizzyEngine.screenSize.y, 2))/2D)-time;
                     if(radius<=0){
                         out = true;
                     }
-                    if(radius<-Core.helper.displayWidth()*2){
+                    if(radius<-DizzyEngine.screenSize.x*2){
                         ship.asteroidAttack = null;
                     }
                     int c = 20;
@@ -43,11 +43,11 @@ public class MothershipAsteroidAttack extends GameObject{
                     direction*=-1;
                 }
                 if((!out&&time%10==0)||(out&&time%20==0)){
-                    int radius = (int) (Math.sqrt(Math.pow(Core.helper.displayWidth(),2)+Math.pow(Core.helper.displayHeight(), 2))/2D)-time;
+                    int radius = (int) (Math.sqrt(Math.pow(DizzyEngine.screenSize.x,2)+Math.pow(DizzyEngine.screenSize.y, 2))/2D)-time;
                     if(radius<=0){
                         out = true;
                     }
-                    if(radius<-Core.helper.displayWidth()*2){
+                    if(radius<-DizzyEngine.screenSize.x*2){
                         ship.asteroidAttack = null;
                     }
                     int c = 20;

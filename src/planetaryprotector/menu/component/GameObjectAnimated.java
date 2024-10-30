@@ -1,7 +1,8 @@
 package planetaryprotector.menu.component;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
-import simplelibrary.opengl.ImageStash;
     public class GameObjectAnimated extends GameObject{
     public String[] images;
     public int frame = 0;
@@ -14,7 +15,7 @@ import simplelibrary.opengl.ImageStash;
     }
     @Override
     public void draw(){
-        drawRect(x, y, x+width, y+height, ImageStash.instance.getTexture(images[frame]));
+        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(images[frame]));
     }
     public void tick(){
         timeWaited++;

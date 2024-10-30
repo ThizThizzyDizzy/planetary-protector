@@ -1,11 +1,11 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.structure.task.TaskWreckClean;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
+import planetaryprotector.game.GameState;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.config2.Config;
-import static simplelibrary.opengl.Renderer2D.drawRect;
 public class Wreck extends Structure{
     public int ingots;
     int progress;
@@ -18,7 +18,7 @@ public class Wreck extends Structure{
         if(task!=null){
             return;
         }
-        drawRect(x, y, x+width, y+height, type.getTexture());
+        Renderer.fillRect(x, y, x+width, y+height, type.getTexture());
     }
     @Override
     public boolean onDamage(int x, int y){
@@ -26,15 +26,16 @@ public class Wreck extends Structure{
         return false;
     }
     @Override
-    public Config save(Config cfg) {
-        super.save(cfg);
-        cfg.set("ingots", ingots);
-        cfg.set("progress", progress);
-        return cfg;
+    public GameState.Structure save(){
+        var state = super.save();
+        state.wreck = new GameState.Structure.Wreck();
+        state.wreck.ingots = ingots;
+        state.wreck.progress = progress;
+        return state;
     }
-    public static Wreck loadSpecific(Config cfg, Game game, int x, int y){
-        Wreck wreck = new Wreck(game, x, y, cfg.get("ingots", 1));
-        wreck.progress = cfg.get("progress", wreck.progress);
+    public static Wreck loadSpecific(GameState.Structure state, Game game, int x, int y){
+        Wreck wreck = new Wreck(game, x, y, state.wreck.ingots);
+        wreck.progress = state.wreck.progress;
         return wreck;
     }
     @Override

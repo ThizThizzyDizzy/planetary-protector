@@ -37,11 +37,11 @@ public abstract class Task{
         }
         return workers;
     }
-    public double progress(){
+    public float progress(){
         if(finished){
             return 1;
         }
-        return (progress+0D)/time;
+        return (float)progress/time;
     }
     public abstract boolean canPerform();
     public abstract String[] getDetails();

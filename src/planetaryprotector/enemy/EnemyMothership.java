@@ -1,23 +1,23 @@
 package planetaryprotector.enemy;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Sounds;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.CoalGenerator;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.BoundingBox;
 import planetaryprotector.structure.Structure;
-import simplelibrary.opengl.ImageStash;
 import planetaryprotector.structure.PowerConsumer;
 public class EnemyMothership extends Enemy{
     public int initialDelay = 20*10;
-    public double laserPower = 15;
-    public double laserSize = 75;
-    public double laserSizing = 2.5D;
-    public double powerLaserDamage = 3;
-    public double powerLaserPower = 100;
-    public double powerLaserSize = 75;
-    public double powerLaserSizing = 2.5D;
+    public float laserPower = 15;
+    public float laserSize = 75;
+    public float laserSizing = 2.5f;
+    public float powerLaserDamage = 3;
+    public float powerLaserPower = 100;
+    public float powerLaserSize = 75;
+    public float powerLaserSizing = 2.5f;
     public int explosions = 25;
     public int phase = 1;
     public int explosionTimer = 10;
@@ -29,76 +29,78 @@ public class EnemyMothership extends Enemy{
     }
     @Override
     public void draw(){
-        GL11.glColor4d(1, 0, 1, 1);
-        drawRect(0, 0, 0, 0, 0);
+        Renderer.setColor(1, 0, 1, 1);
+        Renderer.fillRect(0, 0, 0, 0, 0);
         if(powerLaserFiring!=null){
-            double xDiff = powerLaserFiring.x+powerLaserFiring.width/2-x;
-            double yDiff = powerLaserFiring.y+powerLaserFiring.height/2-y;
-            double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+            float xDiff = powerLaserFiring.x+powerLaserFiring.width/2-x;
+            float yDiff = powerLaserFiring.y+powerLaserFiring.height/2-y;
+            float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(0, 0, 1, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), powerLaserSize/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(0, 0, 1, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, powerLaserSize/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(.125, .5, 1, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (powerLaserSize*(2/3D))/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(.125f, .5f, 1, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (powerLaserSize*(2/3f))/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(.25, 1, 1, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (powerLaserSize*(1/3D))/2D,10,0);
-                GL11.glColor4d(1, 1, 1, 1);
+                float percent = i/dist;
+                Renderer.setColor(.25f, 1, 1, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (powerLaserSize*(1/3f))/2f);
+                Renderer.setColor(1, 1, 1, 1);
             }
         }
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0, 0, 0, 0, 0);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRect(0, 0, 0, 0, 0);
         if(laserFiring!=null){
-            double xDiff = laserFiring[0]-x;
-            double yDiff = laserFiring[1]-y;
-            double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+            float xDiff = laserFiring[0]-x;
+            float yDiff = laserFiring[1]-y;
+            float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 0, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, 0, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, laserSize/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, .5, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, .5f, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(2/3f))/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 1, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
-                GL11.glColor4d(1, 1, 1, 1);
+                float percent = i/dist;
+                Renderer.setColor(1, 1, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(1/3f))/2f);
+                Renderer.setColor(1, 1, 1, 1);
             }
         }
         width = height = (int)(250*((initialDelay/20D)+1));
-        double opacity = 1;
+        float opacity = 1;
         if(width>game.getCityBoundingBox().width*(3/4D)){//TODO redo
-            double d = width-game.getCityBoundingBox().width*(3/4D);
-            opacity = 1-(d/(game.getCityBoundingBox().width*(1/4D)));
+            float d = width-game.getCityBoundingBox().width*(3/4f);
+            opacity = 1-(d/(game.getCityBoundingBox().width*(1/4f)));
         }
-        GL11.glColor4d(1, 1, 1, opacity);
-        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/enemies/mothership "+phase+".png"));
-        GL11.glColor4d(0, 0, 0, opacity);
-        drawRect(x-width/2, y+height/2, x+width/2, y+height/2+10, 0);
+        Renderer.setColor(1, 1, 1, opacity);
+        Renderer.fillRect(x-width/2, y-height/2, x+width/2, y+height/2, ResourceManager.getTexture("/textures/enemies/mothership "+phase+".png"));
+        Renderer.setColor(0, 0, 0, opacity);
+        Renderer.fillRect(x-width/2, y+height/2, x+width/2, y+height/2+10, 0);
         if(phase==1){
-            GL11.glColor4d(0, 1, 0, opacity);
+            Renderer.setColor(0, 1, 0, opacity);
         }
         if(phase==2){
-            GL11.glColor4d(1, 1, 0, opacity);
+            Renderer.setColor(1, 1, 0, opacity);
         }
         if(phase==3){
-            GL11.glColor4d(1, 0.5, 0, opacity);
+            Renderer.setColor(1, 0.5f, 0, opacity);
         }
         if(phase>=4){
-            GL11.glColor4d(1, 0, 0, opacity);
+            Renderer.setColor(1, 0, 0, opacity);
         }
-        drawRectWithBounds(x-width/2,y+height/2,x-width/2+(width*(health/(double)maxHealth)),y+height/2+10,x-width/2+1, y+height/2+1, x+width/2-1, y+height/2+10-1, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.bound(x-width/2+1, y+height/2+1, x+width/2-1, y+height/2+10-1);
+        Renderer.fillRect(x-width/2, y+height/2, x-width/2+(width*(health/(float)maxHealth)), y+height/2+10, 0);
+        Renderer.unBound();
+        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void tick(){
@@ -117,9 +119,9 @@ public class EnemyMothership extends Enemy{
             if(explosions>0){
                 explosionTimer--;
                 if(explosionTimer<=10){
-                    explosionTimer+=10;
+                    explosionTimer += 10;
                     explosions--;
-                    game.addParticleEffect(new Particle(game, game.rand.nextInt((int) width)+x-width/2, game.rand.nextInt((int) height)+y-height/2, ParticleEffectType.EXPLOSION, game.rand.nextInt(3)+2, true));
+                    game.addParticleEffect(new Particle(game, game.rand.nextInt((int)width)+x-width/2, game.rand.nextInt((int)height)+y-height/2, ParticleEffectType.EXPLOSION, game.rand.nextInt(3)+2, true));
                 }
             }else if(explosions==0){
                 explosions--;
@@ -134,33 +136,33 @@ public class EnemyMothership extends Enemy{
                 dead = true;
             }
         }
-        double hp = health/(double)maxHealth;
+        float hp = health/(float)maxHealth;
         switch(phase){
             case 1:
                 if(hp<.75){
                     phase++;
-                    strength+=2.5;
+                    strength += 2.5;
                     laserTimers = new int[]{20*60, 20*60*6};
                     landingPartyTimers = new int[]{20*60*3};
-                    Sounds.fadeSound("music");
+                    Sounds.fadeMusic();
                 }
                 break;
             case 2:
                 if(hp<.5){
                     phase++;
-                    strength+=5;
+                    strength += 5;
                     laserTimers = new int[]{20*60, 20*60*2, 20*60*3, 20*60*4,};
                     landingPartyTimers = new int[]{20*60*3, 20*60*6};
-                    Sounds.fadeSound("music");
+                    Sounds.fadeMusic();
                 }
                 break;
             case 3:
                 if(hp<.25){
                     phase++;
-                    strength+=10;
+                    strength += 10;
                     laserTimers = new int[]{20*60, 20*60*2, 20*60*3, 20*60*4, 20*60*5, 20*60*6};
                     landingPartyTimers = new int[]{20*60*2, 20*60*4, 20*60*6};
-                    Sounds.fadeSound("music");
+                    Sounds.fadeMusic();
                 }
                 break;
         }
@@ -202,20 +204,20 @@ public class EnemyMothership extends Enemy{
                 if(health>maxHealth){
                     health = maxHealth;
                 }
-                repairTimer+=repairTime;
+                repairTimer += repairTime;
             }
         }
         for(int i : laserTimers){
             i--;
             if(i<0){
-                i+=20*60*5;
+                i += 20*60*5;
                 game.addEnemy(new EnemyLaser(game));
             }
         }
         for(int i : landingPartyTimers){
             i--;
             if(i<0){
-                i+=20*60*10;
+                i += 20*60*10;
                 game.addEnemy(new EnemyLandingParty(game));
             }
         }
@@ -230,13 +232,13 @@ public class EnemyMothership extends Enemy{
     int[] laserTimers = new int[]{20*60};
     int[] landingPartyTimers = new int[]{};
     int[] laserFiring = null;
-    double randomLaserTimer = 100;
-    double randomLaserTime = 40;
-    double randomLaserDelay = 50;
+    float randomLaserTimer = 100;
+    float randomLaserTime = 40;
+    float randomLaserDelay = 50;
     Structure powerLaserFiring = null;
-    double powerLaserTimer = 100;
-    double powerLaserTime = 400;
-    double powerLaserDelay = 500;
+    float powerLaserTimer = 100;
+    float powerLaserTime = 400;
+    float powerLaserDelay = 500;
     int[] begin;
     int[] end;
     int asteroidLaserDelay = 20;
@@ -248,15 +250,15 @@ public class EnemyMothership extends Enemy{
             randomLaserTimer--;
             if(randomLaserTimer==0){
                 BoundingBox bbox = game.getCityBoundingBox();
-                begin = new int[]{(int)bbox.randX(game.rand),(int)bbox.randY(game.rand)};
-                end = new int[]{(int)bbox.randX(game.rand),(int)bbox.randY(game.rand)};
+                begin = new int[]{(int)bbox.randX(game.rand), (int)bbox.randY(game.rand)};
+                end = new int[]{(int)bbox.randX(game.rand), (int)bbox.randY(game.rand)};
                 randomLaserTimer = -randomLaserTime;
             }
         }else{
             randomLaserTimer++;
-            double percent = (-randomLaserTimer)/randomLaserTime;
-            int[] diff = new int[]{end[0]-begin[0],end[1]-begin[1]};
-            laserFiring = new int[]{(int)(diff[0]*percent+begin[0]),(int)(diff[1]*percent+begin[1])};
+            float percent = (-randomLaserTimer)/randomLaserTime;
+            int[] diff = new int[]{end[0]-begin[0], end[1]-begin[1]};
+            laserFiring = new int[]{(int)(diff[0]*percent+begin[0]), (int)(diff[1]*percent+begin[1])};
             fireLaser();
             if(randomLaserTimer==0){
                 randomLaserTimer = randomLaserDelay;
@@ -267,12 +269,12 @@ public class EnemyMothership extends Enemy{
         boolean redo = false;
         if(powerLaserFiring!=null){
             if(powerLaserFiring instanceof CoalGenerator){
-                if(((CoalGenerator) powerLaserFiring).power<powerLaserPower){
+                if(((CoalGenerator)powerLaserFiring).power<powerLaserPower){
                     redo = true;
                 }
             }
             if(powerLaserFiring instanceof PowerConsumer){
-                if(((PowerConsumer) powerLaserFiring).getPower()<powerLaserPower){
+                if(((PowerConsumer)powerLaserFiring).getPower()<powerLaserPower){
                     redo = true;
                 }
             }
@@ -283,13 +285,13 @@ public class EnemyMothership extends Enemy{
             if(powerLaserTimer==0||redo){
                 for(Structure s : game.structures){
                     if(s instanceof CoalGenerator){
-                        if(((CoalGenerator) s).power>=powerLaserPower){
+                        if(((CoalGenerator)s).power>=powerLaserPower){
                             powerLaserFiring = s;
                             break;
                         }
                     }
                     if(s instanceof PowerConsumer){
-                        if(((PowerConsumer) s).getPower()>=powerLaserPower){
+                        if(((PowerConsumer)s).getPower()>=powerLaserPower){
                             powerLaserFiring = s;
                             break;
                         }
@@ -307,7 +309,7 @@ public class EnemyMothership extends Enemy{
                 ((PowerConsumer)powerLaserFiring).addPower(-powerLaserPower);
             }
             if(powerLaserFiring instanceof CoalGenerator){
-                ((CoalGenerator)powerLaserFiring).power-=powerLaserPower;
+                ((CoalGenerator)powerLaserFiring).power -= powerLaserPower;
             }
             firePowerLaser();
             if(powerLaserTimer==0){
@@ -317,7 +319,7 @@ public class EnemyMothership extends Enemy{
     }
     private void fireLaser(){
         if(powerLaserFiring==null)return;
-        laserSize+=laserSizing;
+        laserSize += laserSizing;
         if(laserSize>=80){
             laserSizing = -1;
         }
@@ -329,14 +331,14 @@ public class EnemyMothership extends Enemy{
     }
     private void firePowerLaser(){
         if(powerLaserFiring==null)return;
-        powerLaserSize+=powerLaserSizing;
+        powerLaserSize += powerLaserSizing;
         if(powerLaserSize>=80){
             powerLaserSizing = -1;
         }
         if(powerLaserSize<=70){
             powerLaserSizing = 1;
         }
-        game.damage(powerLaserFiring.x+powerLaserFiring.width/2,powerLaserFiring.y+powerLaserFiring.height/2, (int)powerLaserDamage);
+        game.damage(powerLaserFiring.x+powerLaserFiring.width/2, powerLaserFiring.y+powerLaserFiring.height/2, (int)powerLaserDamage);
     }
     private void startAsteroidAttack(){
         asteroidAttack = new MothershipAsteroidAttack(this);
@@ -347,7 +349,7 @@ public class EnemyMothership extends Enemy{
         if(asteroidAttack!=null){
             asteroidAttack = null;
         }
-        randomLaserTimer+=100;
+        randomLaserTimer += 100;
         asteroidLaserDelay += 100;
     }
 }

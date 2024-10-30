@@ -32,24 +32,24 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         double borderThickness = Math.min(width, height)/30;
         double border = borderThickness/.4;
         int quality = 36;
-        GL11.glColor4d(.95, .95, .95, 1);
-        drawRect(x+border, y, x+width-border, y+height, 0);
-        drawRect(x, y+border, x+width, y+height-border, 0);
+        Renderer.setColor(.95, .95, .95, 1);
+        Renderer.fillRect(x+border, y, x+width-border, y+height, 0);
+        Renderer.fillRect(x, y+border, x+width, y+height-border, 0);
         Core.drawOval(x+border, y+border, border, border, border, quality, 0, 27, 36);
         Core.drawOval(x+width-border, y+border, border, border, border, quality, 0, 0, 9);
         Core.drawOval(x+width-border, y+height-border, border, border, border, quality, 0, 9, 18);
         Core.drawOval(x+border, y+height-border, border, border, border, quality, 0, 18, 27);
-        GL11.glColor4d(.75, .75, .75, 1);
+        Renderer.setColor(.75, .75, .75, 1);
         Core.drawOval(x+border, y+border, border, border, borderThickness, quality, 0, 27, 36);
         Core.drawOval(x+width-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
         Core.drawOval(x+width-border, y+height-border, border, border, borderThickness, quality, 0, 9, 18);
         Core.drawOval(x+border, y+height-border, border, border, borderThickness, quality, 0, 18, 27);
-        drawRect(x+border, y, x+width-border, y+borderThickness, 0);
-        drawRect(x+width-borderThickness, y+border, x+width, y+height-border, 0);
-        drawRect(x+border, y+height-borderThickness, x+width-border, y+height, 0);
-        drawRect(x, y+border, x+borderThickness, y+height-border, 0);
-        drawRect(x+border, y+borderThickness, height, border, quality);
-        GL11.glColor4d(.05, .05, .05, 1);
+        Renderer.fillRect(x+border, y, x+width-border, y+borderThickness, 0);
+        Renderer.fillRect(x+width-borderThickness, y+border, x+width, y+height-border, 0);
+        Renderer.fillRect(x+border, y+height-borderThickness, x+width-border, y+height, 0);
+        Renderer.fillRect(x, y+border, x+borderThickness, y+height-border, 0);
+        Renderer.fillRect(x+border, y+borderThickness, height, border, quality);
+        Renderer.setColor(.05, .05, .05, 1);
         title.drawTranslation(x+width/2, y+borderThickness+width*.075, width/20, research.fancyTitle);
         drawCenteredText(x+border+width*.3, y+borderThickness+width*.15, x+width-border, y+borderThickness+width*.15+40, research.getTitle());
         if(research.isDiscovered()){
@@ -61,7 +61,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
                 drawNonsense(x+border, y+borderThickness+width*.15+40, x+width-border, y+height-border-borderThickness, 40);
             }
         }
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
         drawTheImageAndItsBorder(x+border, y+borderThickness+width*.15+40, x+border+width/4, y+borderThickness+width*.15+40+width/4);
         if(!research.isDiscovered()){
             drawProgressBar(x+border, y+height-border-borderThickness, x+width-border, y+height-border, research.getPercentDone());
@@ -90,7 +90,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
                 }
                 int offset = (research.totalPowerCost>0?1:0)+(research.totalStarlightCost>0?1:0);
                 ItemStack stack = research.itemCosts[i-offset];
-                drawRect(x+border+w*i, y+height-border-borderThickness-textHeight, x+border+w*i+textHeight, y+height-border-borderThickness, stack.item.getTexture());
+                Renderer.fillRect(x+border+w*i, y+height-border-borderThickness-textHeight, x+border+w*i+textHeight, y+height-border-borderThickness, stack.item.getTexture());
                 drawText(x+border+w*i+textHeight, y+height-border-borderThickness-textHeight, x+border+w*(i+1), y+height-border-borderThickness, stack.count+"");
             }
             drawProgressBar(x+border, y+height-border-borderThickness, x+width-border, y+height-border, 1-(research.time/(double)research.totalTime));
@@ -131,7 +131,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         int charsY = (int) ((bottom-top)/(textHeight*2));
         left += Math.abs((charsX*textHeight*2-textHeight)-(right-left))/2;
         top += Math.abs((charsY*textHeight*2-textHeight)-(bottom-top))/2;
-        int texture = ImageStash.instance.getTexture("/textures/research/nonsense.png");
+        int texture = ResourceManager.getTexture("/textures/research/nonsense.png");
         Random r = new Random(research.getSeed());
         for(int X = 0; X<charsX; X++){
             for(int Y = 0; Y<charsY; Y++){
@@ -141,7 +141,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
                 double texTop = nonsenseY/nonsense[1];
                 double texRight = (nonsenseX+1)/nonsense[0];
                 double texDown = (nonsenseY+1)/nonsense[1];
-                drawRect(left+X*textHeight*2, top+Y*textHeight*2, left+X*textHeight*2+textHeight, top+Y*textHeight*2+textHeight, texture, texLeft, texTop, texRight, texDown);
+                Renderer.fillRect(left+X*textHeight*2, top+Y*textHeight*2, left+X*textHeight*2+textHeight, top+Y*textHeight*2+textHeight, texture, texLeft, texTop, texRight, texDown);
             }
         }
     }
@@ -153,24 +153,24 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         bottom+=borderThickness;
         double border = borderThickness/.4;
         int quality = 36;
-        GL11.glColor4d(.95, .95, .95, 1);
-        drawRect(left+border, top, right-border, bottom, 0);
-        drawRect(left, top+border, right, bottom-border, 0);
+        Renderer.setColor(.95, .95, .95, 1);
+        Renderer.fillRect(left+border, top, right-border, bottom, 0);
+        Renderer.fillRect(left, top+border, right, bottom-border, 0);
         Core.drawOval(left+border, top+border, border, border, border, quality, 0, 27, 36);
         Core.drawOval(right-border, top+border, border, border, border, quality, 0, 0, 9);
         Core.drawOval(right-border, bottom-border, border, border, border, quality, 0, 9, 18);
         Core.drawOval(left+border, bottom-border, border, border, border, quality, 0, 18, 27);
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(left+borderThickness, top+borderThickness, right-borderThickness, bottom-borderThickness, research.getTexture());
-        GL11.glColor4d(.75, .75, .75, 1);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRect(left+borderThickness, top+borderThickness, right-borderThickness, bottom-borderThickness, research.getTexture());
+        Renderer.setColor(.75, .75, .75, 1);
         Core.drawOval(left+border, top+border, border, border, borderThickness, quality, 0, 27, 36);
         Core.drawOval(right-border, top+border, border, border, borderThickness, quality, 0, 0, 9);
         Core.drawOval(right-border, bottom-border, border, border, borderThickness, quality, 0, 9, 18);
         Core.drawOval(left+border, bottom-border, border, border, borderThickness, quality, 0, 18, 27);
-        drawRect(left+border, top, right-border, top+borderThickness, 0);
-        drawRect(right-borderThickness, top+border, right, bottom-border, 0);
-        drawRect(left+border, bottom-borderThickness, right-border, bottom, 0);
-        drawRect(left, top+border, left+borderThickness, bottom-border, 0);
+        Renderer.fillRect(left+border, top, right-border, top+borderThickness, 0);
+        Renderer.fillRect(right-borderThickness, top+border, right, bottom-border, 0);
+        Renderer.fillRect(left+border, bottom-borderThickness, right-border, bottom, 0);
+        Renderer.fillRect(left, top+border, left+borderThickness, bottom-border, 0);
     }
     private void drawProgressBar(double left, double top, double right, double bottom, double percent){
         Framebuffer filled = new Framebuffer(Core.helper, null, (int)(right-left), (int)(bottom-top));
@@ -178,8 +178,8 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         filled.bindRenderTarget2D();
         drawProgressBar(0, 0, filled.width, filled.height, true);
         filled.releaseRenderTarget();
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRectWithBounds(left, top, right, bottom, left, top, left+percent*(right-left), bottom, filled.getTexture());
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRectWithBounds(left, top, right, bottom, left, top, left+percent*(right-left), bottom, filled.getTexture());
     }
     private void drawProgressBar(double left, double top, double right, double bottom, boolean filled){
         if(right-left<bottom-top){
@@ -187,16 +187,16 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         }
         double r = (bottom-top)/2;
         //draw fill
-        if(filled)GL11.glColor4d(.5, .9, 1, 1);
-        else GL11.glColor4d(.3, .3, .6, 1);
+        if(filled)Renderer.setColor(.5, .9, 1, 1);
+        else Renderer.setColor(.3, .3, .6, 1);
         Core.drawRegularPolygon(left+r, top+r, r, 100, 0);
         Core.drawRegularPolygon(right-r, top+r, r, 100, 0);
         Core.drawRect(left+r, top, right-r, bottom, 0);
         //draw border
-        GL11.glColor4d(.7, .74, .75, 1);
+        Renderer.setColor(.7, .74, .75, 1);
         Core.drawOval(left+r, top+r, r, r, (bottom-top)/10, 100, 0, 50, 100);
         Core.drawOval(right-r, top+r, r, r, (bottom-top)/10, 100, 0, 0, 50);
-        drawRect(left+r, top, right-r, top+(bottom-top)/10, 0);
-        drawRect(left+r, bottom-(bottom-top)/10, right-r, bottom, 0);
+        Renderer.fillRect(left+r, top, right-r, top+(bottom-top)/10, 0);
+        Renderer.fillRect(left+r, bottom-(bottom-top)/10, right-r, bottom, 0);
     }
 }

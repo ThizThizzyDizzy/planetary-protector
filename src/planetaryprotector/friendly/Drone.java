@@ -1,25 +1,23 @@
 package planetaryprotector.friendly;
-import java.util.Random;
-import planetaryprotector.Core;
-import planetaryprotector.game.Game;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import org.joml.Vector2f;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.structure.Silo;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.enemy.EnemyMothership;
-import simplelibrary.opengl.ImageStash;
 public class Drone extends GameObject{
     int power = 0;
     int maxPower = 20*60*5;
-    double[] target = new double[]{0,0};
+    float[] target = new float[]{0, 0};
     Silo silo;
     double speed = 2.5;
-    public double laserPower = 1/4D;
-    public double laserSize = 20;
-    public double laserSizing = 1/3D;
+    public float laserPower = 1/4f;
+    public float laserSize = 20;
+    public float laserSizing = 1/3f;
     boolean charge = false;
     boolean deaded = false;
     public Drone(Silo silo, int power){
@@ -28,7 +26,7 @@ public class Drone extends GameObject{
         this.power = power;
     }
     public void tick(){
-        if(deaded) return;
+        if(deaded)return;
         if(power<=0){
             dead = true;
             game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, 1, true));
@@ -43,23 +41,23 @@ public class Drone extends GameObject{
         if(silo!=null&&(silo.damages.size()>=10||!game.structures.contains(silo))){
             silo = null;
         }
-        if(silo!=null&&Core.distance(this, silo)<100&&silo.getPower()>=100&&power<=maxPower-10){
+        if(silo!=null&&Vector2f.distance(x, y, silo.x, silo.y)<100&&silo.getPower()>=100&&power<=maxPower-10){
             silo.addPower(-100);
-            power+=10;
+            power += 10;
         }
-        power = Math.max(0,Math.min(maxPower, power));
+        power = Math.max(0, Math.min(maxPower, power));
         if(en!=null){
-            target = new double[]{en.x,en.y};
-            if(Core.distance(this, en)<=en.width/2+width*5){
+            target = new float[]{en.x, en.y};
+            if(Vector2f.distance(x, y, en.x, en.y)<=en.width/2+width*5){
                 fireLaser();
             }
             if(en!=null){
-                if(Core.distance(this, en)<=en.width/2+width){
-                    target = new double[]{x,y};
+                if(Vector2f.distance(x, y, en.x, en.y)<=en.width/2+width){
+                    target = new float[]{x, y};
                 }
             }
         }else{
-            target = new double[]{x,y};
+            target = new float[]{x, y};
             findEnemy();
         }
         if(silo!=null&&power<20*30){
@@ -69,46 +67,47 @@ public class Drone extends GameObject{
             if(silo==null||power>=20*60*2.5){
                 charge = false;
             }
-            target = new double[]{silo.x+silo.width/2,silo.y+silo.height/2};
+            target = new float[]{silo.x+silo.width/2, silo.y+silo.height/2};
         }
         if(power<20*15){
             laserFiring = null;
         }
         if(laserFiring!=null){
-            power-=laserPower;
-            en.health-=laserPower;
+            power -= laserPower;
+            en.health -= laserPower;
         }
         for(Drone drone : silo.droneList){
             if(drone==this)continue;
             if(drone.x==this.x&&drone.y==this.y){
-                target = new double[]{game.getCityBoundingBox().randX(game.rand),game.getCityBoundingBox().randY(game.rand)};
+                target = new float[]{game.getCityBoundingBox().randX(game.rand), game.getCityBoundingBox().randY(game.rand)};
             }else{
-                double dist = Core.distance(drone, this);
+                double dist = Vector2f.distance(drone.x, drone.y, x, y);
                 if(dist<width){
-                    double xDiff = drone.x-x;
-                    double yDiff = drone.y-y;
-                    target = new double[]{x-xDiff, y-yDiff};
+                    float xDiff = drone.x-x;
+                    float yDiff = drone.y-y;
+                    target = new float[]{x-xDiff, y-yDiff};
                 }
             }
         }
-        double xDiff = target[0]-x;
-        double yDiff = target[1]-y;
-        double dist = Core.distance(0, 0, xDiff, yDiff);
-        xDiff/=dist;
-        yDiff/=dist;
-        xDiff*=speed;
-        yDiff*=speed;
-        x+=xDiff;
-        y+=yDiff;
+        float xDiff = target[0]-x;
+        float yDiff = target[1]-y;
+        float dist = Vector2f.distance(0, 0, xDiff, yDiff);
+        xDiff /= dist;
+        yDiff /= dist;
+        xDiff *= speed;
+        yDiff *= speed;
+        x += xDiff;
+        y += yDiff;
     }
-    double[] laserFiring = null;
+    float[] laserFiring = null;
     Enemy en = null;
     private void findEnemy(){
         double dist = Double.POSITIVE_INFINITY;
         en = null;
         for(Enemy enemy : game.enemies){
-            if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyMothership)continue;
-            double d = Core.distance(this, enemy);
+            if(enemy instanceof EnemyMeteorStrike||enemy instanceof EnemyMothership)
+                continue;
+            double d = Vector2f.distance(x, y, enemy.x, enemy.y);
             if(d<dist){
                 en = enemy;
                 dist = d;
@@ -125,47 +124,47 @@ public class Drone extends GameObject{
     private void fireLaser(){
         laserFiring = null;
         findEnemy();
-        if(en==null) return;
-        laserSize+=laserSizing;
+        if(en==null)return;
+        laserSize += laserSizing;
         if(laserSize>=25){
-            laserSizing*=-1;
+            laserSizing *= -1;
         }
         if(laserSize<=15){
-            laserSizing*=-1;
+            laserSizing *= -1;
         }
-        laserFiring = new double[]{en.x,en.y};
+        laserFiring = new float[]{en.x, en.y};
     }
     @Override
     public void draw(){
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(0, 0, 0, 0, 0);
+        Renderer.setColor(1, 1, 1, 1);
         if(laserFiring!=null){
-            double xDiff = laserFiring[0]-x;
-            double yDiff = laserFiring[1]-y;
-            double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+            float xDiff = laserFiring[0]-x;
+            float yDiff = laserFiring[1]-y;
+            float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 0, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, 0, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, laserSize/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, .5, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                float percent = i/dist;
+                Renderer.setColor(1, .5f, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(2/3f))/2f);
             }
             for(int i = 0; i<dist; i++){
-                double percent = i/dist;
-                GL11.glColor4d(1, 1, 0, 1);
-                Game.drawRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
-                GL11.glColor4d(1, 1, 1, 1);
+                float percent = i/dist;
+                Renderer.setColor(1, 1, 0, 1);
+                Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(1/3f))/2f);
+                Renderer.setColor(1, 1, 1, 1);
             }
         }
-        GL11.glColor4d(1, 1, 1, 1);
-        drawRect(x-width/2, y-height/2, x+width/2, y+height/2, ImageStash.instance.getTexture("/textures/drone.png"));
-        GL11.glColor4d(0, 0, 0, 1);
-        drawRect(x-width/2, y+height/2, x+width/2, y+height/2+5, 0);
-        GL11.glColor4d(0, 0.25, 1, 1);
-        drawRectWithBounds(x-width/2,y+height/2,x-width/2+(width*(power/(double)maxPower)),y+height/2+5,x-width/2+1, y+height/2+1, x+width/2-1, y+height/2+5-1, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(1, 1, 1, 1);
+        Renderer.fillRect(x-width/2, y-height/2, x+width/2, y+height/2, ResourceManager.getTexture("/textures/drone.png"));
+        Renderer.setColor(0, 0, 0, 1);
+        Renderer.fillRect(x-width/2, y+height/2, x+width/2, y+height/2+5, 0);
+        Renderer.setColor(0, 0.25f, 1, 1);
+        Renderer.bound(x-width/2+1, y+height/2+1, x+width/2-1, y+height/2+5-1);
+        Renderer.fillRect(x-width/2, y+height/2, x-width/2+(width*(power/(float)maxPower)), y+height/2+5, 0);
+        Renderer.setColor(1, 1, 1, 1);
     }
 }

@@ -11,7 +11,7 @@ public class MenuControls extends MenuComponentOverlay{
     private final int textHeight = 40;
     public MenuControls(MenuGame menu){
         super(menu);
-        back = add(new MenuComponentButton(Core.helper.displayWidth()/2-400, Core.helper.displayHeight()-160, 800, 80, "Back", true));
+        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Back", true));
     }
     @Override
     public void render(){
@@ -48,22 +48,22 @@ public class MenuControls extends MenuComponentOverlay{
         }
     }
     private void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, right, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(0, 0, 0, 0.75);
+        Renderer.fillRect(left, top, right, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1);
         drawCenteredText(left,top,right,bottom, str);
     }
     private void textWithBackground(double left, double top, double right, double bottom, String str) {
-        GL11.glColor4d(0, 0, 0, 0.75);
-        drawRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
-        GL11.glColor4d(1, 1, 1, 1);
+        Renderer.setColor(0, 0, 0, 0.75);
+        Renderer.fillRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
+        Renderer.setColor(1, 1, 1, 1);
         drawText(left,top,right,bottom, str);
     }
     private String getKeyName(int key){
         return key==-1?"NONE":GLFW.glfwGetKeyName(key, GLFW.glfwGetKeyScancode(key));
     }
     private void text(String string){
-        textWithBackground(0, yOffset, Core.helper.displayWidth(), yOffset+textHeight, string);
+        textWithBackground(0, yOffset, DizzyEngine.screenSize.x, yOffset+textHeight, string);
         yOffset+=textHeight;
     }
 }
