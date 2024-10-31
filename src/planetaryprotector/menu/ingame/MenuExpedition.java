@@ -1,29 +1,54 @@
 package planetaryprotector.menu.ingame;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.Controls;
 import planetaryprotector.Expedition;
 import java.util.ArrayList;
 import java.util.HashMap;
-import planetaryprotector.Core;
+import org.joml.Vector2d;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.font.FontManager;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuExpedition extends MenuComponentOverlay{
-    private final MenuComponentButton add;
-    private final MenuComponentButton remove;
-    private final MenuComponentButton back;
-    private final MenuComponentButton send;
+    private final Button add;
+    private final Button remove;
+    private final Button back;
+    private final Button send;
     private int workers;
     HashMap<Double[], Expedition> rects = new HashMap<>();
     public MenuExpedition(MenuGame game){
         super(game);
-        add = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 80, 800, 80, "Add worker to expedition", true));
-        remove = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 240, 800, 80, "Remove worker from expedition", false));
-        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-320, 800, 80, "Close", true));
-        send = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Send Expedition", false));
+        var layout = setLayout(new ConstrainedLayout());
+        add = add(new Button("Add worker to expedition", true));
+        add.setSize(800, 80);
+        remove = add(new Button("Remove worker from expedition", false));
+        remove.setSize(800, 80);
+        back = add(new Button("Close", true));
+        back.setSize(800, 80);
+        send = add(new Button("Send Expedition", false));
+        send.setSize(800, 80);
+        layout.constrain(add, new PositionAnchorConstraint(.5f, 0, .5f, 0, -400, 80));
+        layout.constrain(remove, new PositionAnchorConstraint(.5f, 0, .5f, 0, -400, 240));
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, -400, -320));
+        layout.constrain(send, new PositionAnchorConstraint(.5f, 0, .5f, 1, -400, -160));
+        back.addAction(() -> {
+            back();
+        });
+        remove.addAction(() -> {
+            workers--;
+        });
+        send.addAction(() -> {
+            menu.game.expedition(workers);
+        });
+        add.addAction(() -> {
+            workers++;
+        });
     }
     @Override
-    public void renderBackground(){
-        super.renderBackground();
+    public void draw(double deltaTime){
+        super.draw(deltaTime);
         add.enabled = menu.game.workers.size()>workers+1;
         remove.enabled = send.enabled = workers>0;
         if(menu.game.pendingExpedition!=null){
@@ -33,7 +58,8 @@ public class MenuExpedition extends MenuComponentOverlay{
         rightTextOffset = 0;
     }
     @Override
-    public void render(){
+    public void render(double deltaTime){
+        super.render(deltaTime); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
         rects.clear();
         for(Expedition e : menu.game.finishedExpeditions){
             drawText(e);
@@ -41,35 +67,29 @@ public class MenuExpedition extends MenuComponentOverlay{
         for(Expedition e : menu.game.activeExpeditions){
             drawTextRight(e);
         }
-        drawCenteredText(0, remove.y+remove.height+25, DizzyEngine.screenSize.x, back.y-25, workers+"/"+menu.game.workers.size());
+        Renderer.drawCenteredText(0, remove.y+remove.getHeight()+25, DizzyEngine.screenSize.x, back.y-25, workers+"/"+menu.game.workers.size());
+        if(close==null)return;
+        open(new MenuExpeditionGraph(menu, close));
     }
     Expedition close = null;
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
-        super.onMouseButton(x, y, button, pressed, mods);
+    public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
+        super.onMouseButton(id, pos, button, action, mods); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
         if(button==0){
             for(Double[] d : rects.keySet()){
-                if(isClickWithinBounds(x, y, d[0], d[1], d[2], d[3])){
+                if(x>=d[0]&&y>=d[1]&&x<=d[2]&&y<=d[3]){
                     close = rects.get(d);
                 }
             }
         }
     }
     @Override
-    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
-        if(key==Controls.menu&&isPress&&!isRepeat){
-            buttonClicked(back);
+    public void onKey(int id, int key, int scancode, int action, int mods){
+        if(key==Controls.menu&&action==GLFW.GLFW_PRESS){
+            back();
         }
     }
-    @Override
-    public void tick(){
-        super.tick();
-        if(close==null)return;
-        open(new MenuExpeditionGraph(menu, close));
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button) {
-        if(button==back){
+    private void back(){
             for(Expedition e : menu.game.finishedExpeditions){
                 if(!e.returned){
                     continue;
@@ -81,20 +101,10 @@ public class MenuExpedition extends MenuComponentOverlay{
             }
             menu.game.finishedExpeditions.clear();
             close();
-        }
-        if(button==remove){
-            workers--;
-        }
-        if(button==send){
-            menu.game.expedition(workers);
-        }
-        if(button==add){
-            workers++;
-        }
     }
-    private double textOffset = 0;
-    private double rightTextOffset = 0;
-    private double textHeight = 20;
+    private float textOffset = 0;
+    private float rightTextOffset = 0;
+    private float textHeight = 20;
     private void drawText(Expedition e){
         drawText(e.getText(), e);
     }
@@ -112,7 +122,7 @@ public class MenuExpedition extends MenuComponentOverlay{
         rects.put(new Double[]{left,top,right,bottom}, e);
     }
     private void drawTextRight(ArrayList<String> text, Expedition e){
-        double left = add.x+add.width;
+        double left = add.x+add.getWidth();
         double top = rightTextOffset;
         for(String str : text){
             drawTextRight(str, e);
@@ -122,15 +132,15 @@ public class MenuExpedition extends MenuComponentOverlay{
         rects.put(new Double[]{left,top,right,bottom}, e);
     }
     private void drawText(String text, Expedition e){
-        String str = drawTextWithWrap(0, textOffset, add.x, textOffset+textHeight, text);
+        String str = Renderer.drawTextWithWrap(0, textOffset, add.x, textOffset+textHeight, text);
         textOffset+=textHeight;
         if(str!=null&&!str.isEmpty()){
             drawText(str, e);
         }
     }
     private void drawTextRight(String text, Expedition e){
-        double len = FontManager.getLengthForStringWithHeight(text, textHeight);
-        String str = drawTextWithWrap(Math.max(add.x+add.width, DizzyEngine.screenSize.x-len), rightTextOffset, DizzyEngine.screenSize.x, rightTextOffset+textHeight, text);
+        double len = Renderer.getStringWidth(text, textHeight);
+        String str = drawTextWithWrap(Math.max(add.x+add.getWidth(), DizzyEngine.screenSize.x-len), rightTextOffset, DizzyEngine.screenSize.x, rightTextOffset+textHeight, text);
         rightTextOffset+=textHeight;
         if(str!=null&&!str.isEmpty()){
             drawTextRight(str, e);

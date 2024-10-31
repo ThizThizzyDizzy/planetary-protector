@@ -1,26 +1,26 @@
 package planetaryprotector.menu.component;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-    public class MenuComponentAnimation extends MenuComponentButton{
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+public class MenuComponentAnimation extends Button{
     public int[] images;
     public int frame = 0;
     public int delay = 3;
-    public int timeWaited = 0;
+    public float timeWaited = 0;
     public boolean loop = false;
-    public MenuComponentAnimation(double x, double y, double width, double height, int[] images){
-        super(x,y,width,height, "", true);
-        this.images=images;
+    public MenuComponentAnimation(float x, float y, float width, float height, int[] images){
+        super("", true);
+        this.x = x;
+        this.y = y;
+        setSize(width, height);
+        this.images = images;
     }
     @Override
-    public void render(){
-        Renderer.fillRect(x, y, x+width, y+height, images[frame]);
-    }
-    @Override
-    public void tick(){
-        timeWaited++;
+    public void draw(double deltaTime){
+        timeWaited += deltaTime/20;
         if(timeWaited<delay){
             return;
         }
-        timeWaited=0;
+        timeWaited = 0;
         frame++;
         if(frame>=images.length){
             if(loop){
@@ -29,5 +29,6 @@ import simplelibrary.opengl.gui.components.MenuComponentButton;
                 frame--;
             }
         }
+        Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), images[frame]);
     }
 }

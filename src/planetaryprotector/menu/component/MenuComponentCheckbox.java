@@ -1,56 +1,61 @@
 package planetaryprotector.menu.component;
-import simplelibrary.opengl.ImageStash;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MenuComponentCheckbox extends MenuComponent{
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
+import org.joml.Vector2d;
+import org.lwjgl.glfw.GLFW;
+public class MenuComponentCheckbox extends Component{
     private final String textureRoot;
     public boolean isChecked;
     public boolean enabled;
     public MenuComponentCheckbox(float x, float y, float width, float height){
-        this(x,y,width,height,true);
+        this(x, y, width, height, true);
     }
     public MenuComponentCheckbox(float x, float y, float width, float height, boolean enabled){
-        this(x,y,width,height,enabled,false);
+        this(x, y, width, height, enabled, false);
     }
     public MenuComponentCheckbox(float x, float y, float width, float height, boolean enabled, boolean checked){
-        this(x,y,width,height,enabled,checked,false);
+        this(x, y, width, height, enabled, checked, false);
     }
     public MenuComponentCheckbox(float x, float y, float width, float height, boolean enabled, boolean checked, boolean useMouseover){
-        this(x,y,width,height,enabled,checked,useMouseover,"/textures/gui/checkbox");
+        this(x, y, width, height, enabled, checked, useMouseover, "/textures/gui/checkbox");
     }
     public MenuComponentCheckbox(float x, float y, float width, float height, boolean enabled, boolean checked, boolean useMouseover, String textureRoot){
-        super(x,y,width,height);
+        this.x = x;
+        this.y = y;
+        setSize(width, height);
         this.textureRoot = textureRoot;
         this.enabled = enabled;
         this.isChecked = checked;
     }
     @Override
-    public void render(){
+    public void draw(double deltaTime){
         if(enabled){
             if(isChecked){
-                if(isMouseOver){
-                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"CheckedMouseover.png"));
+                if(isCursorFocused()){
+                    Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+"CheckedMouseover.png"));
                 }else{
-                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Checked.png"));
+                    Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+"Checked.png"));
                 }
             }else{
-                if(isMouseOver){
-                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Mouseover.png"));
+                if(isCursorFocused()){
+                    Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+"Mouseover.png"));
                 }else{
-                    Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+".png"));
+                    Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+".png"));
                 }
             }
         }else{
             if(isChecked){
-                Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"CheckedDisabled.png"));
+                Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+"CheckedDisabled.png"));
             }else{
-                Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture(textureRoot+"Disabled.png"));
+                Renderer.fillRect(x, y, x+getWidth(), y+getHeight(), ResourceManager.getTexture(textureRoot+"Disabled.png"));
             }
-            
+
         }
     }
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
-        super.onMouseButton(x, y, button, pressed, mods);
-        if(button==0&&pressed&&enabled)isChecked = !isChecked;
+    public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
+        super.onMouseButton(id, pos, button, action, mods);
+        if(button==0&&action==GLFW.GLFW_PRESS&&enabled)isChecked = !isChecked;
     }
 }

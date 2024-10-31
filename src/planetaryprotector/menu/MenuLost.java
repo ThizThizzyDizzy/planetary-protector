@@ -1,6 +1,8 @@
 package planetaryprotector.menu;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.Framebuffer;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
 import planetaryprotector.game.Game;
 import java.util.ArrayList;
@@ -18,14 +20,14 @@ public class MenuLost extends Menu{
     private boolean gottenFar = false;
     private static final double SPEED = 1.5;//planet break speed modifier
     private final Game game;
-    private double laserSize = 0;
+    private float laserSize = 0;
     private boolean laserBig = false;
     private boolean explosion = false;
     public MenuLost(Game game){
         this.game = game;
         Random rand = new Random();
         for(int i = 0; i<1000; i++){
-            stars.add(new double[]{rand.nextInt(DizzyEngine.screenSize.x), rand.nextInt(DizzyEngine.screenSize.y), rand.nextInt(105*20), rand.nextDouble()/4+.2, 0});
+            stars.add(new float[]{rand.nextInt(DizzyEngine.screenSize.x), rand.nextInt(DizzyEngine.screenSize.y), rand.nextInt(105*20), (float)(rand.nextDouble()/4+.2), 0});
         }
     }
     @Override
@@ -40,10 +42,12 @@ public class MenuLost extends Menu{
             new MenuMain(true).open();
         }
     }
-    @Override
-    public void tick(){
-        game.tick();
-        super.tick();
+    /**
+     * x,y,time,alpha
+     */
+    public ArrayList<float[]> stars = new ArrayList<>();
+    @Override//sun appear, slowly move into distance until it dies at around 03:15.75
+    public void render(double deltaTime){
         Core.discordDetails = "Game Over";
         Core.discordEndTimestamp = (System.currentTimeMillis()+206000-(Sounds.songTimer()*50))/1000;
         Core.discordLargeImageKey = "planet";
@@ -51,9 +55,9 @@ public class MenuLost extends Menu{
         Core.discordState = "Epilogue";
         tick = Sounds.songTimer();
         if(tick>=20*(60+22)){
-            for(double[] star : stars){
+            for(float[] star : stars){
                 if(tick-(20*(60+22))>star[2]){
-                    star[4]+=0.00625;
+                    star[4] += 0.00625;
                     star[3] = 1-star[4];
                 }
             }
@@ -65,7 +69,7 @@ public class MenuLost extends Menu{
                     game.addParticleEffect(new Particle(game, laserFiring[0], laserFiring[1], ParticleEffectType.EXPLOSION, 10, false){
                         @Override
                         public void tick(){
-                            radius+=80;
+                            radius += 80;
                             super.tick();
                         }
                     });
@@ -75,27 +79,20 @@ public class MenuLost extends Menu{
                 game.pushParticles(laserFiring[0], laserFiring[1], DizzyEngine.screenSize.x/8, 4, .2, Particle.PushCause.EXPLOSION);
             }
         }
-    }
-    /**
-     * x,y,time,alpha
-     */
-    public ArrayList<double[]> stars = new ArrayList<>();
-    @Override//sun appear, slowly move into distance until it dies at around 03:15.75
-    public void render(int millisSinceLastTick){
         Renderer.setColor(0, 0, 0, 1);
         Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
         Renderer.setColor(1, 1, 1, 1);
         if(tick<20*34){//on the planet
             //<editor-fold defaultstate="collapsed" desc="Planet surface">
             if(gottenFar){
-                gui.open(new MenuMain(gui, true));
+                new MenuMain(true).open();
                 return;
             }
-            super.render(millisSinceLastTick);
+            super.render(deltaTime);
             if(tick<20*20){
-                double mothershipY = -200+(300*tick/400d);
-                double mothershipScale = ((1-(tick/400d))*5+1)*2;
-                double mothershipOpacity = tick/200d;
+                float mothershipY = -200+(300*tick/400f);
+                float mothershipScale = ((1-(tick/400f))*5+1)*2;
+                float mothershipOpacity = tick/200f;
                 Renderer.setColor(1, 1, 1, mothershipOpacity);
                 GL11.glPushMatrix();
                 GL11.glTranslated(DizzyEngine.screenSize.x/2, mothershipY, 0);
@@ -110,37 +107,37 @@ public class MenuLost extends Menu{
                     int x = DizzyEngine.screenSize.x/2;
                     int y = 100;
                     if(tick>20*33)laserBig = true;
-                    laserSize = laserBig?50+(tick-20*33)*10:20+Math.sin(tick/40d)*5;
-                    double xDiff = laserFiring[0]-x;
-                    double yDiff = laserFiring[1]-y;
-                    double dist = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
+                    laserSize = (float)(laserBig?50+(tick-20*33)*10:20+Math.sin(tick/40f)*5);
+                    float xDiff = laserFiring[0]-x;
+                    float yDiff = laserFiring[1]-y;
+                    float dist = (float)Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
                     for(int i = 0; i<dist; i++){
-                        double percent = i/dist;
+                        float percent = i/dist;
                         Renderer.setColor(1, 0, 0, 1);
-                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), laserSize/2D,10,0);
+                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, laserSize/2f);
                     }
                     for(int i = 0; i<dist; i++){
-                        double percent = i/dist;
-                        Renderer.setColor(1, .5, 0, 1);
-                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(2/3D))/2D,10,0);
+                        float percent = i/dist;
+                        Renderer.setColor(1, .5f, 0, 1);
+                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(2/3f))/2f);
                     }
                     for(int i = 0; i<dist; i++){
-                        double percent = i/dist;
+                        float percent = i/dist;
                         Renderer.setColor(1, 1, 0, 1);
-                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), (laserSize*(1/3D))/2D,10,0);
+                        Renderer.fillRegularPolygon(x+(xDiff*percent), y+(yDiff*percent), 10, (laserSize*(1/3f))/2f);
                         Renderer.setColor(1, 1, 1, 1);
                     }
                 }
                 Renderer.fillRect(DizzyEngine.screenSize.x/2-250, 100-250, DizzyEngine.screenSize.x/2+250, 100+250, ResourceManager.getTexture("/textures/enemies/mothership 1.png"));
             }
 //</editor-fold>
-        //<editor-fold defaultstate="collapsed" desc="Transitions and planet exploding">
+            //<editor-fold defaultstate="collapsed" desc="Transitions and planet exploding">
         }else if(tick<20*50){//transition
             if(tick<20*35){//white
                 Renderer.setColor(1, 1, 1, 1);
                 Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
             }else if(tick<20*45){//changing
-                double x = (tick-20*35)/(20d*10);
+                float x = (tick-20*35)/(20f*10);
                 Renderer.setColor(1-x, 1-x, 1-x, 1);
                 Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
             }else{//black
@@ -148,7 +145,7 @@ public class MenuLost extends Menu{
                 Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
             }
         }else if(tick<20*55){//space image and planet fades in
-            double x = (tick-20*50)/(20d*5);
+            float x = (tick-20*50)/(20f*5);
             Renderer.setColor(1, 1, 1, x);
             drawSpace(0);
         }else if(tick<20*60){//planet explodes
@@ -156,14 +153,14 @@ public class MenuLost extends Menu{
             gottenFar = true;
         }else if(tick<20*65){
             drawSpace(1);
-            double x = (tick-20*60)/(20d*5);
+            float x = (tick-20*60)/(20f*5);
             Renderer.setColor(1, 1, 1, 1-x);
             Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
         }else if(tick<20*(60+18)){
             drawSpace(1);
         }else if(tick<20*(60+22)){//fade to black
             drawSpace(1);
-            double x = (tick-20*(60+18))/(20d*5);
+            float x = (tick-20*(60+18))/(20f*5);
             Renderer.setColor(0, 0, 0, x);
             Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
 //</editor-fold>
@@ -213,53 +210,51 @@ public class MenuLost extends Menu{
 //                }
 //            }
 //</editor-fold>
-            double x = (tick-20*(60+22))/(20d*5);
+            float x = (tick-20*(60+22))/(20f*5);
             Renderer.setColor(0, 0, 0, 1-x);
             Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, 0);
         }
         Renderer.setColor(1, 1, 1, 1);
     }
     private void drawStars(){
-        GL11.glBegin(GL11.GL_POINTS);
-        for(double[] star : stars){
+        for(float[] star : stars){
             Renderer.setColor(1, 1, 1, star[3]);
-            GL11.glVertex2d(star[0], star[1]);
+            Renderer.fillRect(star[0], star[1], star[0]+1, star[1]+1, 0);
         }
-        GL11.glEnd();
     }
-    public double[][] planetParts = new double[3][2];
+    public float[][] planetParts = new float[3][2];
     private void drawSpace(int boom){//0 for no, 1 for yes
         if(space==null||boom>0){
             boolean d = false;
             if(space==null){
                 d = true;
-                space = new Framebuffer(Core.helper, "Space"+tick, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y);
-                space.bindRenderTarget2D();
+                space = new Framebuffer(DizzyEngine.screenSize.x, DizzyEngine.screenSize.y);
+                space.bind();
             }
-            double planetSize = DizzyEngine.screenSize.y*.65;
+            float planetSize = DizzyEngine.screenSize.y*.65f;
             Renderer.setColor(0, 0, 0, 1);
-            double left = DizzyEngine.screenSize.x/2-planetSize/2;
-            double top = DizzyEngine.screenSize.y/2-planetSize/2;
-            double right = DizzyEngine.screenSize.x/2+planetSize/2;
-            double bottom = DizzyEngine.screenSize.y/2+planetSize/2;
+            float left = DizzyEngine.screenSize.x/2-planetSize/2;
+            float top = DizzyEngine.screenSize.y/2-planetSize/2;
+            float right = DizzyEngine.screenSize.x/2+planetSize/2;
+            float bottom = DizzyEngine.screenSize.y/2+planetSize/2;
             drawStars();
             Renderer.setColor(1, 1, 1, 1);
             if(boom==1){
                 int j = 0;
-                for(double[] is : planetParts){
+                for(float[] is : planetParts){
                     j++;
                     Renderer.fillRect(left+is[0], top+is[1], right+is[0], bottom+is[1], ResourceManager.getTexture("/textures/planet"+j+".png"));
                     switch(j){
                         case 1:
-                            is[0]-=0.05*SPEED;
-                            is[1]-=0.075*SPEED;
+                            is[0] -= 0.05*SPEED;
+                            is[1] -= 0.075*SPEED;
                             break;
                         case 2:
-                            is[0]+=0.1*SPEED;
+                            is[0] += 0.1*SPEED;
                             break;
                         case 3:
-                            is[0]-=0.055*SPEED;
-                            is[1]+=0.07*SPEED;
+                            is[0] -= 0.055*SPEED;
+                            is[1] += 0.07*SPEED;
                             break;
                     }
                 }
@@ -267,10 +262,10 @@ public class MenuLost extends Menu{
                 Renderer.fillRect(left, top, right, bottom, ResourceManager.getTexture("/textures/planet.png"));
             }
             if(d){
-                space.releaseRenderTarget();
+                //TODO relase framebuffer?
             }
         }else{
-            Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, space.getTexture());
+            Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, space.texture);
         }
     }
 }

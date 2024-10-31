@@ -4,7 +4,6 @@ import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import planetaryprotector.item.ItemStack;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.MenuGame;
@@ -39,7 +38,7 @@ public class MenuComponentActionButton extends Button{
         if(!action.isImportant()){
             int id = menu.actionButtons.indexOf(this);
             if(id>=0&&id<=11){
-                Renderer.setColor(1, 1, 1, .75);
+                Renderer.setColor(1, 1, 1, .75f);
                 String num = (id+1)+"";
                 if(id==9)num = "0";
                 if(id==10)num = "-";

@@ -1,20 +1,28 @@
 package planetaryprotector.menu.ingame;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import org.lwjgl.glfw.GLFW;
 import planetaryprotector.Controls;
-import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuControls extends MenuComponentOverlay{
-    private final MenuComponentButton back;
-    double yOffset = 0;
+    private final Button back;
+    float yOffset = 0;
     private final int textHeight = 40;
     public MenuControls(MenuGame menu){
         super(menu);
-        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Back", true));
+        var layout = setLayout(new ConstrainedLayout());
+        back = add(new Button("Back", true));
+        back.setSize(800, 80);
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 1, -400, -160));
+        back.addAction(() -> {
+            open(new MenuIngame(menu));
+        });
     }
     @Override
-    public void render(){
+    public void draw(double deltaTime){
         yOffset = 0;
         text("Menu: "+getKeyName(Controls.menu));
         text("Deselect: "+getKeyName(Controls.deselect));
@@ -35,35 +43,29 @@ public class MenuControls extends MenuComponentOverlay{
         }
     }
     @Override
-    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
-        super.keyEvent(key, scancode, isPress, isRepeat, modifiers);
-        if(key==Controls.menu&&isPress&&!isRepeat){
-            buttonClicked(back);
-        }
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button) {
-        if(button==back){
+    public void onKey(int id, int key, int scancode, int action, int mods){
+        super.onKey(id, key, scancode, action, mods);
+        if(key==Controls.menu&&action==GLFW.GLFW_PRESS){
             open(new MenuIngame(menu));
         }
     }
-    private void centeredTextWithBackground(double left, double top, double right, double bottom, String str) {
-        Renderer.setColor(0, 0, 0, 0.75);
+    private void centeredTextWithBackground(float left, float top, float right, float bottom, String str){
+        Renderer.setColor(0, 0, 0, 0.75f);
         Renderer.fillRect(left, top, right, bottom, 0);
         Renderer.setColor(1, 1, 1, 1);
-        drawCenteredText(left,top,right,bottom, str);
+        Renderer.drawCenteredText(left, top, right, bottom, str);
     }
-    private void textWithBackground(double left, double top, double right, double bottom, String str) {
-        Renderer.setColor(0, 0, 0, 0.75);
-        Renderer.fillRect(left, top, simplelibrary.font.FontManager.getLengthForStringWithHeight(str, bottom-top)+left, bottom, 0);
+    private void textWithBackground(float left, float top, float right, float bottom, String str){
+        Renderer.setColor(0, 0, 0, 0.75f);
+        Renderer.fillRect(left, top, Renderer.getStringWidth(str, bottom-top)+left, bottom, 0);
         Renderer.setColor(1, 1, 1, 1);
-        drawText(left,top,right,bottom, str);
+        Renderer.drawText(left, top, right, bottom, str);
     }
     private String getKeyName(int key){
         return key==-1?"NONE":GLFW.glfwGetKeyName(key, GLFW.glfwGetKeyScancode(key));
     }
     private void text(String string){
         textWithBackground(0, yOffset, DizzyEngine.screenSize.x, yOffset+textHeight, string);
-        yOffset+=textHeight;
+        yOffset += textHeight;
     }
 }

@@ -11,8 +11,8 @@ public abstract class MenuComponentOverlayStructure extends MenuComponentOverlay
         type = structure.type;
     }
     @Override
-    public void tick(){
-        super.tick();
+    public void draw(double deltaTime){
+        super.draw(deltaTime); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
         if(structure.type!=type)close();
     }
 }

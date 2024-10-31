@@ -1,8 +1,8 @@
 package planetaryprotector.menu.ingame;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import com.thizthizzydizzy.dizzyengine.ui.component.Component;
+import com.thizthizzydizzy.dizzyengine.ui.component.Panel;
 import planetaryprotector.menu.MenuGame;
-public abstract class MenuComponentOverlay extends Component{
+public abstract class MenuComponentOverlay extends Panel{
     protected final MenuGame menu;
     public MenuComponentOverlay(MenuGame menu){
         this.menu = menu;

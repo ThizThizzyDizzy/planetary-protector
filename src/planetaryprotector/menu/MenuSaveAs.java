@@ -1,42 +1,47 @@
 package planetaryprotector.menu;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.component.TextBox;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
 import planetaryprotector.game.Game;
-import simplelibrary.opengl.gui.GUI;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
-import simplelibrary.opengl.gui.components.MenuComponentTextBox;
-import simplelibrary.opengl.gui.Menu;
 public class MenuSaveAs extends Menu{
-    private final MenuComponentButton cancel;
-    private final MenuComponentButton save;
-    private final MenuComponentTextBox name;
+    private final Button cancel;
+    private final Button save;
+    private final TextBox name;
     private final Game game;
-    public MenuSaveAs(GUI gui, MenuGame game){
-        super(gui, game);
-        cancel = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-80, 400, 40, "Cancel", true));
-        save = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-200, DizzyEngine.screenSize.y-160, 400, 40, "Save", false));
-        name = add(new MenuComponentTextBox(DizzyEngine.screenSize.x/2-200, 120, 400, 40, game.game.name==null?"":game.game.name, true));
-        this.game = game.game;
+    public MenuSaveAs(Game game){
+        var layout = setLayout(new ConstrainedLayout());
+        cancel = add(new Button("Cancel", true));
+        cancel.setSize(400, 40);
+        save = add(new Button("Save", false));
+        save.setSize(400, 40);
+        name = add(new TextBox(game.name==null?"":game.name));
+        name.setSize(400, 40);
+        layout.constrain(cancel, new PositionAnchorConstraint(.5f, 0, .5f, 1, -200, -80));
+        layout.constrain(save, new PositionAnchorConstraint(.5f, 0, .5f, 1, -200, -160));
+        layout.constrain(name, new PositionAnchorConstraint(.5f, 0, .5f, 1, -200, 120));
+        cancel.addAction(() -> {
+            ((Menu)parent).open();
+        });
+        save.addAction(() -> {
+            game.name = name.getText();
+            game.save();
+            ((Menu)parent).open();
+        });
+        this.game = game;
     }
     @Override
-    public void renderBackground(){
-        Renderer.fillRect(0,0,DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
-        save.enabled = !name.text.isEmpty();
+    public void draw(double deltaTime){
+        Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
+        save.enabled = !name.getText().isEmpty();
         cancel.x = DizzyEngine.screenSize.x/2-200;
         cancel.y = DizzyEngine.screenSize.y-80;
         save.x = cancel.x;
         save.y = cancel.y-80;
         name.x = save.x;
         name.y = save.y-240;
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button){
-        if(button==cancel){
-            gui.open(parent);
-        }
-        if(button==save){
-            game.name = name.text;
-            game.save();
-            gui.open(parent);
-        }
     }
 }

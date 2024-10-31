@@ -1,7 +1,12 @@
 package planetaryprotector.menu.ingame;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.Framebuffer;
+import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import java.util.Random;
+import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.item.ItemStack;
@@ -11,99 +16,97 @@ import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.Research.ResearchCategory;
 import planetaryprotector.research.lang.HorizontalLang;
-import simplelibrary.game.Framebuffer;
-import simplelibrary.opengl.ImageStash;
-import static simplelibrary.opengl.Renderer2D.drawRect;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MenuComponentSelectedResearch extends MenuComponent{
+public class MenuComponentSelectedResearch extends Component{
     public Research research = null;
     public HorizontalLang title = new HorizontalLang();
     private static final int[] nonsense = {4,4};
     private final Laboratory lab;
     private final Game game;
-    public MenuComponentSelectedResearch(Laboratory lab, double x, double y, double width, double height){
-        super(x, y, width, height);
+    public MenuComponentSelectedResearch(Laboratory lab, float x, float y, float width, float height){
+        this.x = x;
+        this.y = y;
+        setSize(width, height);
         this.lab = lab;
         this.game = lab.game;
     }
     @Override
-    public void render(){
+    public void draw(double deltaTime){
         if(research==null)return;
-        double borderThickness = Math.min(width, height)/30;
-        double border = borderThickness/.4;
+        float borderThickness = Math.min(getWidth(), getHeight())/30;
+        float border = borderThickness/.4f;
         int quality = 36;
-        Renderer.setColor(.95, .95, .95, 1);
-        Renderer.fillRect(x+border, y, x+width-border, y+height, 0);
-        Renderer.fillRect(x, y+border, x+width, y+height-border, 0);
+        Renderer.setColor(.95f, .95f, .95f, 1);
+        Renderer.fillRect(x+border, y, x+getWidth()-border, y+getHeight(), 0);
+        Renderer.fillRect(x, y+border, x+getWidth(), y+getHeight()-border, 0);
         Core.drawOval(x+border, y+border, border, border, border, quality, 0, 27, 36);
-        Core.drawOval(x+width-border, y+border, border, border, border, quality, 0, 0, 9);
-        Core.drawOval(x+width-border, y+height-border, border, border, border, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+height-border, border, border, border, quality, 0, 18, 27);
-        Renderer.setColor(.75, .75, .75, 1);
+        Core.drawOval(x+getWidth()-border, y+border, border, border, border, quality, 0, 0, 9);
+        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, border, quality, 0, 9, 18);
+        Core.drawOval(x+border, y+getHeight()-border, border, border, border, quality, 0, 18, 27);
+        Renderer.setColor(.75f, .75f, .75f, 1);
         Core.drawOval(x+border, y+border, border, border, borderThickness, quality, 0, 27, 36);
-        Core.drawOval(x+width-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
-        Core.drawOval(x+width-border, y+height-border, border, border, borderThickness, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+height-border, border, border, borderThickness, quality, 0, 18, 27);
-        Renderer.fillRect(x+border, y, x+width-border, y+borderThickness, 0);
-        Renderer.fillRect(x+width-borderThickness, y+border, x+width, y+height-border, 0);
-        Renderer.fillRect(x+border, y+height-borderThickness, x+width-border, y+height, 0);
-        Renderer.fillRect(x, y+border, x+borderThickness, y+height-border, 0);
-        Renderer.fillRect(x+border, y+borderThickness, height, border, quality);
-        Renderer.setColor(.05, .05, .05, 1);
-        title.drawTranslation(x+width/2, y+borderThickness+width*.075, width/20, research.fancyTitle);
-        drawCenteredText(x+border+width*.3, y+borderThickness+width*.15, x+width-border, y+borderThickness+width*.15+40, research.getTitle());
+        Core.drawOval(x+getWidth()-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
+        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, borderThickness, quality, 0, 9, 18);
+        Core.drawOval(x+border, y+getHeight()-border, border, border, borderThickness, quality, 0, 18, 27);
+        Renderer.fillRect(x+border, y, x+getWidth()-border, y+borderThickness, 0);
+        Renderer.fillRect(x+getWidth()-borderThickness, y+border, x+getWidth(), y+getHeight()-border, 0);
+        Renderer.fillRect(x+border, y+getHeight()-borderThickness, x+getWidth()-border, y+getHeight(), 0);
+        Renderer.fillRect(x, y+border, x+borderThickness, y+getHeight()-border, 0);
+        Renderer.fillRect(x+border, y+borderThickness, getHeight(), border, quality);
+        Renderer.setColor(.05f, .05f, .05f, 1);
+        title.drawTranslation(x+getWidth()/2, y+borderThickness+getWidth()*.075, getWidth()/20, research.fancyTitle);
+        Renderer.drawCenteredText(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40, research.getTitle());
         if(research.isDiscovered()){
-            drawDescription(x+border+width*.3, y+borderThickness+width*.15+40, x+width-border, y+borderThickness+width*.15+40+width*.3, x+border, x+width-border, y+height-border-borderThickness, 40, research.getDescription());
+            drawDescription(x+border+getWidth()*.3, y+borderThickness+getWidth()*.15+40, x+getWidth()-border, y+borderThickness+getWidth()*.15+40+getWidth()*.3, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDescription());
         }else{
             if(game.cheats){
-                drawDescription(x+border+width*.3, y+borderThickness+width*.15+40, x+width-border, y+borderThickness+width*.15+40+width*.3, x+border, x+width-border, y+height-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
+                drawDescription(x+border+getWidth()*.3, y+borderThickness+getWidth()*.15+40, x+getWidth()-border, y+borderThickness+getWidth()*.15+40+getWidth()*.3, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
             }else{
-                drawNonsense(x+border, y+borderThickness+width*.15+40, x+width-border, y+height-border-borderThickness, 40);
+                drawNonsense(x+border, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+getHeight()-border-borderThickness, 40);
             }
         }
         Renderer.setColor(1, 1, 1, 1);
-        drawTheImageAndItsBorder(x+border, y+borderThickness+width*.15+40, x+border+width/4, y+borderThickness+width*.15+40+width/4);
+        drawTheImageAndItsBorder(x+border, y+borderThickness+getWidth()*.15f+40, x+border+getWidth()/4, y+borderThickness+getWidth()*.15f+40+getWidth()/4);
         if(!research.isDiscovered()){
-            drawProgressBar(x+border, y+height-border-borderThickness, x+width-border, y+height-border, research.getPercentDone());
+            drawProgressBar(x+border, y+getHeight()-border-borderThickness, x+getWidth()-border, y+getHeight()-border, (float)research.getPercentDone());
             DiscoveryStage stage = research.getDiscoveryStage();
             if(stage!=null){//not sure why stage is sometimes null; probably a race condition
-                double total = stage.prerequisites.size();
-                double wide = width-border*2;
+                float total = stage.prerequisites.size();
+                float wide = getWidth()-border*2;
                 for(int i = 0; i<total; i++){
                     DiscoveryPrerequisite pre = stage.prerequisites.get(i);
-                    drawProgressBar(x+border+(wide*(i/total)), y+height-border-borderThickness*1.5, x+border+(wide*((i+1)/total)), y+height-border-borderThickness, pre.progress);
+                    drawProgressBar(x+border+(wide*(i/total)), y+getHeight()-border-borderThickness*1.5f, x+border+(wide*((i+1)/total)), y+getHeight()-border-borderThickness, (float)pre.progress);
                 }
             }
         }else if(!research.isCompleted()){
             int num = research.itemCosts.length+(research.totalPowerCost>0?1:0)+(research.totalStarlightCost>0?1:0);
-            double wide = width-border*2;
-            double w = wide/num;
+            float wide = getWidth()-border*2;
+            float w = wide/num;
             for(int i = 0; i<num; i++){
                 int textHeight = (int) (borderThickness*1.5)/10*10;
                 if(research.totalPowerCost>0&&i==0){
-                    drawText(x+border+w*i, y+height-border-borderThickness-textHeight, x+border+w*(i+1), y+height-border-borderThickness, "Power: "+research.powerCost);
+                    Renderer.drawText(x+border+w*i, y+getHeight()-border-borderThickness-textHeight, x+border+w*(i+1), y+getHeight()-border-borderThickness, "Power: "+research.powerCost);
                     continue;
                 }
                 if(research.totalStarlightCost>0&&((research.totalPowerCost>0&&i==1)||(research.totalPowerCost<=0&&i==0))){
-                    drawText(x+border+w*i, y+height-border-borderThickness-textHeight, x+border+w*(i+1), y+height-border-borderThickness, "Starlight: "+research.starlightCost);
+                    Renderer.drawText(x+border+w*i, y+getHeight()-border-borderThickness-textHeight, x+border+w*(i+1), y+getHeight()-border-borderThickness, "Starlight: "+research.starlightCost);
                     continue;
                 }
                 int offset = (research.totalPowerCost>0?1:0)+(research.totalStarlightCost>0?1:0);
                 ItemStack stack = research.itemCosts[i-offset];
-                Renderer.fillRect(x+border+w*i, y+height-border-borderThickness-textHeight, x+border+w*i+textHeight, y+height-border-borderThickness, stack.item.getTexture());
-                drawText(x+border+w*i+textHeight, y+height-border-borderThickness-textHeight, x+border+w*(i+1), y+height-border-borderThickness, stack.count+"");
+                Renderer.fillRect(x+border+w*i, y+getHeight()-border-borderThickness-textHeight, x+border+w*i+textHeight, y+getHeight()-border-borderThickness, stack.item.getTexture());
+                Renderer.drawText(x+border+w*i+textHeight, y+getHeight()-border-borderThickness-textHeight, x+border+w*(i+1), y+getHeight()-border-borderThickness, stack.count+"");
             }
-            drawProgressBar(x+border, y+height-border-borderThickness, x+width-border, y+height-border, 1-(research.time/(double)research.totalTime));
-            drawCenteredText(x+border, y+height-border-borderThickness+3, x+width-border, y+height-border-3, lab.targetResearch==research?"Stop Researching":"Research");
+            drawProgressBar(x+border, y+getHeight()-border-borderThickness, x+getWidth()-border, y+getHeight()-border, 1-(research.time/(float)research.totalTime));
+            Renderer.drawCenteredText(x+border, y+getHeight()-border-borderThickness+3, x+getWidth()-border, y+getHeight()-border-3, lab.targetResearch==research?"Stop Researching":"Research");
         }
         if(research.isCompleted()&&research.category==ResearchCategory.BUILDING_UPGRADES){
-            drawCenteredText(x+border, y+height-border-borderThickness*2.5+3, x+width-border, y+height-borderThickness*1.5-3, research.upgrade.getConfiguration());
+            Renderer.drawCenteredText(x+border, y+getHeight()-border-borderThickness*2.5f+3, x+getWidth()-border, y+getHeight()-borderThickness*1.5f-3, research.upgrade.getConfiguration());
         }
     }
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
-        super.onMouseButton(x, y, button, pressed, mods);
-        if(button==0&&pressed&&game.cheats&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_CONTROL)&&gui.keyboardWereDown.contains(GLFW.GLFW_KEY_LEFT_SHIFT)){
+    public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
+        super.onMouseButton(id, pos, button, action, mods); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        if(button==0&&action==GLFW.GLFW_PRESS&&game.cheats&&mods == (GLFW.GLFW_MOD_CONTROL & GLFW.GLFW_MOD_SHIFT)){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             if(!research.isDiscovered()){
                 research.cheatDiscover();
@@ -112,7 +115,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
             }
             return;
         }
-        if(button==0&&pressed&&research.isDiscovered()&&!research.isCompleted()){
+        if(button==0&&action==GLFW.GLFW_PRESS&&research.isDiscovered()&&!research.isCompleted()){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             else lab.setTargetResearch(research);
         }
@@ -121,12 +124,12 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         double Y = top;
         description = description.replace("\n", "                                                                                                    ");
         while(description!=null&&!description.trim().isEmpty()){
-            description = Core.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
+            description = Renderer.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
             Y+=textHeight*1.2;
             if(Y>=bottom)break;
         }
     }
-    private void drawNonsense(double left, double top, double right, double bottom, double textHeight){
+    private void drawNonsense(float left, float top, float right, float bottom, float textHeight){
         int charsX = (int) ((right-left)/(textHeight*2));
         int charsY = (int) ((bottom-top)/(textHeight*2));
         left += Math.abs((charsX*textHeight*2-textHeight)-(right-left))/2;
@@ -135,25 +138,25 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         Random r = new Random(research.getSeed());
         for(int X = 0; X<charsX; X++){
             for(int Y = 0; Y<charsY; Y++){
-                double nonsenseX = r.nextInt(nonsense[0]);
-                double nonsenseY = r.nextInt(nonsense[1]);
-                double texLeft = nonsenseX/nonsense[0];
-                double texTop = nonsenseY/nonsense[1];
-                double texRight = (nonsenseX+1)/nonsense[0];
-                double texDown = (nonsenseY+1)/nonsense[1];
+                float nonsenseX = r.nextInt(nonsense[0]);
+                float nonsenseY = r.nextInt(nonsense[1]);
+                float texLeft = nonsenseX/nonsense[0];
+                float texTop = nonsenseY/nonsense[1];
+                float texRight = (nonsenseX+1)/nonsense[0];
+                float texDown = (nonsenseY+1)/nonsense[1];
                 Renderer.fillRect(left+X*textHeight*2, top+Y*textHeight*2, left+X*textHeight*2+textHeight, top+Y*textHeight*2+textHeight, texture, texLeft, texTop, texRight, texDown);
             }
         }
     }
-    private void drawTheImageAndItsBorder(double left, double top, double right, double bottom){
-        double borderThickness = (right-left)/11;
+    private void drawTheImageAndItsBorder(float left, float top, float right, float bottom){
+        float borderThickness = (right-left)/11;
         left-=borderThickness;
         top-=borderThickness;
         right+=borderThickness;
         bottom+=borderThickness;
-        double border = borderThickness/.4;
+        float border = borderThickness/.4f;
         int quality = 36;
-        Renderer.setColor(.95, .95, .95, 1);
+        Renderer.setColor(.95f, .95f, .95f, 1);
         Renderer.fillRect(left+border, top, right-border, bottom, 0);
         Renderer.fillRect(left, top+border, right, bottom-border, 0);
         Core.drawOval(left+border, top+border, border, border, border, quality, 0, 27, 36);
@@ -162,7 +165,7 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         Core.drawOval(left+border, bottom-border, border, border, border, quality, 0, 18, 27);
         Renderer.setColor(1, 1, 1, 1);
         Renderer.fillRect(left+borderThickness, top+borderThickness, right-borderThickness, bottom-borderThickness, research.getTexture());
-        Renderer.setColor(.75, .75, .75, 1);
+        Renderer.setColor(.75f, .75f, .75f, 1);
         Core.drawOval(left+border, top+border, border, border, borderThickness, quality, 0, 27, 36);
         Core.drawOval(right-border, top+border, border, border, borderThickness, quality, 0, 0, 9);
         Core.drawOval(right-border, bottom-border, border, border, borderThickness, quality, 0, 9, 18);
@@ -172,28 +175,28 @@ public class MenuComponentSelectedResearch extends MenuComponent{
         Renderer.fillRect(left+border, bottom-borderThickness, right-border, bottom, 0);
         Renderer.fillRect(left, top+border, left+borderThickness, bottom-border, 0);
     }
-    private void drawProgressBar(double left, double top, double right, double bottom, double percent){
-        Framebuffer filled = new Framebuffer(Core.helper, null, (int)(right-left), (int)(bottom-top));
+    private void drawProgressBar(float left, float top, float right, float bottom, float percent){
+        Framebuffer filled = new Framebuffer((int)(right-left), (int)(bottom-top));
         drawProgressBar(left, top, right, bottom, false);
-        filled.bindRenderTarget2D();
+        filled.bind();
         drawProgressBar(0, 0, filled.width, filled.height, true);
-        filled.releaseRenderTarget();
+        //TODO unbind
         Renderer.setColor(1, 1, 1, 1);
-        Renderer.fillRectWithBounds(left, top, right, bottom, left, top, left+percent*(right-left), bottom, filled.getTexture());
+        Renderer.fillRectWithBounds(left, top, right, bottom, left, top, left+percent*(right-left), bottom, filled.texture);
     }
-    private void drawProgressBar(double left, double top, double right, double bottom, boolean filled){
+    private void drawProgressBar(float left, float top, float right, float bottom, boolean filled){
         if(right-left<bottom-top){
             throw new IllegalArgumentException("Cannnot draw progress bar! It's taller than it is wide!");
         }
-        double r = (bottom-top)/2;
+        float r = (bottom-top)/2;
         //draw fill
-        if(filled)Renderer.setColor(.5, .9, 1, 1);
-        else Renderer.setColor(.3, .3, .6, 1);
-        Core.drawRegularPolygon(left+r, top+r, r, 100, 0);
-        Core.drawRegularPolygon(right-r, top+r, r, 100, 0);
-        Core.drawRect(left+r, top, right-r, bottom, 0);
+        if(filled)Renderer.setColor(.5f, .9f, 1, 1);
+        else Renderer.setColor(.3f, .3f, .6f, 1);
+        Renderer.fillRegularPolygon(left+r, top+r, 100, r);
+        Renderer.fillRegularPolygon(right-r, top+r, 100, r);
+        Renderer.fillRect(left+r, top, right-r, bottom, 0);
         //draw border
-        Renderer.setColor(.7, .74, .75, 1);
+        Renderer.setColor(.7f, .74f, .75f, 1);
         Core.drawOval(left+r, top+r, r, r, (bottom-top)/10, 100, 0, 50, 100);
         Core.drawOval(right-r, top+r, r, r, (bottom-top)/10, 100, 0, 0, 50);
         Renderer.fillRect(left+r, top, right-r, top+(bottom-top)/10, 0);

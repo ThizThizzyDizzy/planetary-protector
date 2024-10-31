@@ -1,43 +1,46 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.GL11;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
+import org.joml.Vector2d;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.Core;
 import planetaryprotector.research.Research;
-import simplelibrary.opengl.gui.components.MenuComponent;
-public class MenuComponentResearch extends MenuComponent{
+public class MenuComponentResearch extends Component{
     private final MenuResearch menu;
     public final Research research;
     public MenuComponentResearch(MenuResearch menu, Research research){
-        super(0,0,MenuResearch.researchSize,MenuResearch.researchSize);
+        setSize(MenuResearch.researchSize, MenuResearch.researchSize);
         this.menu = menu;
         this.research = research;
     }
     @Override
-    public void render(){
-        double borderThickness = width/12;
-        double border = borderThickness/.4;
+    public void draw(double deltaTime){
+        super.draw(deltaTime); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        float borderThickness = getWidth()/12;
+        float border = borderThickness/.4f;
         int quality = 36;
-        Renderer.setColor(.95, .95, .95, 1);
-        Renderer.fillRect(x+border, y, x+width-border, y+height, 0);
-        Renderer.fillRect(x, y+border, x+width, y+height-border, 0);
+        Renderer.setColor(.95f, .95f, .95f, 1);
+        Renderer.fillRect(x+border, y, x+getWidth()-border, y+getHeight(), 0);
+        Renderer.fillRect(x, y+border, x+getWidth(), y+getHeight()-border, 0);
         Core.drawOval(x+border, y+border, border, border, border, quality, 0, 27, 36);
-        Core.drawOval(x+width-border, y+border, border, border, border, quality, 0, 0, 9);
-        Core.drawOval(x+width-border, y+height-border, border, border, border, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+height-border, border, border, border, quality, 0, 18, 27);
+        Core.drawOval(x+getWidth()-border, y+border, border, border, border, quality, 0, 0, 9);
+        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, border, quality, 0, 9, 18);
+        Core.drawOval(x+border, y+getHeight()-border, border, border, border, quality, 0, 18, 27);
         Renderer.setColor(1, 1, 1, 1);
-        Renderer.fillRect(x+borderThickness, y+borderThickness, x+width-borderThickness, y+height-borderThickness, research.getTexture());
-        Renderer.setColor(.75, .75, .75, 1);
+        Renderer.fillRect(x+borderThickness, y+borderThickness, x+getWidth()-borderThickness, y+getHeight()-borderThickness, research.getTexture());
+        Renderer.setColor(.75f, .75f, .75f, 1);
         Core.drawOval(x+border, y+border, border, border, borderThickness, quality, 0, 27, 36);
-        Core.drawOval(x+width-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
-        Core.drawOval(x+width-border, y+height-border, border, border, borderThickness, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+height-border, border, border, borderThickness, quality, 0, 18, 27);
-        Renderer.fillRect(x+border, y, x+width-border, y+borderThickness, 0);
-        Renderer.fillRect(x+width-borderThickness, y+border, x+width, y+height-border, 0);
-        Renderer.fillRect(x+border, y+height-borderThickness, x+width-border, y+height, 0);
-        Renderer.fillRect(x, y+border, x+borderThickness, y+height-border, 0);
+        Core.drawOval(x+getWidth()-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
+        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, borderThickness, quality, 0, 9, 18);
+        Core.drawOval(x+border, y+getHeight()-border, border, border, borderThickness, quality, 0, 18, 27);
+        Renderer.fillRect(x+border, y, x+getWidth()-border, y+borderThickness, 0);
+        Renderer.fillRect(x+getWidth()-borderThickness, y+border, x+getWidth(), y+getHeight()-border, 0);
+        Renderer.fillRect(x+border, y+getHeight()-borderThickness, x+getWidth()-border, y+getHeight(), 0);
+        Renderer.fillRect(x, y+border, x+borderThickness, y+getHeight()-border, 0);
     }
     @Override
-    public void onMouseButton(double x, double y, int button, boolean pressed, int mods){
-        super.onMouseButton(x, y, button, pressed, mods);
-        if(button==0&&pressed)menu.selected.research = research;
+    public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
+        super.onMouseButton(id, pos, button, action, mods); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        if(button==0&&action==GLFW.GLFW_PRESS)menu.selected.research = research;
     }
 }
