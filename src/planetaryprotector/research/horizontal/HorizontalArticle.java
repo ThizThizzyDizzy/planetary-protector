@@ -1,8 +1,7 @@
 package planetaryprotector.research.horizontal;
-import simplelibrary.opengl.Renderer2D;
-public abstract class HorizontalArticle extends Renderer2D{
-    public final void draw(double x, double y, double size){
+public abstract class HorizontalArticle{
+    public final void draw(float x, float y, float size){
         render(x, y, size);
     }
-    protected abstract void render(double x, double y, double size);
+    protected abstract void render(float x, float y, float size);
 }

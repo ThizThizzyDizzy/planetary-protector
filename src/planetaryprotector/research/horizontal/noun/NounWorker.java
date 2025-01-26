@@ -1,18 +1,19 @@
 package planetaryprotector.research.horizontal.noun;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalNoun;
 public class NounWorker extends HorizontalNoun{
     @Override
-    public double getWidth(double size){
-        return size*2.5;
+    public float getWidth(float size){
+        return size*2.5f;
     }
     @Override
-    public double getHeight(double size){
+    public float getHeight(float size){
         return size;
     }
     @Override
-    protected void render(double x, double y, double w, double h){
-        Core.drawOval(x, y, w/4, h/4, h/24, 100, 0);//inner oval
+    protected void render(float x, float y, float w, float h){
+        Renderer.fillHollowRegularPolygon(x, y, 100, w/4-h/24, h/4-h/24, w/4, h/4);//inner oval
         Core.drawOval(x, y+h/2, w/2, h/2, h/28, 200, 0, -15, 15);//top inner piece
         Core.drawOval(x, y-h/2, w/2, h/2, h/28, 200, 0, 85, 115);//bottom inner piece
         Core.drawOval(x+w/8, y, w/4, h/2, h/40, 100, 0, 10, 40);//right outer piece

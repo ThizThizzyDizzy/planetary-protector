@@ -133,14 +133,14 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
     private int text(int X, String text, double textHeight){
         drawText(spacing+X, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight, text);
         Y+=spacing*2+textHeight;
-        return (int) Math.round(FontManager.getLengthForStringWithHeight(text, textHeight));
+        return (int) Math.round(Renderer.getStringWidth(text, textHeight));
     }
     private int drawText(double left, double top, double right, double bottom, String text, double height){
         double center = (top+bottom)/2;
         top = center-height/2;
         bottom = center+height/2;
         drawText(left, top, right, bottom, text);
-        return (int) Math.round(FontManager.getLengthForStringWithHeight(text, height));
+        return (int) Math.round(Renderer.getStringWidth(text, height));
     }
     private void divider(){
         Y+=dividerHeight;

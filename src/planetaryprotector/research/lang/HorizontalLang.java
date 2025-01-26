@@ -1,4 +1,6 @@
 package planetaryprotector.research.lang;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.horizontal.HorizontalAdjective;
 import planetaryprotector.research.horizontal.HorizontalAdverb;
 import planetaryprotector.research.horizontal.HorizontalArticle;
@@ -40,15 +42,14 @@ import planetaryprotector.research.horizontal.verb.VerbOperate;
 import planetaryprotector.research.horizontal.verb.VerbProject;
 import planetaryprotector.research.horizontal.verb.VerbUnknown;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 public class HorizontalLang extends Lang{
     @Override
-    public void drawTranslation(double startX, double startY, double size, String english){
+    public void drawTranslation(float startX, float startY, float size, String english){
         Phrase p = null;
         try{
             p = getPhrase(english);
         }catch(Exception ex){
-            drawCenteredText(0, startY-size/6, DizzyEngine.screenSize.x, startY+size/6, ex.getMessage().split("\n")[0]);
+            Renderer.drawCenteredText(0, startY-size/6, DizzyEngine.screenSize.x, startY+size/6, ex.getMessage().split("\n")[0]);
             return;
         }
         x = 0;
@@ -56,7 +57,7 @@ public class HorizontalLang extends Lang{
         drawPhrase(startX, startY, size, p);
     }
     double x = 0;
-    private void drawPhrase(double x, double y, double size, Phrase p){
+    private void drawPhrase(float x, float y, float size, Phrase p){
         if(p.subject!=null){
             HorizontalNoun subject = getNoun(p.subject);
             subject.draw(x, y, size);

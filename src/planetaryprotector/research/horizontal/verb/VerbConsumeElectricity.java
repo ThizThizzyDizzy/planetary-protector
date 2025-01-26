@@ -3,15 +3,15 @@ import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalVerb;
 public class VerbConsumeElectricity extends HorizontalVerb{
     @Override
-    public double getWidth(double size){
-        return size*3.5;
+    public float getWidth(float size){
+        return size*3.5f;
     }
     @Override
-    public double getHeight(double size){
+    public float getHeight(float size){
         return size;
     }
     @Override
-    protected void render(double x, double y, double w, double h){
+    protected void render(float x, float y, float w, float h){
         Core.drawHollowCosGear(x, y, h/4, h/2, h/20, 4, 0, 0, 3);//gear
         Core.drawHorizontalLine(x-w/2, y, x-h/4, h/20, 0);//left line
         Core.drawHorizontalLine(x+h/4, y, x+w/2, h/20, 0);//right line

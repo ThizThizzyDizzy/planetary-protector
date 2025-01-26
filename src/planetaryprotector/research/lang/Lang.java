@@ -1,15 +1,14 @@
 package planetaryprotector.research.lang;
 import java.util.ArrayList;
 import java.util.HashMap;
-import simplelibrary.opengl.Renderer2D;
-public abstract class Lang extends Renderer2D{
+public abstract class Lang{
     private static final ArrayList<Character> punctuations = new ArrayList<Character>();
     static{
         punctuations.add('.');
         punctuations.add('?');
         punctuations.add('!');
     }
-    public abstract void drawTranslation(double startX, double startY, double size, String english);
+    public abstract void drawTranslation(float startX, float startY, float size, String english);
     protected static class Phrase{
         public final Noun subject;
         public final Verb verb;
@@ -68,7 +67,7 @@ public abstract class Lang extends Renderer2D{
         }
     }
     public static enum Tense{
-        PAST,PRESENT,FUTURE;
+        PAST, PRESENT, FUTURE;
     }
     private static final HashMap<String, Type> dictionary = new HashMap<>();
     static{
@@ -208,7 +207,8 @@ public abstract class Lang extends Renderer2D{
                 noun.add(words[0]);
                 words = cut(words);
             }
-            if(noun.isEmpty())throw new UnsupportedOperationException("I don't know where the verb's noun is! "+(words.length>0?words[0]:"EOF")+"<-- ");
+            if(noun.isEmpty())
+                throw new UnsupportedOperationException("I don't know where the verb's noun is! "+(words.length>0?words[0]:"EOF")+"<-- ");
             object = new Noun(article, noun.toArray(new String[noun.size()]));//TODO this only supports one-word nouns right now
             for(String adjective : modifiers){
                 object.addAdjective(adjective);
@@ -223,7 +223,7 @@ public abstract class Lang extends Renderer2D{
         }
     }
     private static enum Type{
-        ARTICLE,NOUN,VERB,ADJECTIVE,ADVERB,PREPOSITION,
+        ARTICLE, NOUN, VERB, ADJECTIVE, ADVERB, PREPOSITION,
         /**
          * "and"
          * This is ignored.

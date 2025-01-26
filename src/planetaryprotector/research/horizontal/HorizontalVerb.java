@@ -1,9 +1,9 @@
 package planetaryprotector.research.horizontal;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
-import simplelibrary.opengl.Renderer2D;
-public abstract class HorizontalVerb extends Renderer2D{
+public abstract class HorizontalVerb{
     private HorizontalPreposition preposition;
     private HorizontalTense tense;
     private ArrayList<HorizontalAdverb> adverbs = new ArrayList<>();
@@ -19,18 +19,18 @@ public abstract class HorizontalVerb extends Renderer2D{
         adverbs.add(adverb);
         return this;
     }
-    public abstract double getWidth(double size);
-    public abstract double getHeight(double size);
-    public final void draw(double x, double y, double size){
+    public abstract float getWidth(float size);
+    public abstract float getHeight(float size);
+    public final void draw(float x, float y, float size){
         if(tense!=null)tense.draw(x, y, size);
-        double w = getWidth(size);
-        double h = getHeight(size);
-        Core.drawOval(x, y, w/2, h/2, size/13, 100, 0);//outer oval
+        float w = getWidth(size);
+        float h = getHeight(size);
+        Renderer.fillHollowRegularPolygon(x, y, 100, w/2-size/13, h/2-size/13, w/2, h/2);//outer oval
         Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 0, 13);//left connection oval top
         Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 37, 50);//left connection oval bottom
         Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -13, 0);//right connection oval top
         Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -50, -37);//right connection oval bottom
-        Core.drawOval(x, y, h/4, h/4, size/20, 50, 0);//Tense container
+        Renderer.fillHollowRegularPolygon(x, y, 50, h/4-size/20, h/4-size/20, h/4, h/4);//Tense container
         render(x, y, w, h);
         if(preposition!=null){
             GL11.glPushMatrix();
@@ -50,10 +50,10 @@ public abstract class HorizontalVerb extends Renderer2D{
             GL11.glPopMatrix();
             GL11.glPopMatrix();
         }
-        double Y = 0;
-        double lastSize = getHeight(size);
+        float Y = 0;
+        float lastSize = getHeight(size);
         for(HorizontalAdverb adverb : adverbs){
-            Y+=lastSize/2+adverb.getHeight(size)/2;
+            Y += lastSize/2+adverb.getHeight(size)/2;
             lastSize = adverb.getHeight(size);
             adverb.draw(x, y+Y, size);
             GL11.glPushMatrix();
@@ -62,5 +62,5 @@ public abstract class HorizontalVerb extends Renderer2D{
             GL11.glPopMatrix();
         }
     }
-    protected abstract void render(double x, double y, double w, double h);
+    protected abstract void render(float x, float y, float w, float h);
 }

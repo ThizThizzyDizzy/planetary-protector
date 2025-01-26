@@ -342,7 +342,7 @@ public class Core{// extends Renderer2D{
 //        double length = rightPossibleEdge-leftPossibleEdge;
 //        for(int i = 1; i<words.length; i++){
 //            String string = str+" "+words[i];
-//            if(FontManager.getLengthForStringWithHeight(string.trim(), height)>=length){
+//            if(Renderer.getStringWidth(string.trim(), height)>=length){
 //                drawCenteredTextWithWrap(leftPossibleEdge, topEdge, rightPossibleEdge, bottomEdge, str.trim());
 //                return text.replaceFirst("\\Q"+str, "").trim();
 //            }else{
@@ -358,7 +358,7 @@ public class Core{// extends Renderer2D{
 //        double length = rightPossibleEdge-leftEdge;
 //        for(int i = 1; i<words.length; i++){
 //            String string = str+" "+words[i];
-//            if(FontManager.getLengthForStringWithHeight(string.trim(), height)>=length){
+//            if(Renderer.getStringWidth(string.trim(), height)>=length){
 //                drawTextWithWrap(leftEdge, topEdge, rightPossibleEdge, bottomEdge, str.trim());
 //                return text.replaceFirst("\\Q"+str, "").trim();
 //            }else{

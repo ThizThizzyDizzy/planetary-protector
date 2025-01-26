@@ -1,7 +1,7 @@
 package planetaryprotector.research.horizontal.noun;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.lang.HorizontalLang;
 import planetaryprotector.research.horizontal.HorizontalNoun;
-import simplelibrary.font.FontManager;
 public class NounUnknown extends HorizontalNoun{
     private final String word;
     public NounUnknown(String... words){
@@ -19,17 +19,17 @@ public class NounUnknown extends HorizontalNoun{
         }
     }
     @Override
-    public double getWidth(double size){
-        return (FontManager.getLengthForStringWithHeight(word, size-10)+20)*2;
+    public float getWidth(float size){
+        return (Renderer.getStringWidth(word, size-10)+20)*2;
     }
     @Override
-    public double getHeight(double size){
+    public float getHeight(float size){
         return size;
     }
     @Override
-    public void render(double x, double y, double w, double h){
-        h-=10;
-        double length = FontManager.getLengthForStringWithHeight(word, h);
-        drawCenteredText(x-length/2, y-h/2, x+length/2, y+h/2, word);
+    public void render(float x, float y, float w, float h){
+        h -= 10;
+        float length = Renderer.getStringWidth(word, h);
+        Renderer.drawCenteredText(x-length/2, y-h/2, x+length/2, y+h/2, word);
     }
 }

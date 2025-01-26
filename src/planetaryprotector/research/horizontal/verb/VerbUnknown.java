@@ -1,23 +1,23 @@
 package planetaryprotector.research.horizontal.verb;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.horizontal.HorizontalVerb;
-import simplelibrary.font.FontManager;
 public class VerbUnknown extends HorizontalVerb{
     private final String verb;
     public VerbUnknown(String verb){
         this.verb = verb;
     }
     @Override
-    public double getWidth(double size){
-        return (FontManager.getLengthForStringWithHeight(verb, size-10)+20)*2;
+    public float getWidth(float size){
+        return (Renderer.getStringWidth(verb, size-10)+20)*2;
     }
     @Override
-    public double getHeight(double size){
+    public float getHeight(float size){
         return size;
     }
     @Override
-    public void render(double x, double y, double w, double h){
-        h-=10;
-        double length = FontManager.getLengthForStringWithHeight(verb, h);
-        drawCenteredText(x-length/2, y-h/2, x+length/2, y+h/2, verb);
+    public void render(float x, float y, float w, float h){
+        h -= 10;
+        float length = Renderer.getStringWidth(verb, h);
+        Renderer.drawCenteredText(x-length/2, y-h/2, x+length/2, y+h/2, verb);
     }
 }
