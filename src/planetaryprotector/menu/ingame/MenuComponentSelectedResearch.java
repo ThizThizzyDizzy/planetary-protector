@@ -1,13 +1,12 @@
 package planetaryprotector.menu.ingame;
-import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.Framebuffer;
+import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import java.util.Random;
 import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
-import planetaryprotector.Core;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
@@ -19,7 +18,7 @@ import planetaryprotector.research.lang.HorizontalLang;
 public class MenuComponentSelectedResearch extends Component{
     public Research research = null;
     public HorizontalLang title = new HorizontalLang();
-    private static final int[] nonsense = {4,4};
+    private static final int[] nonsense = {4, 4};
     private final Laboratory lab;
     private final Game game;
     public MenuComponentSelectedResearch(Laboratory lab, float x, float y, float width, float height){
@@ -38,22 +37,22 @@ public class MenuComponentSelectedResearch extends Component{
         Renderer.setColor(.95f, .95f, .95f, 1);
         Renderer.fillRect(x+border, y, x+getWidth()-border, y+getHeight(), 0);
         Renderer.fillRect(x, y+border, x+getWidth(), y+getHeight()-border, 0);
-        Core.drawOval(x+border, y+border, border, border, border, quality, 0, 27, 36);
-        Core.drawOval(x+getWidth()-border, y+border, border, border, border, quality, 0, 0, 9);
-        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, border, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+getHeight()-border, border, border, border, quality, 0, 18, 27);
+        Renderer.fillHollowRegularPolygonSegment(x+border, y+border, quality, border-border, border-border, border, border, 27, 36);
+        Renderer.fillHollowRegularPolygonSegment(x+getWidth()-border, y+border, quality, border-border, border-border, border, border, 0, 9);
+        Renderer.fillHollowRegularPolygonSegment(x+getWidth()-border, y+getHeight()-border, quality, border-border, border-border, border, border, 9, 18);
+        Renderer.fillHollowRegularPolygonSegment(x+border, y+getHeight()-border, quality, border-border, border-border, border, border, 18, 27);
         Renderer.setColor(.75f, .75f, .75f, 1);
-        Core.drawOval(x+border, y+border, border, border, borderThickness, quality, 0, 27, 36);
-        Core.drawOval(x+getWidth()-border, y+border, border, border, borderThickness, quality, 0, 0, 9);
-        Core.drawOval(x+getWidth()-border, y+getHeight()-border, border, border, borderThickness, quality, 0, 9, 18);
-        Core.drawOval(x+border, y+getHeight()-border, border, border, borderThickness, quality, 0, 18, 27);
+        Renderer.fillHollowRegularPolygonSegment(x+border, y+border, quality, border-borderThickness, border-borderThickness, border, border, 27, 36);
+        Renderer.fillHollowRegularPolygonSegment(x+getWidth()-border, y+border, quality, border-borderThickness, border-borderThickness, border, border, 0, 9);
+        Renderer.fillHollowRegularPolygonSegment(x+getWidth()-border, y+getHeight()-border, quality, border-borderThickness, border-borderThickness, border, border, 9, 18);
+        Renderer.fillHollowRegularPolygonSegment(x+border, y+getHeight()-border, quality, border-borderThickness, border-borderThickness, border, border, 18, 27);
         Renderer.fillRect(x+border, y, x+getWidth()-border, y+borderThickness, 0);
         Renderer.fillRect(x+getWidth()-borderThickness, y+border, x+getWidth(), y+getHeight()-border, 0);
         Renderer.fillRect(x+border, y+getHeight()-borderThickness, x+getWidth()-border, y+getHeight(), 0);
         Renderer.fillRect(x, y+border, x+borderThickness, y+getHeight()-border, 0);
         Renderer.fillRect(x+border, y+borderThickness, getHeight(), border, quality);
         Renderer.setColor(.05f, .05f, .05f, 1);
-        title.drawTranslation(x+getWidth()/2, y+borderThickness+getWidth()*.075, getWidth()/20, research.fancyTitle);
+        title.drawTranslation(x+getWidth()/2, y+borderThickness+getWidth()*.075f, getWidth()/20, research.fancyTitle);
         Renderer.drawCenteredText(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40, research.getTitle());
         if(research.isDiscovered()){
             drawDescription(x+border+getWidth()*.3, y+borderThickness+getWidth()*.15+40, x+getWidth()-border, y+borderThickness+getWidth()*.15+40+getWidth()*.3, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDescription());
@@ -82,7 +81,7 @@ public class MenuComponentSelectedResearch extends Component{
             float wide = getWidth()-border*2;
             float w = wide/num;
             for(int i = 0; i<num; i++){
-                int textHeight = (int) (borderThickness*1.5)/10*10;
+                int textHeight = (int)(borderThickness*1.5)/10*10;
                 if(research.totalPowerCost>0&&i==0){
                     Renderer.drawText(x+border+w*i, y+getHeight()-border-borderThickness-textHeight, x+border+w*(i+1), y+getHeight()-border-borderThickness, "Power: "+research.powerCost);
                     continue;
@@ -106,7 +105,7 @@ public class MenuComponentSelectedResearch extends Component{
     @Override
     public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
         super.onMouseButton(id, pos, button, action, mods); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
-        if(button==0&&action==GLFW.GLFW_PRESS&&game.cheats&&mods == (GLFW.GLFW_MOD_CONTROL & GLFW.GLFW_MOD_SHIFT)){
+        if(button==0&&action==GLFW.GLFW_PRESS&&game.cheats&&mods==(GLFW.GLFW_MOD_CONTROL&GLFW.GLFW_MOD_SHIFT)){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             if(!research.isDiscovered()){
                 research.cheatDiscover();
@@ -117,21 +116,22 @@ public class MenuComponentSelectedResearch extends Component{
         }
         if(button==0&&action==GLFW.GLFW_PRESS&&research.isDiscovered()&&!research.isCompleted()){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
-            else lab.setTargetResearch(research);
+            else
+                lab.setTargetResearch(research);
         }
     }
-    private void drawDescription(double left1, double top, double right1, double yDivider, double left2, double right2, double bottom, double textHeight, String description) {
+    private void drawDescription(double left1, double top, double right1, double yDivider, double left2, double right2, double bottom, double textHeight, String description){
         double Y = top;
         description = description.replace("\n", "                                                                                                    ");
         while(description!=null&&!description.trim().isEmpty()){
             description = Renderer.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
-            Y+=textHeight*1.2;
+            Y += textHeight*1.2;
             if(Y>=bottom)break;
         }
     }
     private void drawNonsense(float left, float top, float right, float bottom, float textHeight){
-        int charsX = (int) ((right-left)/(textHeight*2));
-        int charsY = (int) ((bottom-top)/(textHeight*2));
+        int charsX = (int)((right-left)/(textHeight*2));
+        int charsY = (int)((bottom-top)/(textHeight*2));
         left += Math.abs((charsX*textHeight*2-textHeight)-(right-left))/2;
         top += Math.abs((charsY*textHeight*2-textHeight)-(bottom-top))/2;
         int texture = ResourceManager.getTexture("/textures/research/nonsense.png");
@@ -150,26 +150,26 @@ public class MenuComponentSelectedResearch extends Component{
     }
     private void drawTheImageAndItsBorder(float left, float top, float right, float bottom){
         float borderThickness = (right-left)/11;
-        left-=borderThickness;
-        top-=borderThickness;
-        right+=borderThickness;
-        bottom+=borderThickness;
+        left -= borderThickness;
+        top -= borderThickness;
+        right += borderThickness;
+        bottom += borderThickness;
         float border = borderThickness/.4f;
         int quality = 36;
         Renderer.setColor(.95f, .95f, .95f, 1);
         Renderer.fillRect(left+border, top, right-border, bottom, 0);
         Renderer.fillRect(left, top+border, right, bottom-border, 0);
-        Core.drawOval(left+border, top+border, border, border, border, quality, 0, 27, 36);
-        Core.drawOval(right-border, top+border, border, border, border, quality, 0, 0, 9);
-        Core.drawOval(right-border, bottom-border, border, border, border, quality, 0, 9, 18);
-        Core.drawOval(left+border, bottom-border, border, border, border, quality, 0, 18, 27);
+        Renderer.fillHollowRegularPolygonSegment(left+border, top+border, quality, border-border, border-border, border, border, 27, 36);
+        Renderer.fillHollowRegularPolygonSegment(right-border, top+border, quality, border-border, border-border, border, border, 0, 9);
+        Renderer.fillHollowRegularPolygonSegment(right-border, bottom-border, quality, border-border, border-border, border, border, 9, 18);
+        Renderer.fillHollowRegularPolygonSegment(left+border, bottom-border, quality, border-border, border-border, border, border, 18, 27);
         Renderer.setColor(1, 1, 1, 1);
         Renderer.fillRect(left+borderThickness, top+borderThickness, right-borderThickness, bottom-borderThickness, research.getTexture());
         Renderer.setColor(.75f, .75f, .75f, 1);
-        Core.drawOval(left+border, top+border, border, border, borderThickness, quality, 0, 27, 36);
-        Core.drawOval(right-border, top+border, border, border, borderThickness, quality, 0, 0, 9);
-        Core.drawOval(right-border, bottom-border, border, border, borderThickness, quality, 0, 9, 18);
-        Core.drawOval(left+border, bottom-border, border, border, borderThickness, quality, 0, 18, 27);
+        Renderer.fillHollowRegularPolygonSegment(left+border, top+border, quality, border-borderThickness, border-borderThickness, border, border, 27, 36);
+        Renderer.fillHollowRegularPolygonSegment(right-border, top+border, quality, border-borderThickness, border-borderThickness, border, border, 0, 9);
+        Renderer.fillHollowRegularPolygonSegment(right-border, bottom-border, quality, border-borderThickness, border-borderThickness, border, border, 9, 18);
+        Renderer.fillHollowRegularPolygonSegment(left+border, bottom-border, quality, border-borderThickness, border-borderThickness, border, border, 18, 27);
         Renderer.fillRect(left+border, top, right-border, top+borderThickness, 0);
         Renderer.fillRect(right-borderThickness, top+border, right, bottom-border, 0);
         Renderer.fillRect(left+border, bottom-borderThickness, right-border, bottom, 0);
@@ -182,7 +182,9 @@ public class MenuComponentSelectedResearch extends Component{
         drawProgressBar(0, 0, filled.width, filled.height, true);
         //TODO unbind
         Renderer.setColor(1, 1, 1, 1);
-        Renderer.fillRectWithBounds(left, top, right, bottom, left, top, left+percent*(right-left), bottom, filled.texture);
+        Renderer.bound(left, top, MathUtil.lerp(left, right, percent), bottom);
+        Renderer.fillRect(left, top, right, bottom, filled.texture);
+        Renderer.unBound();
     }
     private void drawProgressBar(float left, float top, float right, float bottom, boolean filled){
         if(right-left<bottom-top){
@@ -191,14 +193,15 @@ public class MenuComponentSelectedResearch extends Component{
         float r = (bottom-top)/2;
         //draw fill
         if(filled)Renderer.setColor(.5f, .9f, 1, 1);
-        else Renderer.setColor(.3f, .3f, .6f, 1);
+        else
+            Renderer.setColor(.3f, .3f, .6f, 1);
         Renderer.fillRegularPolygon(left+r, top+r, 100, r);
         Renderer.fillRegularPolygon(right-r, top+r, 100, r);
         Renderer.fillRect(left+r, top, right-r, bottom, 0);
         //draw border
         Renderer.setColor(.7f, .74f, .75f, 1);
-        Core.drawOval(left+r, top+r, r, r, (bottom-top)/10, 100, 0, 50, 100);
-        Core.drawOval(right-r, top+r, r, r, (bottom-top)/10, 100, 0, 0, 50);
+        Renderer.fillHollowRegularPolygonSegment(left+r, top+r, 100, r-(bottom-top)/10, r-(bottom-top)/10, r, r, 50, 100);
+        Renderer.fillHollowRegularPolygonSegment(right-r, top+r, 100, r-(bottom-top)/10, r-(bottom-top)/10, r, r, 0, 50);
         Renderer.fillRect(left+r, top, right-r, top+(bottom-top)/10, 0);
         Renderer.fillRect(left+r, bottom-(bottom-top)/10, right-r, bottom, 0);
     }
