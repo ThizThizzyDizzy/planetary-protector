@@ -1,5 +1,5 @@
 package planetaryprotector.research.horizontal.verb;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.horizontal.HorizontalVerb;
 public class VerbCarry extends HorizontalVerb{
     @Override
@@ -12,7 +12,7 @@ public class VerbCarry extends HorizontalVerb{
     }
     @Override
     protected void render(float x, float y, float w, float h){
-        Core.drawOval(x-w/2, y, w/5, h, h/20, 200, 0, 39, 61);//left shape thing
-        Core.drawOval(x+w/2, y, w/5, h, h/20, 200, 0, -61, -39);//right shape thing
+        Renderer.fillHollowRegularPolygonSegment(x-w/2, y, 200, w/5-h/20, h-h/20, w/5, h, 39, 61);//left shape thing
+        Renderer.fillHollowRegularPolygonSegment(x+w/2, y, 200, w/5-h/20, h-h/20, w/5, h, -61, -39);//right shape thing
     }
 }

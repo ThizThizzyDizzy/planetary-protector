@@ -200,69 +200,6 @@ public class Core{// extends Renderer2D{
 //    public static boolean canPlayLevel(int i){
 //        return debugMode||LEVELS>=i;
 //    }
-//    public static void drawRegularPolygon(double x, double y, double radius, int quality, int texture){
-//        if(quality<3){
-//            throw new IllegalArgumentException("A polygon must have at least 3 sides!");
-//        }
-//        ImageStash.instance.bindTexture(texture);
-//        GL11.glBegin(GL11.GL_TRIANGLES);
-//        double angle = 0;
-//        for(int i = 0; i<quality; i++){
-//            GL11.glVertex2d(x, y);
-//            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X, Y);
-//            angle+=(360D/quality);
-//            X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X, Y);
-//        }
-//        GL11.glEnd();
-//    }
-//    public static void drawOval(double x, double y, double xRadius, double yRadius, double xThickness, double yThickness, int quality, int texture){
-//        drawOval(x, y, xRadius, yRadius, xThickness, yThickness, quality, texture, 0, quality-1);
-//    }
-//    public static void drawOval(double x, double y, double xRadius, double yRadius, double thickness, int quality, int texture){
-//        drawOval(x, y, xRadius, yRadius, thickness, thickness, quality, texture, 0, quality-1);
-//    }
-//    public static void drawOval(double x, double y, double xRadius, double yRadius, double thickness, int quality, int texture, int left, int right){
-//        drawOval(x, y, xRadius, yRadius, thickness, thickness, quality, texture, left, right);
-//    }
-//    public static void drawOval(double x, double y, double xRadius, double yRadius, double xThickness, double yThickness, int quality, int texture, int left, int right){
-//        if(quality<3){
-//            throw new IllegalArgumentException("Quality must be >=3!");
-//        }
-//        while(left<0)left+=quality;
-//        while(right<0)right+=quality;
-//        while(left>quality)left-=quality;
-//        while(right>quality)right-=quality;
-//        ImageStash.instance.bindTexture(texture);
-//        GL11.glBegin(GL11.GL_QUADS);
-//        double angle = 0;
-//        for(int i = 0; i<quality; i++){
-//            boolean inRange = false;
-//            if(left>right)inRange = i>=left||i<=right;
-//            else inRange = i>=left&&i<=right;
-//            if(inRange){
-//                double X = x+Math.cos(Math.toRadians(angle-90))*xRadius;
-//                double Y = y+Math.sin(Math.toRadians(angle-90))*yRadius;
-//                GL11.glVertex2d(X, Y);
-//                X = x+Math.cos(Math.toRadians(angle-90))*(xRadius-xThickness);
-//                Y = y+Math.sin(Math.toRadians(angle-90))*(yRadius-yThickness);
-//                GL11.glVertex2d(X, Y);
-//            }
-//            angle+=(360D/quality);
-//            if(inRange){
-//                double X = x+Math.cos(Math.toRadians(angle-90))*(xRadius-xThickness);
-//                double Y = y+Math.sin(Math.toRadians(angle-90))*(yRadius-yThickness);
-//                GL11.glVertex2d(X, Y);
-//                X = x+Math.cos(Math.toRadians(angle-90))*xRadius;
-//                Y = y+Math.sin(Math.toRadians(angle-90))*yRadius;
-//                GL11.glVertex2d(X, Y);
-//            }
-//        }
-//        GL11.glEnd();
-//    }
 //    public static void winLevel(int i){
 //        latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
 //    }

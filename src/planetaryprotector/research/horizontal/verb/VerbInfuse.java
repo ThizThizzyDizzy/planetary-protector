@@ -1,6 +1,5 @@
 package planetaryprotector.research.horizontal.verb;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalVerb;
 public class VerbInfuse extends HorizontalVerb{
     @Override
@@ -16,9 +15,9 @@ public class VerbInfuse extends HorizontalVerb{
         Renderer.fillHollowCosGear(x, y, h/4, h/2, h/20, 12, 0, 3);//gear
         Renderer.drawHorizontalLine(x-w/2, y, x-w/4, h/40, 0);//outer left horizontal line
         Renderer.drawHorizontalLine(x+w/4, y, x+w/2, h/40, 0);//outer right horizontal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, -30, -29);//outer top left diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 29, 30);//outer top right diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 129, 130);//outer bottom left diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 70, 71);//outer bottom right diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, -30, -29);//outer top left diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 29, 30);//outer top right diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 129, 130);//outer bottom left diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 70, 71);//outer bottom right diagonal line
     }
 }

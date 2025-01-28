@@ -1,7 +1,6 @@
 package planetaryprotector.research.horizontal;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
-import planetaryprotector.Core;
 public abstract class HorizontalNoun{
     private HorizontalNoun[] otherNouns = new HorizontalNoun[0];
     private HorizontalArticle article;
@@ -30,16 +29,16 @@ public abstract class HorizontalNoun{
         float w = getWidth(size);
         float h = getHeight(size);
         Renderer.fillHollowRegularPolygon(x, y, 100, w/2-size/12, h/2-size/12, w/2, h/2);//outer oval
-        Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 0, 13);//left connection oval top
-        Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 37, 50);//left connection oval bottom
-        Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -13, 0);//right connection oval top
-        Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -50, -37);//right connection oval bottom
+        Renderer.fillHollowRegularPolygonSegment(x-w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, 0, 13);//left connection oval top
+        Renderer.fillHollowRegularPolygonSegment(x-w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, 37, 50);//left connection oval bottom
+        Renderer.fillHollowRegularPolygonSegment(x+w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, -13, 0);//right connection oval top
+        Renderer.fillHollowRegularPolygonSegment(x+w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, -50, -37);//right connection oval bottom
         render(x, y, w, h);
         if(plural){
-            Core.drawOval(x, y, w/2, h/2, -h/5, 360, 0, 44, 46);
-            Core.drawOval(x, y, w/2, h/2, -h/5, 360, 0, 134, 136);
-            Core.drawOval(x, y, w/2, h/2, -h/5, 360, 0, 224, 226);
-            Core.drawOval(x, y, w/2, h/2, -h/5, 360, 0, -46, -44);
+            Renderer.fillHollowRegularPolygonSegment(x, y, 360, w/2+h/5, h/2+h/5, w/2, h/2, 44, 46);
+            Renderer.fillHollowRegularPolygonSegment(x, y, 360, w/2+h/5, h/2+h/5, w/2, h/2, 134, 136);
+            Renderer.fillHollowRegularPolygonSegment(x, y, 360, w/2+h/5, h/2+h/5, w/2, h/2, 224, 226);
+            Renderer.fillHollowRegularPolygonSegment(x, y, 360, w/2+h/5, h/2+h/5, w/2, h/2, -46, -44);
         }
         float Y = 0;
         float lastSize = getHeight(size);

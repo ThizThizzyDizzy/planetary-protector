@@ -2,7 +2,6 @@ package planetaryprotector.research.horizontal;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.Core;
 public abstract class HorizontalVerb{
     private HorizontalPreposition preposition;
     private HorizontalTense tense;
@@ -26,10 +25,10 @@ public abstract class HorizontalVerb{
         float w = getWidth(size);
         float h = getHeight(size);
         Renderer.fillHollowRegularPolygon(x, y, 100, w/2-size/13, h/2-size/13, w/2, h/2);//outer oval
-        Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 0, 13);//left connection oval top
-        Core.drawOval(x-w/2, y, w/10, h/3, size/15, 100, 0, 37, 50);//left connection oval bottom
-        Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -13, 0);//right connection oval top
-        Core.drawOval(x+w/2, y, w/10, h/3, size/15, 100, 0, -50, -37);//right connection oval bottom
+        Renderer.fillHollowRegularPolygonSegment(x-w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, 0, 13);//left connection oval top
+        Renderer.fillHollowRegularPolygonSegment(x-w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, 37, 50);//left connection oval bottom
+        Renderer.fillHollowRegularPolygonSegment(x+w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, -13, 0);//right connection oval top
+        Renderer.fillHollowRegularPolygonSegment(x+w/2, y, 100, w/10-size/15, h/3-size/15, w/10, h/3, -50, -37);//right connection oval bottom
         Renderer.fillHollowRegularPolygon(x, y, 50, h/4-size/20, h/4-size/20, h/4, h/4);//Tense container
         render(x, y, w, h);
         if(preposition!=null){

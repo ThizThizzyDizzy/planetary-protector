@@ -1,5 +1,5 @@
 package planetaryprotector.research.horizontal.noun;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.horizontal.HorizontalNoun;
 public class NounCoal extends HorizontalNoun{
     @Override
@@ -12,9 +12,9 @@ public class NounCoal extends HorizontalNoun{
     }
     @Override
     protected void render(float x, float y, float w, float h){
-        Core.drawOval(x, y-h/2, w/12, h, h/32, 100, 0, 26, 73);//tiny oval
-        Core.drawOval(x, y-h/2, w/6, h, h/28, 100, 0, 26, 73);//small oval
-        Core.drawOval(x, y-h/2, w/4, h, h/22, 100, 0, 27, 73);//mid oval
-        Core.drawOval(x, y-h/2, w/2.75, h, h/16, 100, 0, 28, 71);//large oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/12-h/32, h-h/32, w/12, h, 26, 73);//tiny oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/6-h/28, h-h/28, w/6, h, 26, 73);//small oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/4-h/22, h-h/22, w/4, h, 27, 73);//mid oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/2.75f-h/16, h-h/16, w/2.75f, h, 28, 71);//large oval
     }
 }

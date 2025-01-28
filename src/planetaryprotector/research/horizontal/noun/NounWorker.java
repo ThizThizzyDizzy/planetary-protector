@@ -1,6 +1,5 @@
 package planetaryprotector.research.horizontal.noun;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalNoun;
 public class NounWorker extends HorizontalNoun{
     @Override
@@ -14,16 +13,16 @@ public class NounWorker extends HorizontalNoun{
     @Override
     protected void render(float x, float y, float w, float h){
         Renderer.fillHollowRegularPolygon(x, y, 100, w/4-h/24, h/4-h/24, w/4, h/4);//inner oval
-        Core.drawOval(x, y+h/2, w/2, h/2, h/28, 200, 0, -15, 15);//top inner piece
-        Core.drawOval(x, y-h/2, w/2, h/2, h/28, 200, 0, 85, 115);//bottom inner piece
-        Core.drawOval(x+w/8, y, w/4, h/2, h/40, 100, 0, 10, 40);//right outer piece
-        Core.drawOval(x-w/8, y, w/4, h/2, h/40, 100, 0, 60, 90);//left outer piece
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 200, w/2-h/28, h/2-h/28, w/2, h/2, -15, 15);//top inner piece
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 200, w/2-h/28, h/2-h/28, w/2, h/2, 85, 115);//bottom inner piece
+        Renderer.fillHollowRegularPolygonSegment(x+w/8, y, 100, w/4-h/40, h/2-h/40, w/4, h/2, 10, 40);//right outer piece
+        Renderer.fillHollowRegularPolygonSegment(x-w/8, y, 100, w/4-h/40, h/2-h/40, w/4, h/2, 60, 90);//left outer piece
         Renderer.drawVerticalLine(x, y-h/4, y+h/4, h/40, 0);//inner vertical line
         Renderer.drawHorizontalLine(x-w/2, y, x-w/4, h/40, 0);//outer left horizontal line
         Renderer.drawHorizontalLine(x+w/4, y, x+w/2, h/40, 0);//outer right horizontal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, -30, -29);//outer top left diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 29, 30);//outer top right diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 129, 130);//outer bottom left diagonal line
-        Core.drawOval(x, y, w/2, h/2, w/4, h/4, 200, 0, 70, 71);//outer bottom right diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, -30, -29);//outer top left diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 29, 30);//outer top right diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 129, 130);//outer bottom left diagonal line
+        Renderer.fillHollowRegularPolygonSegment(x, y, 200, w/2-w/4, h/2-h/4, w/2, h/2, 70, 71);//outer bottom right diagonal line
     }
 }

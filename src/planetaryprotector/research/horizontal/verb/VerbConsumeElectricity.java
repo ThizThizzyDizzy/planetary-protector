@@ -1,6 +1,5 @@
 package planetaryprotector.research.horizontal.verb;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalVerb;
 public class VerbConsumeElectricity extends HorizontalVerb{
     @Override
@@ -18,21 +17,21 @@ public class VerbConsumeElectricity extends HorizontalVerb{
         Renderer.drawHorizontalLine(x+h/4, y, x+w/2, h/20, 0);//right line
         //right ovals
         //top ovals
-        Core.drawOval(x, y-h/2, w/6, h/2, h/28, 100, 0, 27, 43);//small oval
-        Core.drawOval(x, y-h/2, w/4, h/2, h/22, 100, 0, 29, 45);//mid oval
-        Core.drawOval(x, y-h/2, w/2.75, h/2, h/16, 100, 0, 31, 45);//large oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/6-h/28, h/2-h/28, w/6, h/2, 27, 43);//small oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/4-h/22, h/2-h/22, w/4, h/2, 29, 45);//mid oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/2.75f-h/16, h/2-h/16, w/2.75f, h/2, 31, 45);//large oval
         //bottom ovals
-        Core.drawOval(x, y+h/2, w/6, h/2, h/28, 100, 0, 77, 93);//small oval
-        Core.drawOval(x, y+h/2, w/4, h/2, h/22, 100, 0, 79, 95);//mid oval
-        Core.drawOval(x, y+h/2, w/2.75, h/2, h/16, 100, 0, 81, 95);//large oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/6-h/28, h/2-h/28, w/6, h/2, 77, 93);//small oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/4-h/22, h/2-h/22, w/4, h/2, 79, 95);//mid oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/2.75f-h/16, h/2-h/16, w/2.75f, h/2, 81, 95);//large oval
         //left ovals
         //top ovals
-        Core.drawOval(x, y-h/2, w/6, h/2, h/28, 100, 0, 57, 73);//small oval
-        Core.drawOval(x, y-h/2, w/4, h/2, h/22, 100, 0, 55, 71);//mid oval
-        Core.drawOval(x, y-h/2, w/2.75, h/2, h/16, 100, 0, 55, 69);//large oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/6-h/28, h/2-h/28, w/6, h/2, 57, 73);//small oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/4-h/22, h/2-h/22, w/4, h/2, 55, 71);//mid oval
+        Renderer.fillHollowRegularPolygonSegment(x, y-h/2, 100, w/2.75f-h/16, h/2-h/16, w/2.75f, h/2, 55, 69);//large oval
         //bottom ovals
-        Core.drawOval(x, y+h/2, w/6, h/2, h/28, 100, 0, 7, 23);//small oval
-        Core.drawOval(x, y+h/2, w/4, h/2, h/22, 100, 0, 5, 21);//mid oval
-        Core.drawOval(x, y+h/2, w/2.75, h/2, h/16, 100, 0, 5, 19);//large oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/6-h/28, h/2-h/28, w/6, h/2, 7, 23);//small oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/4-h/22, h/2-h/22, w/4, h/2, 5, 21);//mid oval
+        Renderer.fillHollowRegularPolygonSegment(x, y+h/2, 100, w/2.75f-h/16, h/2-h/16, w/2.75f, h/2, 5, 19);//large oval
     }
 }
