@@ -263,12 +263,6 @@ public class Core{// extends Renderer2D{
 //        }
 //        GL11.glEnd();
 //    }
-//    public static void drawHorizontalLine(double x1, double y, double x2, double thickness, int texture){
-//        Renderer.fillRect(x1, y-thickness/2, x2, y+thickness/2, texture);
-//    }
-//    public static void drawVerticalLine(double x, double y1, double y2, double thickness, int texture){
-//        Renderer.fillRect(x-thickness/2, y1, x+thickness/2, y2, texture);
-//    }
 //    public static void winLevel(int i){
 //        latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
 //    }
