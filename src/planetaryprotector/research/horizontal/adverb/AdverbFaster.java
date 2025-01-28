@@ -14,7 +14,7 @@ public class AdverbFaster extends HorizontalAdverb{
     @Override
     public void render(float x, float y, float w, float h){
         Renderer.fillHollowRegularPolygon(x, y, 100, w/2-h/13, h/2-h/13, w/2, h/2);//outer oval
-        Core.drawHollowCosGear(x, y, h/4, h/2, h/50, 6, 0, 0, 3);//gear
+        Renderer.fillHollowCosGear(x, y, h/4, h/2, h/50, 6, 0, 3);//gear
         //left ovals
         Core.drawOval(x+w/6, y, w/3, h/2, h/28, 100, 0, 55, 94);//small oval
         Core.drawOval(x+w/4, y, w/2, h/2, h/22, 100, 0, 55, 94);//mid oval

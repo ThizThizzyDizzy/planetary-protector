@@ -1,5 +1,5 @@
 package planetaryprotector.research.horizontal.adverb;
-import planetaryprotector.Core;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.research.horizontal.HorizontalAdverb;
 public class AdverbMore extends HorizontalAdverb{
     @Override
@@ -12,6 +12,6 @@ public class AdverbMore extends HorizontalAdverb{
     }
     @Override
     public void render(float x, float y, float w, float h){
-        Core.drawHollowCosGear(x, y-h/20, h/4, h/2, h/50, 5, 0, 36, 3);//gear
+        Renderer.fillHollowCosGear(x, y-h/20, h/4, h/2, h/50, 5, 36, 3);//gear
     }
 }

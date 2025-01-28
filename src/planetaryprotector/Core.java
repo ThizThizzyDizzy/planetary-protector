@@ -269,60 +269,6 @@ public class Core{// extends Renderer2D{
 //    public static void drawVerticalLine(double x, double y1, double y2, double thickness, int texture){
 //        Renderer.fillRect(x-thickness/2, y1, x+thickness/2, y2, texture);
 //    }
-//    public static void drawCosGear(double x, double y, double averageRadius, double toothSize, int teeth, int texture, double rot){
-//        drawCosGear(x, y, averageRadius, toothSize, teeth, texture, rot, 10);
-//    }
-//    public static void drawCosGear(double x, double y, double averageRadius, double toothSize, int teeth, int texture, double rot, int resolution){
-//        if(teeth<3){
-//            throw new IllegalArgumentException("A gear must have at least 3 teeth!");
-//        }
-//        ImageStash.instance.bindTexture(texture);
-//        GL11.glBegin(GL11.GL_TRIANGLES);
-//        double angle = rot;
-//        double radius = averageRadius+toothSize/2;
-//        for(int i = 0; i<teeth*resolution; i++){
-//            GL11.glVertex2d(x, y);
-//            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X,Y);
-//            angle+=(360d/(teeth*resolution));
-//            if(angle>=360)angle-=360;
-//            radius = averageRadius+(toothSize/2)*Math.cos(Math.toRadians(teeth*(angle-rot)));
-//            X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X,Y);
-//        }
-//        GL11.glEnd();
-//    }
-//    public static void drawHollowCosGear(double x, double y, double holeRadius, double averageRadius, double toothSize, int teeth, int texture, double rot){
-//        drawCosGear(x, y, averageRadius, toothSize, teeth, texture, rot, 10);
-//    }
-//    public static void drawHollowCosGear(double x, double y, double holeRadius, double averageRadius, double toothSize, int teeth, int texture, double rot, int resolution){
-//        if(teeth<3){
-//            throw new IllegalArgumentException("A gear must have at least 3 teeth!");
-//        }
-//        ImageStash.instance.bindTexture(texture);
-//        GL11.glBegin(GL11.GL_TRIANGLES);
-//        double angle = rot;
-//        double radius = averageRadius+toothSize/2;
-//        for(int i = 0; i<teeth*resolution; i++){
-//            double X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            double Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X, Y);
-//            X = x+Math.cos(Math.toRadians(angle-90))*holeRadius;
-//            Y = y+Math.sin(Math.toRadians(angle-90))*holeRadius;
-//            GL11.glVertex2d(X, Y);
-//            angle+=(360d/(teeth*resolution));
-//            radius = averageRadius+(toothSize/2)*Math.cos(Math.toRadians(teeth*(angle-rot)));
-//            X = x+Math.cos(Math.toRadians(angle-90))*holeRadius;
-//            Y = y+Math.sin(Math.toRadians(angle-90))*holeRadius;
-//            GL11.glVertex2d(X, Y);
-//            X = x+Math.cos(Math.toRadians(angle-90))*radius;
-//            Y = y+Math.sin(Math.toRadians(angle-90))*radius;
-//            GL11.glVertex2d(X, Y);
-//        }
-//        GL11.glEnd();
-//    }
 //    public static void winLevel(int i){
 //        latestLevel = Math.min(LEVELS,Math.max(latestLevel, i+1));
 //    }

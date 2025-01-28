@@ -1,4 +1,5 @@
 package planetaryprotector.research.horizontal.noun;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.Core;
 import planetaryprotector.research.horizontal.HorizontalNoun;
 public class NounMine extends HorizontalNoun{
@@ -12,7 +13,7 @@ public class NounMine extends HorizontalNoun{
     }
     @Override
     protected void render(float x, float y, float w, float h){
-        Core.drawHollowCosGear(x, y, h/4, h/2, h/50, 6, 0, 0, 3);//gear
+        Renderer.fillHollowCosGear(x, y, h/4, h/2, h/50, 6, 0, 3);//gear
         //right
         Core.drawOval(x+w/3, y, w/6, h/2, h/28, 100, 0, 58, 91);//small oval
         Core.drawOval(x+w/2, y, w/4, h/2, h/22, 100, 0, 62, 87);//mid oval
