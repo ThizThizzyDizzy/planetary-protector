@@ -5,7 +5,6 @@ import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
-import com.thizthizzydizzy.dizzyengine.ui.UILayer;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.glfw.GLFW.*;
 import planetaryprotector.Controls;
-import planetaryprotector.Core;
 import planetaryprotector.Sounds;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.enemy.AsteroidMaterial;
@@ -174,7 +172,11 @@ public class MenuGame extends Menu{
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="Render World">
-        Renderer.pushModel(new Matrix4f().translate(getWidth()/2, getHeight()/2, 0).scale(zoom, zoom, 1).translate(-xOff, -yOff, 0));
+        Renderer.pushModel(new Matrix4f().translate(getWidth()/2, getHeight()/2, 0));
+//.scale(zoom, zoom, 1).translate(-xOff, -yOff, 0));
+        game.panX = -xOff;
+        game.panY = -yOff;
+        game.zoom = zoom;
         game.render(deltaTime);
         BoundingBox worldbbox = game.getWorldBoundingBox();
         Renderer.setColor(0, 0, 0, 1);

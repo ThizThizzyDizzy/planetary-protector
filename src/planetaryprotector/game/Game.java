@@ -234,8 +234,12 @@ public class Game extends WorldLayer{
                 anim.task.anim = anim;
             }
         }
+        var viewBbox = getViewBoundingBox();
         for(GameObject o : mainLayer){
-            if(o!=null)o.draw();
+            if(o!=null){
+                if(!viewBbox.intersects(o.getBoundingBox(true)))continue;
+                o.draw();
+            }
         }
         if(showPowerNetworks){
             for(PowerNetwork n : powerNetworks){
@@ -1852,5 +1856,8 @@ public class Game extends WorldLayer{
     public BoundingBox getWorldBoundingBox(){
         BoundingBox cityBBox = getCityBoundingBox();
         return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
+    }
+    public BoundingBox getViewBoundingBox(){
+        return new BoundingBox((int)(-panX-DizzyEngine.screenSize.x/2/zoom), (int)(-panY-DizzyEngine.screenSize.y/2/zoom), (int)(-panX+DizzyEngine.screenSize.x/2/zoom), (int)(-panY+DizzyEngine.screenSize.y/2/zoom)).expand(1);
     }
 }
