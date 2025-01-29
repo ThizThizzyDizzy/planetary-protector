@@ -120,17 +120,17 @@ public class Skyscraper extends Structure implements StructureDemolishable{
                         break FOR;
                 }
             }
-            Renderer.bound(x, y-(floorHeight*floorCount), x+width, y+height);
-            if(l&&r)Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, 1, 1);//front face only
+            if(falling)Renderer.bound(x, y-(floorHeight*floorCount)+distanceFallen, x+width, y+height+distanceFallen);
+            if(l&&r)Renderer.fillRect(x, y-(floorHeight*(i+1))+height+distanceFallen, x+width, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0, 10/11f, 1, 1);//front face only
             else if(l){
-                Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width/2, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, .5f, 1);//front face only
+                Renderer.fillRect(x, y-(floorHeight*(i+1))+height+distanceFallen, x+width/2, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0, 10/11f, .5f, 1);//front face only
             }else if(r){
-                Renderer.fillRect(x+width/2, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0.5f, 10/11f, 1, 1);//front face only
+                Renderer.fillRect(x+width/2, y-(floorHeight*(i+1))+height+distanceFallen, x+width, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0.5f, 10/11f, 1, 1);//front face only
             }
             if(i==floorCount-1){
-                if(t)Renderer.fillRect(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, type.getTexture(), 0, 0, 1, 10/11f);//top face
+                if(t)Renderer.fillRect(x, y-(floorHeight*(i+1))+distanceFallen, x+width, y-(floorHeight*(i+1))+height+distanceFallen, type.getTexture(), 0, 0, 1, 10/11f);//top face
             }
-            Renderer.unBound();
+            if(falling)Renderer.unBound();
         }
         for(SkyscraperDecal decal : decals){
             decal.render(this);
