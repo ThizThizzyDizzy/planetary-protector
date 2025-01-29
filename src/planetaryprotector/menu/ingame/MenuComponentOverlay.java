@@ -13,6 +13,7 @@ public abstract class MenuComponentOverlay extends Panel{
     }
     @Override
     public void draw(double deltaTime){
+        if(!super.getSize().equals(getSize()))setSize(super.getSize());
         Renderer.setColor(0, 0, 0, 0.75f);
         Renderer.fillRect(x, y, getWidth(), getHeight(), 0);
         Renderer.setColor(1, 1, 1, 1);

@@ -5,6 +5,7 @@ import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
+import com.thizthizzydizzy.dizzyengine.ui.UILayer;
 import com.thizthizzydizzy.dizzyengine.ui.component.Button;
 import com.thizthizzydizzy.dizzyengine.ui.component.Component;
 import java.util.ArrayList;
@@ -184,8 +185,10 @@ public class MenuGame extends Menu{
         Renderer.popModel();
 //</editor-fold>
 
-        for(Structure structure : game.structures){
-            structure.mouseover = 0;
+        synchronized(game){
+            for(Structure structure : game.structures){
+                structure.mouseover = 0;
+            }
         }
         game.renderBackground();
         Structure structure = game.getMouseoverStructure(getMouseX(), getMouseY());
@@ -195,7 +198,7 @@ public class MenuGame extends Menu{
         if(game.selectedStructure!=null){
             game.selectedStructure.mouseover += .2;
         }
-        game.render(deltaTime);
+//        game.render(deltaTime);
         if(game instanceof Epilogue)return;
         Renderer.setColor(1, 1, 1, 1);
         super.render(deltaTime);
@@ -280,6 +283,7 @@ public class MenuGame extends Menu{
                 Renderer.drawCenteredText(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, n.toString());
                 offset += n.height;
                 if(n.isDead())it.remove();
+                Renderer.unBound();
             }
         }
         if(game.selectedStructure!=null&&game.selectedStructure.task!=null){
@@ -573,15 +577,15 @@ public class MenuGame extends Menu{
             }
         }
         if(action!=GLFW_PRESS)return;
-        game.click(getMouseX(x), getMouseY(y), button);
+        game.click(getMouseX(pos.x), getMouseY(pos.y), button);
         if(button==0&&game.isPlayable()){
             int amount = 1;
             if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT))amount *= 100;
             if(DizzyEngine.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL))amount *= 10;
-            if(new BoundingBox((int)getWidth()-100, 20, (int)getWidth()-80, 40).contains((int)x, (int)y)){
+            if(new BoundingBox((int)getWidth()-100, 20, (int)getWidth()-80, 40).contains((int)pos.x, (int)pos.y)){
                 game.addCoalToFurnace(amount);
             }
-            if(new BoundingBox((int)getWidth()-100, 40, (int)getWidth()-80, 60).contains((int)x, (int)y)){
+            if(new BoundingBox((int)getWidth()-100, 40, (int)getWidth()-80, 60).contains((int)pos.x, (int)pos.y)){
                 game.addIronToFurnace(amount);
             }
             if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)&&DizzyEngine.getLayer(FlatUI.class).cursorPosition[0].x>=getWidth()-100&&DizzyEngine.getLayer(FlatUI.class).cursorPosition[0].y>=getHeight()-100){
@@ -671,4 +675,17 @@ public class MenuGame extends Menu{
         if(pos==null)return -1;
         return getMouseY(pos.y);
     }
+    // it's not properly set up to be a DizzyLayer
+//    @Override
+//    public void onMenuOpened(){
+//        var oldGame = DizzyEngine.getLayer(Game.class);
+//        if(oldGame!=null&&oldGame!=game){
+//            DizzyEngine.removeLayer(oldGame);
+//        }
+//        if(oldGame!=game)DizzyEngine.addLayer(game);
+//    }
+//    @Override
+//    public void onMenuClosed(){
+//        DizzyEngine.removeLayer(game);
+//    }
 }

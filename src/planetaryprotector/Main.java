@@ -59,7 +59,8 @@ public class Main{
             Logger.pop();
         }
         Sounds.tick(tickCounter);
-        DizzyEngine.getLayer(Game.class).tick();
+        var game = DizzyEngine.getLayer(Game.class);
+        if(game!=null)game.tick();
     }
     public static void saveOptions(){
         try(FileWriter writer = new FileWriter("options.json")){

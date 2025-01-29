@@ -13,7 +13,7 @@ public class BoundingBox{
             x1 = Math.min(x1, bbox.x);
             y1 = Math.min(y1, bbox.y);
             x2 = Math.max(x2, bbox.x+bbox.width);
-            y2 = Math.min(y2, bbox.y+bbox.height);
+            y2 = Math.max(y2, bbox.y+bbox.height);
         }
         return new BoundingBox(x1, y1, x2-x1, y2-y1);
     }

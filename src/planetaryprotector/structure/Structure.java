@@ -452,7 +452,7 @@ public abstract class Structure extends GameObject{
     }
     @Override
     public BoundingBox getBoundingBox(boolean includeHeight){
-        if(includeHeight)return new BoundingBox(x, y, width, height+getStructureHeight());
+        if(includeHeight)return new BoundingBox(x, y-getStructureHeight(), width, height+getStructureHeight());
         return super.getBoundingBox(includeHeight);
     }
 }

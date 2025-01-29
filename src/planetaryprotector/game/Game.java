@@ -187,11 +187,11 @@ public class Game extends WorldLayer{
         this.tutorial = tutorial;
     }
     @Deprecated
-    public void renderBackground(){
+    public synchronized void renderBackground(){
         Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
     }
     @Override
-    public void renderWorld(Vector3i chunk, double deltaTime){
+    public synchronized void renderWorld(Vector3i chunk, double deltaTime){
         //675x365
         int chunkWidth = 1350;
         int chunkHeight = 730;
@@ -1612,7 +1612,7 @@ public class Game extends WorldLayer{
             research.event(event);
         }
     }
-    public Structure getMouseoverStructure(double x, double y){
+    public synchronized Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
             if(structure.getBoundingBox(!hideSkyscrapers).contains((int)x, (int)y))
