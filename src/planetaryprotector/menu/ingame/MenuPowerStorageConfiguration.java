@@ -1,20 +1,21 @@
 package planetaryprotector.menu.ingame;
-import org.lwjgl.opengl.GL11;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
+import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.ui.component.Component;
+import com.thizthizzydizzy.dizzyengine.ui.component.Slider;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.Controls;
-import planetaryprotector.Core;
 import planetaryprotector.structure.PowerStorage;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.component.MenuComponentCheckbox;
-import simplelibrary.font.FontManager;
-import simplelibrary.opengl.gui.components.MenuComponent;
-import simplelibrary.opengl.gui.components.MenuComponentSlider;
 public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure{
     private static final int spacing = 3;
     private static final int textHeight = 40;
     private static final int dividerHeight = textHeight/2;
-    private double Y = 20;
+    private float Y = 20;
     private final PowerStorage powerStorage;
-    private final MenuComponentSlider daylightThreshold;
+    private final Slider daylightThreshold;
     private final MenuComponentCheckbox automaticControl;
     private final MenuComponentCheckbox daylightControl;
     private final MenuComponentCheckbox daylightRecharge;
@@ -26,12 +27,13 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
     private final MenuComponentCheckbox meteorOverride;
     private final MenuComponentCheckbox meteorRecharge;
     private final MenuComponentCheckbox meteorDischarge;
-    private final MenuComponentSlider rechargeRate;
-    private final MenuComponentSlider dischargeRate;
+    private final Slider rechargeRate;
+    private final Slider dischargeRate;
     public MenuPowerStorageConfiguration(MenuGame menu, PowerStorage powerStorage){
         super(menu, powerStorage);
         automaticControl = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.automaticControl));
-        daylightThreshold = add(new MenuComponentSlider(0, 0, 50*textHeight/8, textHeight, 0, 100, powerStorage.daylightThreshold, true));
+        daylightThreshold = add(new Slider(0, 100, powerStorage.daylightThreshold));
+        daylightThreshold.setSize(50*textHeight/8, textHeight);
         daylightControl = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.daylightControl));
         daylightRecharge = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.daylightRecharge));
         daylightDischarge = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.daylightDischarge));
@@ -42,23 +44,22 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
         meteorOverride = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.meteorOverride));
         meteorRecharge = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.meteorRecharge));
         meteorDischarge = add(new MenuComponentCheckbox(0, 0, textHeight, textHeight, true, powerStorage.meteorDischarge));
-        rechargeRate = add(new MenuComponentSlider(0, 0, 50*textHeight/8, textHeight, 0, 100, powerStorage.rechargeRate, true));
-        dischargeRate = add(new MenuComponentSlider(0, 0, 50*textHeight/8, textHeight, 0, 100, powerStorage.dischargeRate, true));
+        rechargeRate = add(new Slider(0, 100, powerStorage.rechargeRate));
+        rechargeRate.setSize(50*textHeight/8, textHeight);
+        dischargeRate = add(new Slider(0, 100, powerStorage.dischargeRate));
+        dischargeRate.setSize(50*textHeight/8, textHeight);
         this.powerStorage = powerStorage;
     }
     @Override
-    public void renderBackground(){
-        super.renderBackground();
-    }
-    @Override
-    public void render(){
-        Renderer.setColor(1, 1, 1, 1);
+    public void render(double deltaTime){
+        super.render(deltaTime);
+        Renderer.setColor(Color.WHITE);
         Y = 20;
-        for(MenuComponent c : components){
-            c.y = -c.height;
+        for(Component c : components){
+            c.y = -c.getHeight();
         }
         powerStorage.automaticControl = automaticControl.isChecked;
-        powerStorage.daylightThreshold = (int) daylightThreshold.getValue();
+        powerStorage.daylightThreshold = (int)daylightThreshold.getValue();
         powerStorage.daylightControl = daylightControl.isChecked;
         powerStorage.daylightRecharge = daylightRecharge.isChecked;
         powerStorage.daylightDischarge = daylightDischarge.isChecked;
@@ -69,8 +70,8 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
         powerStorage.meteorOverride = meteorOverride.isChecked;
         powerStorage.meteorRecharge = meteorRecharge.isChecked;
         powerStorage.meteorDischarge = meteorDischarge.isChecked;
-        powerStorage.rechargeRate = (int) rechargeRate.getValue();
-        powerStorage.dischargeRate = (int) dischargeRate.getValue();
+        powerStorage.rechargeRate = (int)rechargeRate.getValue();
+        powerStorage.dischargeRate = (int)dischargeRate.getValue();
         automaticControl.y = Y+spacing;
         automaticControl.x = text("Enable automatic control");
         divider();
@@ -111,13 +112,14 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
         rechargeRate.x = text("Recharge rate");
         dischargeRate.y = Y+spacing;
         dischargeRate.x = text("Discharge rate");
-        for(MenuComponent c : components){
-            c.x+=dividerHeight;
+        for(Component c : components){
+            c.x += dividerHeight;
         }
     }
     @Override
-    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
-        if(key==Controls.menu&&isPress&&!isRepeat){
+    public void onKey(int id, int key, int scancode, int action, int mods){
+        super.onKey(id, key, scancode, action, mods);
+        if(key==Controls.menu&&action==GLFW.GLFW_PRESS){
             close();
         }
     }
@@ -127,22 +129,22 @@ public class MenuPowerStorageConfiguration extends MenuComponentOverlayStructure
     private int text(int X, String text){
         return text(X, text, textHeight);
     }
-    private int text(String text, double textHeight){
+    private int text(String text, float textHeight){
         return text(0, text, textHeight);
     }
-    private int text(int X, String text, double textHeight){
-        drawText(spacing+X, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight, text);
-        Y+=spacing*2+textHeight;
-        return (int) Math.round(Renderer.getStringWidth(text, textHeight));
+    private int text(int X, String text, float textHeight){
+        Renderer.drawText(spacing+X, Y+spacing, DizzyEngine.screenSize.x, Y+spacing+textHeight, text);
+        Y += spacing*2+textHeight;
+        return (int)Math.round(Renderer.getStringWidth(text, textHeight));
     }
-    private int drawText(double left, double top, double right, double bottom, String text, double height){
-        double center = (top+bottom)/2;
+    private int drawText(float left, float top, float right, float bottom, String text, float height){
+        float center = (top+bottom)/2;
         top = center-height/2;
         bottom = center+height/2;
-        drawText(left, top, right, bottom, text);
-        return (int) Math.round(Renderer.getStringWidth(text, height));
+        Renderer.drawText(left, top, right, bottom, text);
+        return (int)Math.round(Renderer.getStringWidth(text, height));
     }
     private void divider(){
-        Y+=dividerHeight;
+        Y += dividerHeight;
     }
 }

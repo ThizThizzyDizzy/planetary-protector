@@ -1,61 +1,65 @@
 package planetaryprotector.menu.ingame;
+import com.thizthizzydizzy.dizzyengine.ui.component.Button;
+import com.thizthizzydizzy.dizzyengine.ui.layout.ConstrainedLayout;
+import com.thizthizzydizzy.dizzyengine.ui.layout.constraint.PositionAnchorConstraint;
+import org.lwjgl.glfw.GLFW;
 import planetaryprotector.Controls;
-import planetaryprotector.Core;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuMain;
 import planetaryprotector.menu.MenuSaveAs;
-import simplelibrary.opengl.gui.components.MenuComponentButton;
 public class MenuIngame extends MenuComponentOverlay{
-    private final MenuComponentButton controls;
-    private final MenuComponentButton back;
-    private final MenuComponentButton save;
-    private final MenuComponentButton saveAs;
-    private final MenuComponentButton exit;
-    private final MenuComponentButton exitSave;
-    private final MenuComponentButton exitNosave;
+    private final Button controls;
+    private final Button back;
+    private final Button save;
+    private final Button saveAs;
+    private final Button exit;
+    private final Button exitSave;
+    private final Button exitNosave;
     public MenuIngame(MenuGame menu){
         super(menu);
-        controls = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 240, 800, 80, "Controls", true));
-        back = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, 80, 800, 80, "Back to game", true));
-        saveAs = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-320, 800, 80, "Save As...", true));
-        save = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-240, 800, 80, "Save Game", true));
-        exit = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-400, DizzyEngine.screenSize.y-160, 800, 80, "Exit to menu", true));
-        exitSave = add(new MenuComponentButton(DizzyEngine.screenSize.x/2-600, DizzyEngine.screenSize.y-80, 600, 80, "Save and Exit", false));
-        exitNosave = add(new MenuComponentButton(DizzyEngine.screenSize.x/2, DizzyEngine.screenSize.y-80, 600, 80, "Don't save", false));
-    }
-    @Override
-    public void render(){}
-    @Override
-    public void keyEvent(int key, int scancode, boolean isPress, boolean isRepeat, int modifiers){
-        if(key==Controls.menu&&isPress&&!isRepeat){
-            close();
-        }
-    }
-    @Override
-    public void buttonClicked(MenuComponentButton button) {
-        if(button==back){
-            close();
-        }
-        if(button==save){
+        var layout = setLayout(new ConstrainedLayout());
+        controls = add(new Button("Controls", true));
+        controls.addAction(() -> open(new MenuControls(menu)));
+        controls.setSize(800, 80);
+        layout.constrain(controls, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 240));
+        back = add(new Button("Back to game", true));
+        back.addAction(() -> close());
+        back.setSize(800, 80);
+        layout.constrain(back, new PositionAnchorConstraint(.5f, 0, .5f, 0, 0, 80));
+        saveAs = add(new Button("Save As...", true));
+        saveAs.addAction(() -> new MenuSaveAs(menu.game).open());
+        saveAs.setSize(800, 80);
+        layout.constrain(saveAs, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -320));
+        save = add(new Button("Save Game", true));
+        save.addAction(() -> menu.game.save());
+        save.setSize(800, 80);
+        layout.constrain(save, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -240));
+        exit = add(new Button("Exit to menu", true));
+        exit.setSize(800, 80);
+        layout.constrain(exit, new PositionAnchorConstraint(.5f, 0, .5f, 1, 0, -160));
+        exitSave = add(new Button("Save and Exit", false));
+        exitSave.addAction(() -> {
             menu.game.save();
-        }
-        if(button==saveAs){
-            gui.open(new MenuSaveAs(gui, menu));
-        }
-        if(button==controls){
-            open(new MenuControls(menu));
-        }
-        if(button==exit){
+            new MenuMain(true).open();
+        });
+        exitSave.setSize(600, 80);
+        layout.constrain(exitSave, new PositionAnchorConstraint(1, 0, .5f, 1, 0, -80));
+        exitNosave = add(new Button("Don't save", false));
+        exitNosave.addAction(() -> new MenuMain(true).open());
+        exitNosave.setSize(600, 80);
+        layout.constrain(exitNosave, new PositionAnchorConstraint(0, 0, .5f, 1, 0, -80));
+
+        exit.addAction(() -> {
             exit.enabled = false;
             exitSave.enabled = true;
             exitNosave.enabled = true;
-        }
-        if(button==exitSave){
-            menu.game.save();
-            gui.open(new MenuMain(gui, true));
-        }
-        if(button==exitNosave){
-            gui.open(new MenuMain(gui, true));
+        });
+    }
+    @Override
+    public void onKey(int id, int key, int scancode, int action, int mods){
+        super.onKey(id, key, scancode, action, mods);
+        if(key==Controls.menu&&action==GLFW.GLFW_PRESS){
+            close();
         }
     }
 }

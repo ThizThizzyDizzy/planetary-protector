@@ -90,17 +90,17 @@ public class MenuExpedition extends MenuComponentOverlay{
         }
     }
     private void back(){
-            for(Expedition e : menu.game.finishedExpeditions){
-                if(!e.returned){
-                    continue;
-                }
-                for(int i = 0; i<e.workers; i++){
-                    menu.game.addWorker();
-                }
-                menu.game.addCivilians(e.civilians);
+        for(Expedition e : menu.game.finishedExpeditions){
+            if(!e.returned){
+                continue;
             }
-            menu.game.finishedExpeditions.clear();
-            close();
+            for(int i = 0; i<e.workers; i++){
+                menu.game.addWorker();
+            }
+            menu.game.addCivilians(e.civilians);
+        }
+        menu.game.finishedExpeditions.clear();
+        close();
     }
     private float textOffset = 0;
     private float rightTextOffset = 0;
@@ -119,7 +119,7 @@ public class MenuExpedition extends MenuComponentOverlay{
         }
         double bottom = textOffset;
         double right = add.x;
-        rects.put(new Double[]{left,top,right,bottom}, e);
+        rects.put(new Double[]{left, top, right, bottom}, e);
     }
     private void drawTextRight(ArrayList<String> text, Expedition e){
         double left = add.x+add.getWidth();
@@ -129,21 +129,18 @@ public class MenuExpedition extends MenuComponentOverlay{
         }
         double bottom = rightTextOffset;
         double right = DizzyEngine.screenSize.x;
-        rects.put(new Double[]{left,top,right,bottom}, e);
+        rects.put(new Double[]{left, top, right, bottom}, e);
     }
     private void drawText(String text, Expedition e){
-        String str = Renderer.drawTextWithWrap(0, textOffset, add.x, textOffset+textHeight, text);
-        textOffset+=textHeight;
-        if(str!=null&&!str.isEmpty()){
-            drawText(str, e);
-        }
+        Renderer.wrapText(text, add.x, textHeight, (line, str) -> {
+            Renderer.drawText(0, textOffset, add.x, textOffset+textHeight, str);
+            textOffset += textHeight;
+        });
     }
     private void drawTextRight(String text, Expedition e){
-        double len = Renderer.getStringWidth(text, textHeight);
-        String str = drawTextWithWrap(Math.max(add.x+add.getWidth(), DizzyEngine.screenSize.x-len), rightTextOffset, DizzyEngine.screenSize.x, rightTextOffset+textHeight, text);
-        rightTextOffset+=textHeight;
-        if(str!=null&&!str.isEmpty()){
-            drawTextRight(str, e);
-        }
+        Renderer.wrapText(text, add.x, textHeight, (line, str) -> {
+            Renderer.drawRightText(add.x+add.getWidth(), rightTextOffset, DizzyEngine.screenSize.x, rightTextOffset+textHeight, str);
+            rightTextOffset += textHeight;
+        });
     }
 }

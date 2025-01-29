@@ -55,10 +55,10 @@ public class MenuComponentSelectedResearch extends Component{
         title.drawTranslation(x+getWidth()/2, y+borderThickness+getWidth()*.075f, getWidth()/20, research.fancyTitle);
         Renderer.drawCenteredText(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40, research.getTitle());
         if(research.isDiscovered()){
-            drawDescription(x+border+getWidth()*.3, y+borderThickness+getWidth()*.15+40, x+getWidth()-border, y+borderThickness+getWidth()*.15+40+getWidth()*.3, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDescription());
+            drawDescription(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40+getWidth()*.3f, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDescription());
         }else{
             if(game.cheats){
-                drawDescription(x+border+getWidth()*.3, y+borderThickness+getWidth()*.15+40, x+getWidth()-border, y+borderThickness+getWidth()*.15+40+getWidth()*.3, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
+                drawDescription(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40+getWidth()*.3f, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
             }else{
                 drawNonsense(x+border, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+getHeight()-border-borderThickness, 40);
             }
@@ -120,14 +120,13 @@ public class MenuComponentSelectedResearch extends Component{
                 lab.setTargetResearch(research);
         }
     }
-    private void drawDescription(double left1, double top, double right1, double yDivider, double left2, double right2, double bottom, double textHeight, String description){
-        double Y = top;
-        description = description.replace("\n", "                                                                                                    ");
-        while(description!=null&&!description.trim().isEmpty()){
-            description = Renderer.drawTextWithWordWrap(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, description.trim());
-            Y += textHeight*1.2;
-            if(Y>=bottom)break;
-        }
+    private void drawDescription(float left1, float top, float right1, float yDivider, float left2, float right2, float bottom, float textHeight, String description){
+        Renderer.wordWrapText(description, (line) -> {
+            return (top+line*textHeight*1.2)>yDivider?(right2-left2):(right1-left1);
+        }, textHeight, (line, str) -> {
+            float Y = top+line*textHeight*1.2f;
+            Renderer.drawText(Y>yDivider?left2:left1, Y, Y>yDivider?right2:right1, Y+textHeight, str);
+        });
     }
     private void drawNonsense(float left, float top, float right, float bottom, float textHeight){
         int charsX = (int)((right-left)/(textHeight*2));

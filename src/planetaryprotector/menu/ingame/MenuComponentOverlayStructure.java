@@ -12,7 +12,7 @@ public abstract class MenuComponentOverlayStructure extends MenuComponentOverlay
     }
     @Override
     public void draw(double deltaTime){
-        super.draw(deltaTime); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        super.draw(deltaTime);
         if(structure.type!=type)close();
     }
 }
