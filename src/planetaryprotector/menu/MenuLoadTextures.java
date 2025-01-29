@@ -16,6 +16,7 @@ import planetaryprotector.Core;
 import planetaryprotector.structure.task.TaskAnimated;
 import planetaryprotector.structure.task.TaskType;
 import planetaryprotector.item.Item;
+import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
 import planetaryprotector.structure.SkyscraperDecal;
@@ -61,9 +62,9 @@ public class MenuLoadTextures extends Menu{
         if(dev){
             verifyTextures.add("/textures/asteroids/stone.png");
             verifyTextures.add("/textures/asteroids/ore.png");
-//            for(ParticleEffectType p : ParticleEffectType.values()){
-//                for(String s : p.images)verifyTextures.add(s);
-//            }
+            for(ParticleEffectType p : ParticleEffectType.values()){
+                for(String s : p.images)verifyTextures.add(s);
+            }
             for(Game.Theme t : Game.Theme.values()){
                 Game.theme = t;
                 for(int i = 0; i<=16; i++){
