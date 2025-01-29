@@ -90,7 +90,7 @@ public class Particle extends GameObjectAnimated{
                 return;
             case SMOKE:
                 Renderer.setColor(0, 0, 0, opacity);
-                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
                 Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
                 Renderer.popModel();
                 Renderer.setColor(1, 1, 1, 1);
@@ -147,7 +147,7 @@ public class Particle extends GameObjectAnimated{
                 if(Game.theme==Game.Theme.SNOWY)
                     lightness = (float)Math.sqrt(lightness);
                 Renderer.setColor(lightness, lightness, lightness, opacity*Options.options.cloudIntensity);
-                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
                 Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
                 Renderer.popModel();
                 Renderer.setColor(1, 1, 1, 1);
@@ -157,21 +157,21 @@ public class Particle extends GameObjectAnimated{
                     float r = Math.max(0, Math.min(1, (10-i[4])/10));
                     float g = Math.max(0, Math.min(1, (10-i[4])/20));
                     Renderer.setColor(r, g, 0, i[3]);
-                    Renderer.pushModel(new Matrix4f().translate(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0).rotate(i[2], 0, 0, 1));
+                    Renderer.pushModel(new Matrix4f().translate(x+i[0]+width/2, y+i[1]-i[5]+height/2, 0).rotate((float)Math.toRadians(i[2]), 0, 0, 1));
                     Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
                     Renderer.popModel();
                 }
                 Renderer.setColor(1, 1, 1, 1);
                 if(fading)return;
                 Renderer.setColor(1, .5f, 0, opacity);
-                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
                 Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
                 Renderer.popModel();
                 Renderer.setColor(1, 1, 1, 1);
                 return;
             default:
                 Renderer.setColor(1, 1, 1, opacity);
-                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+                Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
                 Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
                 Renderer.popModel();
                 Renderer.setColor(1, 1, 1, 1);

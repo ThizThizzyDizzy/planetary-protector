@@ -39,7 +39,8 @@ public class Skyscraper extends Structure implements StructureDemolishable{
         if(falling){
             for(Iterator<Particle> it = fires.iterator(); it.hasNext();){
                 Particle fire = it.next();
-                fire.offsetSubParticles(2);
+                fire.y+=fallSpeed;
+                fire.offsetSubParticles(fallSpeed);
                 if(fire.y-50>0){
                     it.remove();
                     fire.x += x;
@@ -97,6 +98,10 @@ public class Skyscraper extends Structure implements StructureDemolishable{
             Renderer.fillRect(x, y, x+width, y+height, StructureType.WRECK.getTexture());
             return;
         }
+        if(falling){
+            Renderer.bound(x, y-(floorHeight*floorCount)+distanceFallen, x+width, y+height);
+            Renderer.translate(0, distanceFallen);
+        }
         for(int i = 0; i<floorCount; i++){
             boolean l = true, r = true, t = true;
             FOR:
@@ -120,23 +125,25 @@ public class Skyscraper extends Structure implements StructureDemolishable{
                         break FOR;
                 }
             }
-            if(falling)Renderer.bound(x, y-(floorHeight*floorCount)+distanceFallen, x+width, y+height+distanceFallen);
-            if(l&&r)Renderer.fillRect(x, y-(floorHeight*(i+1))+height+distanceFallen, x+width, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0, 10/11f, 1, 1);//front face only
+            if(l&&r)Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, 1, 1);//front face only
             else if(l){
-                Renderer.fillRect(x, y-(floorHeight*(i+1))+height+distanceFallen, x+width/2, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0, 10/11f, .5f, 1);//front face only
+                Renderer.fillRect(x, y-(floorHeight*(i+1))+height, x+width/2, y-(floorHeight*i)+height, type.getTexture(), 0, 10/11f, .5f, 1);//front face only
             }else if(r){
-                Renderer.fillRect(x+width/2, y-(floorHeight*(i+1))+height+distanceFallen, x+width, y-(floorHeight*i)+height+distanceFallen, type.getTexture(), 0.5f, 10/11f, 1, 1);//front face only
+                Renderer.fillRect(x+width/2, y-(floorHeight*(i+1))+height, x+width, y-(floorHeight*i)+height, type.getTexture(), 0.5f, 10/11f, 1, 1);//front face only
             }
             if(i==floorCount-1){
-                if(t)Renderer.fillRect(x, y-(floorHeight*(i+1))+distanceFallen, x+width, y-(floorHeight*(i+1))+height+distanceFallen, type.getTexture(), 0, 0, 1, 10/11f);//top face
+                if(t)Renderer.fillRect(x, y-(floorHeight*(i+1)), x+width, y-(floorHeight*(i+1))+height, type.getTexture(), 0, 0, 1, 10/11f);//top face
             }
-            if(falling)Renderer.unBound();
         }
         for(SkyscraperDecal decal : decals){
             decal.render(this);
         }
         Renderer.setColor(1, 1, 1, 1);
         renderDamages();
+        if(falling){
+            Renderer.unTranslate();
+            Renderer.unBound();
+        }
     }
     @Override
     protected void drawBar(float percent, float r, float g, float b){
