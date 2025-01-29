@@ -44,8 +44,8 @@ public class Main{
         Logger.info("Loading fonts");
         Renderer.setDefaultFont(Font.loadFont(ResourceManager.loadData(ResourceManager.getInternalResource("/assets/fonts/high_resolution.ttf"))));
         Sounds.init();
-        Game.refreshTheme();
         loadOptions();
+        Game.refreshTheme();
         DizzyEngine.start();
     }
     private static void tick(long tickCounter){

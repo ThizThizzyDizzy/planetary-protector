@@ -133,7 +133,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
             Renderer.unBound();
         }
         for(SkyscraperDecal decal : decals){
-            //decal.render(this);
+            decal.render(this);
         }
         Renderer.setColor(1, 1, 1, 1);
         renderDamages();

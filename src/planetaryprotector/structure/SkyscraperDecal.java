@@ -89,6 +89,7 @@ public class SkyscraperDecal{
                 Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
                 Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
                 Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.unBound();
             }
         },
         RIGHT("right", 1){
@@ -97,6 +98,7 @@ public class SkyscraperDecal{
                 Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
                 Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
                 Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.unBound();
             }
         },
         TOP("top", 2){
@@ -105,6 +107,7 @@ public class SkyscraperDecal{
                 Renderer.setColor(1, 1, 1, sky.game.hideSkyscrapers?.2f:1);
                 Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
                 Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+100, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+100, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/"+tex+" "+(decal.variant+1)+".png"));
+                Renderer.unBound();
             }
         },
         DUST("dust", 10){
@@ -113,6 +116,7 @@ public class SkyscraperDecal{
                 Renderer.setColor(0, 0, 0, 0.02f*(sky.game.hideSkyscrapers?.2f:1));
                 Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
                 Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+50, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+50, ResourceManager.getTexture("/textures/structures/damage/"+(decal.variant+1)+".png"));
+                Renderer.unBound();
             }
         },
         WINDOW("window", 30){
@@ -124,6 +128,7 @@ public class SkyscraperDecal{
                 X -= Y*10;
                 Renderer.bound(sky.x, sky.y-(Skyscraper.floorHeight*sky.floorCount), sky.x+sky.width, sky.y+sky.height);
                 Renderer.fillRect(sky.x+decal.x, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y, sky.x+decal.x+8, sky.y-(Skyscraper.floorHeight*sky.floorCount)+decal.y+10, ResourceManager.getTexture("/textures/structures/skyscraper/decals/"+Game.theme.tex()+"/windows.png"), X/10f, Y/3f, (X+1)/10f, (Y+1)/3f);
+                Renderer.unBound();
             }
         };
         public final String tex;

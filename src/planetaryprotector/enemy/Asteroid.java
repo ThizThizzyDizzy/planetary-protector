@@ -33,7 +33,7 @@ public class Asteroid extends GameObject implements ZComponent{
      * @param particulate 0=never, 1=only if settings allow, 2=always
      */
     public Asteroid(Game game, int x, int y, AsteroidMaterial material, int particulate){
-        super(game, x,y, 50, 50);
+        super(game, x, y, 50, 50);
         this.material = material;
         this.particulate = particulate;
     }
@@ -56,10 +56,10 @@ public class Asteroid extends GameObject implements ZComponent{
             }
             return;
         }
-        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
+        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, 1-frame/(float)frames, 1, 1-(frame+1f)/frames);
         if(material.color!=null){
             Renderer.setColor(material.color);
-            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
+            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, 1-frame/(float)frames, 1, 1-(frame+1f)/frames);
         }
     }
     public void tick(){
@@ -68,7 +68,7 @@ public class Asteroid extends GameObject implements ZComponent{
         if(frame>=hitFrame&&!hit){
             hit = true;
             if(drop){
-                game.damage(x+width/2,y+height/2, material);
+                game.damage(x+width/2, y+height/2, material);
             }else{
                 game.damage(x+width/2, y+height/2);
             }
@@ -90,8 +90,8 @@ public class Asteroid extends GameObject implements ZComponent{
             double X = MathUtil.lerp(startX, landX, fallProgress);
             double Y = MathUtil.lerp(startY, landY, fallProgress);
             for(int i = 0; i<particleResolution; i++){
-                X-=dX;
-                Y-=dY;
+                X -= dX;
+                Y -= dY;
                 Particle particle = new Particle(game, (int)X, (int)Y, ParticleEffectType.SMOKE, 1, true);
                 particle.width = particle.height = 25;
                 game.addParticleEffect(particle);
