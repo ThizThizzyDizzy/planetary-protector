@@ -56,10 +56,10 @@ public class Asteroid extends GameObject implements ZComponent{
             }
             return;
         }
-        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, 1-frame/(float)frames, 1, 1-(frame+1f)/frames);
+        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
         if(material.color!=null){
             Renderer.setColor(material.color);
-            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, 1-frame/(float)frames, 1, 1-(frame+1f)/frames);
+            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
         }
     }
     public void tick(){
