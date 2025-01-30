@@ -1858,6 +1858,6 @@ public class Game extends WorldLayer{
         return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
     }
     public BoundingBox getViewBoundingBox(){
-        return new BoundingBox((int)(-panX-DizzyEngine.screenSize.x/2/zoom), (int)(-panY-DizzyEngine.screenSize.y/2/zoom), (int)(-panX+DizzyEngine.screenSize.x/2/zoom), (int)(-panY+DizzyEngine.screenSize.y/2/zoom)).expand(1);
+        return new BoundingBox((int)(-panX/zoom-DizzyEngine.screenSize.x/zoom/2), (int)(-panY/zoom-DizzyEngine.screenSize.y/zoom/2), (int)(DizzyEngine.screenSize.x/zoom), (int)(DizzyEngine.screenSize.y/zoom)).expand(1);
     }
 }
