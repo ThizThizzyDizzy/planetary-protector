@@ -29,7 +29,7 @@ public class MenuLoadTextures extends Menu{
     private String loading = "Initializing...";
     private String loading2 = "";
     private int total;
-    private int threads = Math.max(1,Runtime.getRuntime().availableProcessors()-1);
+    private int threads = Math.max(1, Runtime.getRuntime().availableProcessors()-1);
     private boolean dev;
     public MenuLoadTextures(){
         CodeSource src = Core.class.getProtectionDomain().getCodeSource();
@@ -50,7 +50,7 @@ public class MenuLoadTextures extends Menu{
                 Logger.error(ex);
             }
             if(devEnv){
-                File f = new File("build\\classes");
+                File f = new File("build/classes");
                 for(File fi : getAllFiles(f, ".png")){
                     textures.add(fi.getAbsolutePath().substring(f.getAbsolutePath().length()).replace("\\", "/"));
                 }
@@ -177,8 +177,12 @@ public class MenuLoadTextures extends Menu{
         if(file.isFile()){
             if(file.getName().endsWith(suffix))files.add(file);
         }else{
-            for(File f : file.listFiles()){
-                files.addAll(getAllFiles(f, suffix));
+            var filez = file.listFiles();
+            if(filez!=null){// Skip files if no access
+                for(File f : filez){
+                    if(f==null)continue; // Skip file if no access
+                    files.addAll(getAllFiles(f, suffix));
+                }
             }
         }
         return files;
