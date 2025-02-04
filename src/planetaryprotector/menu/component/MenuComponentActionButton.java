@@ -13,6 +13,9 @@ public class MenuComponentActionButton extends Button{
     public final Action action;
     public MenuComponentActionButton(MenuGame menu, Game game, int x, int y, int width, int height, Action action){
         super(action.label, action.update.getEnabled());
+        this.x = x;
+        this.y = y;
+        setSize(width, height);
         label.labelInset += 15;
         this.menu = menu;
         this.game = game;
