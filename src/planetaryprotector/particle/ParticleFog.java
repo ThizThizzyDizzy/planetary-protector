@@ -72,7 +72,7 @@ public class ParticleFog extends Particle{
             lightness = (float)Math.sqrt(lightness);
         }
         Renderer.setColor(lightness, lightness-redTint, lightness-redTint, opacity*Options.options.fogIntensity);
-        Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rotation, 0, 0, 1));
+        Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
         Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
         Renderer.popModel();
         Renderer.setColor(1,1,1,1);
