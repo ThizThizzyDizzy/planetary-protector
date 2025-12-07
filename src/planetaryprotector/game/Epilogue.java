@@ -8,7 +8,6 @@ import planetaryprotector.structure.Wreck;
 import planetaryprotector.structure.Plot;
 import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Base;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
 import planetaryprotector.particle.Particle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,7 +37,7 @@ public class Epilogue extends Game{//TODO no Display
             if(structure==null){
                 continue;
             }
-            structures.add(new Wreck(this, structure.x, structure.y, i));
+            addStructure(new Wreck(this, structure.x, structure.y, i));
         }
         phase = 0;
         for(Structure structure : structures){
@@ -141,8 +140,8 @@ public class Epilogue extends Game{//TODO no Display
             ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
             Structure start = list.get(0);
             Structure end = structuresToReplace.remove(start);
-            structures.remove(start);
-            structures.add(end);
+            removeStructure(start);
+            addStructure(end);
         }
         super.tick();
     }

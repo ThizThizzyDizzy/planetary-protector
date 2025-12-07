@@ -2,10 +2,10 @@ package planetaryprotector.game;
 import java.util.ArrayList;
 import java.util.HashMap;
 import planetaryprotector.Core;
-import planetaryprotector.structure.Structure;
-import planetaryprotector.structure.Tree;
 import planetaryprotector.structure.Base;
 import planetaryprotector.structure.Skyscraper;
+import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.Tree;
 public abstract class WorldGenerator{
     public static final HashMap<Integer, ArrayList<WorldGenerator>> generators = new HashMap<>();
     static{
@@ -16,7 +16,7 @@ public abstract class WorldGenerator{
             private final int FAILS = 10;
             @Override
             public void generateCity(Game game, BoundingBox bbox){
-                game.structures.add(new Base(game, -50, -50));
+                game.addStructure(new Base(game, -50, -50));
                 long tries = 1000L*bbox.area()/1920/1080;
                 int fails = 0;
                 while(fails<FAILS){
@@ -28,7 +28,7 @@ public abstract class WorldGenerator{
                             if(scraper.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue FOR;
                         }
                         scraper.generateApocolypseDecals();
-                        game.structures.add(scraper);
+                        game.addStructure(scraper);
                     }
                     //</editor-fold>
                     fails++;
@@ -39,7 +39,7 @@ public abstract class WorldGenerator{
                     for(Structure structure : game.structures){
                         if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
-                    game.structures.add(tree);
+                    game.addStructure(tree);
                 }
             }
             @Override
@@ -51,7 +51,7 @@ public abstract class WorldGenerator{
                     for(Structure structure : game.structures){
                         if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
-                    game.structures.add(tree);
+                    game.addStructure(tree);
                 }
             }
             @Override
@@ -87,7 +87,7 @@ public abstract class WorldGenerator{
                         int Y = top+(y*(GAP+100))+bbox.y+bbox.height/2;
                         Structure structure = (x==width/2&&y==height/2)?new Base(game, X, Y):new Skyscraper(game, X, Y, game.rand.nextInt(15)+25);
                         if(structure instanceof Skyscraper)((Skyscraper)structure).generateApocolypseDecals();
-                        game.structures.add(structure);
+                        game.addStructure(structure);
                     }
                 }
                 long tries = 1000L*bbox.area()/1920/1080;
@@ -97,7 +97,7 @@ public abstract class WorldGenerator{
                     for(Structure structure : game.structures){
                         if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
                     }
-                    game.structures.add(tree);
+                    game.addStructure(tree);
                 }
             }
             @Override
@@ -109,7 +109,7 @@ public abstract class WorldGenerator{
                     for(Structure structure : game.structures){
                         if(structure.getBoundingBox(false).intersects(tree.getBoundingBox(false)))continue GEN;
                     }
-                    game.structures.add(tree);
+                    game.addStructure(tree);
                 }
             }
             @Override

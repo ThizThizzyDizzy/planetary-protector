@@ -177,13 +177,7 @@ public class MenuGame extends Menu{
         game.panX = -xOff;
         game.panY = -yOff;
         game.zoom = zoom;
-        game.render(deltaTime);
-        BoundingBox worldbbox = game.getWorldBoundingBox();
-        Renderer.setColor(0, 0, 0, 1);
-        Renderer.fillRect(worldbbox.getLeft()-getWidth(), worldbbox.getTop()-getHeight(), worldbbox.getLeft(), worldbbox.getBottom()+getHeight(), 0);//left
-        Renderer.fillRect(worldbbox.getRight(), worldbbox.getTop()-getHeight(), worldbbox.getRight()+getWidth(), worldbbox.getBottom()+getHeight(), 0);//right
-        Renderer.fillRect(worldbbox.getLeft(), worldbbox.getTop()-getHeight(), worldbbox.getRight(), worldbbox.getTop(), 0);//top
-        Renderer.fillRect(worldbbox.getLeft(), worldbbox.getBottom(), worldbbox.getRight(), worldbbox.getBottom()+getHeight(), 0);//bottom
+        game.fakeRender(deltaTime);
         Renderer.popModel();
 //</editor-fold>
 
@@ -200,7 +194,7 @@ public class MenuGame extends Menu{
         if(game.selectedStructure!=null){
             game.selectedStructure.mouseover += .2;
         }
-//        game.render(deltaTime);
+//        game.fakeRender(deltaTime);
         if(game instanceof Epilogue)return;
         Renderer.setColor(1, 1, 1, 1);
         super.render(deltaTime);
@@ -677,17 +671,16 @@ public class MenuGame extends Menu{
         if(pos==null)return -1;
         return getMouseY(pos.y);
     }
-    // it's not properly set up to be a DizzyLayer
-//    @Override
-//    public void onMenuOpened(){
-//        var oldGame = DizzyEngine.getLayer(Game.class);
-//        if(oldGame!=null&&oldGame!=game){
-//            DizzyEngine.removeLayer(oldGame);
-//        }
-//        if(oldGame!=game)DizzyEngine.addLayer(game);
-//    }
-//    @Override
-//    public void onMenuClosed(){
-//        DizzyEngine.removeLayer(game);
-//    }
+    @Override
+    public void onMenuOpened(){
+        var oldGame = DizzyEngine.getLayer(Game.class);
+        if(oldGame!=null&&oldGame!=game){
+            DizzyEngine.removeLayer(oldGame);
+        }
+        if(oldGame!=game)DizzyEngine.addLayer(game);
+    }
+    @Override
+    public void onMenuClosed(){
+        DizzyEngine.removeLayer(game);
+    }
 }

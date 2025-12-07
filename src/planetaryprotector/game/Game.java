@@ -5,32 +5,7 @@ import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
-import com.thizthizzydizzy.dizzyengine.world.WorldLayer;
-import planetaryprotector.Core;
-import planetaryprotector.Expedition;
-import planetaryprotector.item.Item;
-import planetaryprotector.item.ItemStack;
-import planetaryprotector.Sounds;
-import planetaryprotector.VersionManager;
-import planetaryprotector.friendly.Drone;
-import planetaryprotector.item.DroppedItem;
-import planetaryprotector.friendly.Worker;
-import planetaryprotector.enemy.AsteroidMaterial;
-import planetaryprotector.enemy.Asteroid;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.enemy.EnemyMothership;
-import planetaryprotector.enemy.EnemyAlien;
-import planetaryprotector.enemy.Enemy;
-import planetaryprotector.structure.task.TaskDemolish;
-import planetaryprotector.structure.task.TaskRepair;
-import planetaryprotector.structure.task.TaskRepairAll;
-import planetaryprotector.structure.task.TaskType;
-import planetaryprotector.structure.task.Task;
-import planetaryprotector.structure.task.TaskUpgrade;
-import planetaryprotector.structure.ShieldGenerator;
-import planetaryprotector.structure.Skyscraper;
-import planetaryprotector.structure.Base;
-import planetaryprotector.particle.ParticleFog;
+import com.thizthizzydizzy.dizzyengine.world.flat.ThreeQuarterWorldLayer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -45,24 +20,48 @@ import java.util.Iterator;
 import java.util.Random;
 import org.joml.Vector2f;
 import org.joml.Vector3i;
+import planetaryprotector.Expedition;
 import planetaryprotector.GameObject;
 import planetaryprotector.Options;
-import planetaryprotector.structure.PowerNetwork;
-import planetaryprotector.structure.StarlightNetwork;
-import planetaryprotector.structure.task.TaskAnimated;
-import planetaryprotector.structure.task.TaskAnimation;
-import planetaryprotector.structure.task.TaskSpecialUpgrade;
+import planetaryprotector.Sounds;
+import planetaryprotector.VersionManager;
+import planetaryprotector.enemy.Asteroid;
+import planetaryprotector.enemy.AsteroidMaterial;
+import planetaryprotector.enemy.Enemy;
+import planetaryprotector.enemy.EnemyAlien;
+import planetaryprotector.enemy.EnemyMothership;
+import planetaryprotector.event.StructureChangeEventListener;
+import planetaryprotector.friendly.Drone;
 import planetaryprotector.friendly.ShootingStar;
+import planetaryprotector.friendly.Worker;
+import planetaryprotector.item.DroppedItem;
+import planetaryprotector.item.Item;
+import planetaryprotector.item.ItemStack;
 import planetaryprotector.menu.MenuGame;
+import planetaryprotector.particle.Particle;
+import planetaryprotector.particle.ParticleFog;
 import planetaryprotector.research.Research;
 import planetaryprotector.research.ResearchEvent;
-import planetaryprotector.structure.Structure;
-import planetaryprotector.event.StructureChangeEventListener;
-import planetaryprotector.structure.StructureType;
+import planetaryprotector.structure.Base;
 import planetaryprotector.structure.Laboratory;
+import planetaryprotector.structure.PowerNetwork;
+import planetaryprotector.structure.ShieldGenerator;
+import planetaryprotector.structure.Skyscraper;
+import planetaryprotector.structure.StarlightNetwork;
+import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureDemolishable;
-public class Game extends WorldLayer{
+import planetaryprotector.structure.StructureType;
+import planetaryprotector.structure.task.Task;
+import planetaryprotector.structure.task.TaskAnimated;
+import planetaryprotector.structure.task.TaskAnimation;
+import planetaryprotector.structure.task.TaskDemolish;
+import planetaryprotector.structure.task.TaskRepair;
+import planetaryprotector.structure.task.TaskRepairAll;
+import planetaryprotector.structure.task.TaskSpecialUpgrade;
+import planetaryprotector.structure.task.TaskType;
+import planetaryprotector.structure.task.TaskUpgrade;
+public class Game extends ThreeQuarterWorldLayer{
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     public Random rand = new Random();
@@ -186,16 +185,13 @@ public class Game extends WorldLayer{
         this.story = story;
         this.tutorial = tutorial;
     }
-    @Deprecated
-    public synchronized void renderBackground(){
-        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
-    }
+    float totalTime = 0;
     @Override
-    public synchronized void renderWorld(Vector3i chunk, double deltaTime){
+    public void renderWorldBackground(Vector3i chunk, double deltaTime){
         //675x365
         int chunkWidth = 1350;
         int chunkHeight = 730;
-        BoundingBox bbox = getWorldBoundingBox();
+        BoundingBox bbox = getWorldBoundingBox(false);
         int left = bbox.getLeft()/chunkWidth-1;
         int top = bbox.getTop()/chunkHeight-1;
         int right = bbox.getRight()/chunkWidth+1;
@@ -205,6 +201,31 @@ public class Game extends WorldLayer{
                 Renderer.fillRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
             }
         }
+        totalTime+=deltaTime;
+        var screenSize = DizzyEngine.screenSize;
+        float borderWallHeight = screenSize.y;
+        Renderer.setColor(0, 0, 0, 1);
+        Renderer.fillXYRect(bbox.getLeft()-screenSize.x, bbox.getTop()-screenSize.y, bbox.getLeft(), bbox.getBottom()+screenSize.y+borderWallHeight, borderWallHeight, 0);//left (but really high up)
+        Renderer.fillXYRect(bbox.getRight(), bbox.getTop()-screenSize.y, bbox.getRight()+screenSize.x, bbox.getBottom()+screenSize.y+borderWallHeight, borderWallHeight, 0);//right
+        Renderer.fillXZRect(bbox.getLeft()-screenSize.x, 0, bbox.getRight()+screenSize.x, screenSize.y+borderWallHeight, bbox.getTop(), 0); // top (vertical)
+        Renderer.fillXYRect(bbox.getLeft(), bbox.getBottom()+getShearFactor()*borderWallHeight, bbox.getRight(), bbox.getBottom()+screenSize.y+getShearFactor()*borderWallHeight, borderWallHeight, 0);//bottom
+    }
+    @Deprecated
+    public synchronized void renderBackground(){
+        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
+    }
+    @Deprecated
+    public void fakeRender(double deltaTime){
+//        Renderer.translate(DizzyEngine.screenSize.x*(screenSnap.x+1)/2, DizzyEngine.screenSize.y*(screenSnap.y+1)/2);
+        Renderer.translate(1, 1, zoom, zoom);
+        Renderer.translate(panX, panY);
+        fakeRenderWorld(null, deltaTime);
+        Renderer.unTranslate();
+        Renderer.unTranslate();
+//        Renderer.unTranslate();
+    }
+    @Deprecated
+    public synchronized void fakeRenderWorld(Vector3i chunk, double deltaTime){
         for(Structure structure : structures){
             structure.renderBackground();
         }
@@ -390,7 +411,7 @@ public class Game extends WorldLayer{
                 start.dead = true;
                 continue;
             }
-            structures.remove(start);
+            removeStructure(start);
             start.dead = true;
             if(selectedStructure==start){
                 selectedStructure = end;
@@ -407,7 +428,7 @@ public class Game extends WorldLayer{
                     ((StructureChangeEventListener)s).onStructureChange(start, end);
                 }
             }
-            structures.add(end);
+            addStructure(end);
         }
         refreshNetworks();
         tickingEnemies = true;
@@ -1012,7 +1033,7 @@ public class Game extends WorldLayer{
         HashMap<Structure, GameState.Structure> structures = new HashMap<>();
         for(var structure : state.structures){
             Structure s = Structure.load(structure, game);
-            game.structures.add(s);
+            addStructure(s);
             structures.put(s, structure);
         }
         for(Structure s : game.structures)s.postLoad(game, structures.get(s));
@@ -1752,6 +1773,14 @@ public class Game extends WorldLayer{
     public double getYGamePadding(){
         return Math.max(DizzyEngine.screenSize.y/MenuGame.minZoom/4, getCityBoundingBox().height/2);
     }
+    public void addStructure(Structure structure){
+        structures.add(structure);
+        objects.add(structure);
+    }
+    public void removeStructure(Structure structure){
+        structures.remove(structure);
+        objects.remove(structure);
+    }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32), new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
         SNOWY("snowy", new Color(255, 244, 179, 15), new Color(20, 33, 107, 72), new Color(31, 31, 31, 255)),
@@ -1844,17 +1873,19 @@ public class Game extends WorldLayer{
         return actions;
     }
     private BoundingBox cachedCityBoundingBox = null;
-    public BoundingBox getCityBoundingBox(){
+    public BoundingBox getCityBoundingBox(){return getCityBoundingBox(true);}
+    public BoundingBox getCityBoundingBox(boolean includeHeight){
         if(cachedCityBoundingBox!=null)return cachedCityBoundingBox;
         if(structures.isEmpty())return new BoundingBox(0, 0, 0, 0);
         ArrayList<Structure> buildings = new ArrayList<>();
         for(Structure s : structures){
             if(!s.type.isDecoration())buildings.add(s);
         }
-        return cachedCityBoundingBox = BoundingBox.enclosing(buildings, true).expand(100);
+        return cachedCityBoundingBox = BoundingBox.enclosing(buildings, includeHeight).expand(100);
     }
-    public BoundingBox getWorldBoundingBox(){
-        BoundingBox cityBBox = getCityBoundingBox();
+    public BoundingBox getWorldBoundingBox(){return getWorldBoundingBox(true);}
+    public BoundingBox getWorldBoundingBox(boolean includeHeight){
+        BoundingBox cityBBox = getCityBoundingBox(includeHeight);
         return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
     }
     public BoundingBox getViewBoundingBox(){
