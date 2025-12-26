@@ -1,7 +1,6 @@
 package planetaryprotector.structure.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.Skyscraper;
 import java.util.ArrayList;
@@ -69,13 +68,13 @@ public class TaskSkyscraperAddFloor extends TaskAnimated{
     }
     @Override
     public void onCancel(){
-        for(int i = 0; i<floors*10; i++){
-            int itemX = structure.x+game.rand.nextInt(79)+11;
-            int itemY = structure.y+game.rand.nextInt(79)+11;
-            itemX-=5;
-            itemY-=5;
-            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
-        }
+//        for(int i = 0; i<floors*10; i++){
+//            int itemX = structure.x+game.rand.nextInt(79)+11;
+//            int itemY = structure.y+game.rand.nextInt(79)+11;
+//            itemX-=5;
+//            itemY-=5;
+//            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
+//        }
     }
     @Override
     public ItemStack[] getTooltip(){

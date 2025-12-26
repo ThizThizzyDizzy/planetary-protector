@@ -2,17 +2,8 @@ package planetaryprotector.enemy;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import org.joml.Vector2f;
-import planetaryprotector.Core;
-import planetaryprotector.particle.Particle;
 import planetaryprotector.friendly.Worker;
 import planetaryprotector.game.Game;
-import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.Skyscraper;
-import planetaryprotector.menu.options.MenuOptionsGraphics;
-import org.lwjgl.opengl.GL11;
-import planetaryprotector.Options;
-import planetaryprotector.structure.Structure;
-import planetaryprotector.structure.StructureType;
 public class EnemyAlien extends Enemy{
     public static final int speed = Worker.workerSpeed*2/3;
     public EnemyAlien(Game game, int x, int y){
@@ -27,40 +18,40 @@ public class EnemyAlien extends Enemy{
     }
     @Override
     public void tick(){
-        if(health<=0){
-            dead = true;
-        }
-        if(dead){
-            return;
-        }
-        Structure s = null;
-        double dist = Double.POSITIVE_INFINITY;
-        for(Structure structure : game.structures){
-            if(structure.type.isDecoration())continue;
-            if(structure.type==StructureType.WRECK||structure.type==StructureType.EMPTY_PLOT||(structure instanceof Skyscraper&&((Skyscraper)structure).falling)||structure.shield!=null)
-                continue;
-            double d = Vector2f.distance(x, y, structure.x, structure.y);
-            if(d<dist){
-                dist = d;
-                s = structure;
-            }
-        }
-        if(s==null){
-            return;
-        }
-        boolean there = Vector2f.distance(x, y, s.x, s.y)<s.width;
-        if(!there)move(new int[]{s.x+s.width/2, s.y+s.height/2});
-        if(there){
-            timer--;
-            if(timer<0){
-                timer += 4;//0;
-                s.onHit(x-s.x, y-s.y);
-                for(int i = 0; i<Options.options.particles; i++){
-                    game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.SMOKE, 0));
-                }
-                dead = true;
-            }
-        }
+//        if(health<=0){
+//            dead = true;
+//        }
+//        if(dead){
+//            return;
+//        }
+//        Structure s = null;
+//        double dist = Double.POSITIVE_INFINITY;
+//        for(Structure structure : game.structures){
+//            if(structure.type.isDecoration())continue;
+//            if(structure.type==StructureType.WRECK||structure.type==StructureType.EMPTY_PLOT||(structure instanceof Skyscraper&&((Skyscraper)structure).falling)||structure.shield!=null)
+//                continue;
+//            double d = Vector2f.distance(x, y, structure.x, structure.y);
+//            if(d<dist){
+//                dist = d;
+//                s = structure;
+//            }
+//        }
+//        if(s==null){
+//            return;
+//        }
+//        boolean there = Vector2f.distance(x, y, s.x, s.y)<s.width;
+//        if(!there)move(new int[]{s.x+s.width/2, s.y+s.height/2});
+//        if(there){
+//            timer--;
+//            if(timer<0){
+//                timer += 4;//0;
+//                s.onHit(x-s.x, y-s.y);
+//                for(int i = 0; i<Options.options.particles; i++){
+//                    game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.SMOKE, 0));
+//                }
+//                dead = true;
+//            }
+//        }
     }
     int timer = 20*5;
     private void move(int[] location){

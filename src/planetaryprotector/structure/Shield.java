@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 public class Shield{
     private final ShieldGenerator generator;
     public int x, y;
@@ -7,7 +6,7 @@ public class Shield{
         this.generator = generator;
     }
     public void render(double deltaTime){
-        Renderer.drawText(generator.x, generator.y, "TODO DRAW SHIELD", 50);
+//        Renderer.drawText(generator.x, generator.y, "TODO DRAW SHIELD", 50);
 //        drawShield(generator.x+x, generator.y+y, generator.getShieldSize()/2, 1f);
 //        for(double d : generator.shieldDecals){
 //            d += deltaTime*ShieldGenerator.shieldDecalSpeed;

@@ -47,7 +47,7 @@ public class MenuGame extends Menu{
     private float yOff = 0;
     private float zoom = 1;
     public static final float minZoom = .5f;
-    public static final float maxZoom = 2;
+    public static final float maxZoom = 5;
     private float zoomFac = .05f;
     private float panFac = 7;
     public MenuGame(Game game){
@@ -164,11 +164,11 @@ public class MenuGame extends Menu{
         if(DizzyEngine.isKeyDown(Controls.down)){
             yOff += maxZoom/zoom*panFac;
         }
-        BoundingBox bbox = game.getCityBoundingBox();
-        if(xOff>bbox.getRight())xOff = bbox.getRight();
-        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
-        if(yOff>bbox.getBottom())yOff = bbox.getBottom();
-        if(yOff<bbox.getTop())yOff = bbox.getTop();
+//        BoundingBox bbox = game.getCityBoundingBox();
+//        if(xOff>bbox.getRight())xOff = bbox.getRight();
+//        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
+//        if(yOff>bbox.getBottom())yOff = bbox.getBottom();
+//        if(yOff<bbox.getTop())yOff = bbox.getTop();
         //</editor-fold>
 
         //<editor-fold defaultstate="collapsed" desc="Render World">

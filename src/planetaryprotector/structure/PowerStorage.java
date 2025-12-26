@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
@@ -73,19 +72,19 @@ public class PowerStorage extends Structure implements StructurePowerStorage, St
             }
         }
     }
-    @Override
-    public void renderBackground(){
-        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        super.renderBackground();
-    }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        Renderer.drawCenteredText(x, y, x+width, y+20, (int)power+"");
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderBackground(){
+//        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+//        super.renderBackground();
+//    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        Renderer.drawCenteredText(x, y, x+width, y+20, (int)power+"");
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     @Override
     public GameState.Structure save(){
         var state = super.save();

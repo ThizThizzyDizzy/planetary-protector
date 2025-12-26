@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
@@ -31,28 +30,28 @@ public class SolarGenerator extends Structure implements PowerProducer, Structur
         }
     }
 
-    @Override
-    public void renderBackground(){
-        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        super.renderBackground();
-    }
-    @Override
-    public void render(){
-        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture(), 0, frame/(float)frames, 1, (frame+1)/(float)frames);
-        for(Upgrade upgrade : type.upgrades){
-            int count = getUpgrades(upgrade);
-            if(count==0)continue;
-            Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count), 0, frame/(float)frames, 1, (frame+1)/(float)frames);
-        }
-        renderDamages();
-    }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderBackground(){
+//        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+//        super.renderBackground();
+//    }
+//    @Override
+//    public void render(){
+//        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture(), 0, frame/(float)frames, 1, (frame+1)/(float)frames);
+//        for(Upgrade upgrade : type.upgrades){
+//            int count = getUpgrades(upgrade);
+//            if(count==0)continue;
+//            Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count), 0, frame/(float)frames, 1, (frame+1)/(float)frames);
+//        }
+//        renderDamages();
+//    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     public static SolarGenerator loadSpecific(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         return new SolarGenerator(game, x, y, level, upgrades);
     }

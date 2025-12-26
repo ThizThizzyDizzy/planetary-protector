@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Action;
 import planetaryprotector.item.Item;
@@ -61,25 +60,25 @@ public class CoalGenerator extends Structure implements PowerProducer, Starlight
     }
     @Override
     public void render(){
-        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        Renderer.fillRect(x, y, x+width, y+height, type.getTexture(), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
-        for(Upgrade upgrade : type.upgrades){
-            int count = getUpgrades(upgrade);
-            if(count==0)continue;
-            Renderer.fillRect(x, y, x+width, y+height, upgrade.getTexture(type, count), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
-        }
-        renderDamages();
+//        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+//        Renderer.fillRect(x, y, x+width, y+height, type.getTexture(), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
+//        for(Upgrade upgrade : type.upgrades){
+//            int count = getUpgrades(upgrade);
+//            if(count==0)continue;
+//            Renderer.fillRect(x, y, x+width, y+height, upgrade.getTexture(type, count), getVariant()/(float)getVariants(), frame/(float)frames, (getVariant()+1)/(float)getVariants(), (frame+1)/(float)frames);
+//        }
+//        renderDamages();
     }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Renderer.setColor(1,.1f,0,1);
-        Renderer.fillRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
-        Game.theme.applyTextColor();
-        if(coal>0)Renderer.drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);//TODO level markings
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Renderer.setColor(1,.1f,0,1);
+//        Renderer.fillRect(x,y+18,x+width*(burning/getBurnTime()), y+20, 0);
+//        Game.theme.applyTextColor();
+//        if(coal>0)Renderer.drawCenteredText(x, y+18, x+width, y+36, coal+" Coal");//TODO coal fill bar //TODO max coal
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);//TODO level markings
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     @Override
     public GameState.Structure save(){
         var state = super.save();

@@ -3,15 +3,15 @@ import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import org.joml.Vector2f;
 import planetaryprotector.Core;
 import planetaryprotector.game.Game;
-import planetaryprotector.structure.Structure;
 public class PowerNetwork{
     public ArrayList<PowerConsumer> demand = new ArrayList<>();
     public ArrayList<PowerProducer> supply = new ArrayList<>();
     private static final int POWER_TRANSFER_RADIUS = 250;
-    public static PowerNetwork detect(ArrayList<Structure> structures, Structure structure){
+    public static PowerNetwork detect(List<Structure> structures, Structure structure){
         if(structure instanceof PowerUser){
             if(!((PowerUser)structure).isPowerActive())return null;
             PowerNetwork network = new PowerNetwork();
@@ -60,7 +60,7 @@ public class PowerNetwork{
             distributePower(totalSupply);
         }
     }
-    private void detect(ArrayList<Structure> structures){
+    private void detect(List<Structure> structures){
         boolean foundNew = true;
         while(foundNew){
             foundNew = false;
@@ -72,7 +72,7 @@ public class PowerNetwork{
                     if(other instanceof PowerUser&&!network.contains(other)){
                         if(!((PowerUser)other).isPowerActive())continue;
                         var struc = (Structure)user;
-                        if(Vector2f.distance(struc.x, struc.y, other.x, other.y)>POWER_TRANSFER_RADIUS)
+                        if(Vector2f.distance(struc.getPosition().x, struc.getPosition().y, other.getPosition().x, other.getPosition().y)>POWER_TRANSFER_RADIUS)
                             continue;
                         if(other instanceof PowerConsumer){
                             demand.add((PowerConsumer)other);
@@ -126,11 +126,11 @@ public class PowerNetwork{
             Structure s = (Structure)consumer;
             if(Core.debugMode){
                 Renderer.setColor(.8f, 0, 0, 1);
-                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 40, 50);
+                Renderer.fillHollowRegularPolygon(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, 10, 40, 50);
             }
             drawConnectors(s);
             Renderer.setColor(1, 0, 0, 1);
-            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+            Renderer.fillHollowRegularPolygon(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
             Renderer.setColor(1, 1, 1, 1);
         }
         for(PowerProducer producer : supply){
@@ -139,11 +139,11 @@ public class PowerNetwork{
                 Renderer.setColor(0, .3f, .9f, 1);
                 if(((PowerProducer)s).isRenewable())
                     Renderer.setColor(0, .5f, 1, 1);
-                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 25, 35);
+                Renderer.fillHollowRegularPolygon(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, 10, 25, 35);
             }
             drawConnectors(s);
             Renderer.setColor(1, 0, 0, 1);
-            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+            Renderer.fillHollowRegularPolygon(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
             Renderer.setColor(1, 1, 1, 1);
         }
     }
@@ -151,15 +151,15 @@ public class PowerNetwork{
         for(PowerConsumer consumer : demand){
             Structure other = (Structure)consumer;
             if(other==s)continue;
-            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, 1, 1, 0, .25f, .25f, 0);
+            if(Vector2f.distance(s.getPosition().x, s.getPosition().y, other.getPosition().x, other.getPosition().y)<=POWER_TRANSFER_RADIUS){
+                Game.drawConnector(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, other.getPosition().x+other.getSize().x/2, other.getPosition().y+other.getSize().y/2, 10, 1, 1, 0, .25f, .25f, 0);
             }
         }
         for(PowerProducer producer : supply){
             Structure other = (Structure)producer;
             if(other==s)continue;
-            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, 1, 1, 0, .25f, .25f, 0);
+            if(Vector2f.distance(s.getPosition().x, s.getPosition().y, other.getPosition().x, other.getPosition().y)<=POWER_TRANSFER_RADIUS){
+                Game.drawConnector(s.getPosition().x+s.getSize().x/2, s.getPosition().y+s.getSize().y/2, other.getPosition().x+other.getSize().x/2, other.getPosition().y+other.getSize().y/2, 10, 1, 1, 0, .25f, .25f, 0);
             }
         }
     }

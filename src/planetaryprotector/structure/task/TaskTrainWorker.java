@@ -1,7 +1,6 @@
 package planetaryprotector.structure.task;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
 import java.util.ArrayList;
 import planetaryprotector.structure.Workshop;
 import planetaryprotector.research.ResearchEvent;
@@ -45,7 +44,7 @@ public class TaskTrainWorker extends Task{
     @Override
     public void finish(){
         game.researchEvent(new ResearchEvent(ResearchEvent.Type.USE_RESOURCE, Item.ironIngot, 30));
-        game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
+//        game.addWorker(workshop.x+workshop.width/2, workshop.y+workshop.height/2);
     }
     @Override
     public boolean canPerform(){
@@ -57,13 +56,13 @@ public class TaskTrainWorker extends Task{
     }
     @Override
     public void onCancel(){
-        for(int i = 0; i<30; i++){
-            int itemX = structure.x+game.rand.nextInt(79)+11;
-            int itemY = structure.y+game.rand.nextInt(79)+11;
-            itemX-=5;
-            itemY-=5;
-            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
-        }
+//        for(int i = 0; i<30; i++){
+//            int itemX = structure.x+game.rand.nextInt(79)+11;
+//            int itemY = structure.y+game.rand.nextInt(79)+11;
+//            itemX-=5;
+//            itemY-=5;
+//            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
+//        }
     }
     @Override
     public ItemStack[] getTooltip(){

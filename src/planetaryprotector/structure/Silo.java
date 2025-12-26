@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.item.Item;
@@ -7,11 +6,8 @@ import planetaryprotector.item.ItemStack;
 import planetaryprotector.friendly.Drone;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.friendly.Missile;
-import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
-import planetaryprotector.particle.ParticleEffectType;
 import java.util.ArrayList;
-import org.lwjgl.opengl.GL11;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.GameState;
@@ -29,7 +25,8 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         this(game, x, y, 1, new ArrayList<>());
     }
     public Silo(Game game, Silo silo, int level, ArrayList<Upgrade> upgrades){
-        this(game, silo.x, silo.y, level, upgrades);
+        this(game, 0, 0, level, upgrades);
+//        this(game, silo.x, silo.y, level, upgrades);
         drones = silo.drones;
         missiles = silo.missiles;
         power = silo.power;
@@ -37,20 +34,20 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
     public Silo(Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         super(StructureType.SILO, game, x, y, 100, 100, level, upgrades);
     }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        if(drones>0){
-            Renderer.drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
-        }
-        if(missiles>0){
-            Renderer.drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
-        }
-        Renderer.drawCenteredText(x, y, x+width, y+20, ""+power);
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        if(drones>0){
+//            Renderer.drawCenteredText(x, y+height-60, x+width, y+height-40, drones+" Drones");
+//        }
+//        if(missiles>0){
+//            Renderer.drawCenteredText(x, y+height-40, x+width, y+height-20, missiles+" Missiles");
+//        }
+//        Renderer.drawCenteredText(x, y, x+width, y+20, ""+power);
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     @Override
     public void tick(){
         super.tick();
@@ -161,10 +158,10 @@ public class Silo extends Structure implements PowerConsumer, StructureDemolisha
         return silo;
     }
     public void explosionInHangar(){
-        for(int i = 0; i<missiles; i++){
-            damages.add(new StructureDamage(this, game.rand.nextInt((int)width), game.rand.nextInt((int)height)));
-        }
-        game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
+//        for(int i = 0; i<missiles; i++){
+//            damages.add(new StructureDamage(this, game.rand.nextInt((int)width), game.rand.nextInt((int)height)));
+//        }
+//        game.addParticleEffect(new Particle(game, x, y, ParticleEffectType.EXPLOSION, missiles/3+1));
     }
     public ItemStack[] missileCost(){
         return new ItemStack[]{new ItemStack(missileCost)};

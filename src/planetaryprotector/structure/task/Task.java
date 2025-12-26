@@ -1,7 +1,6 @@
 package planetaryprotector.structure.task;
-import planetaryprotector.friendly.Worker;
-import planetaryprotector.item.ItemStack;
 import planetaryprotector.game.Game;
+import planetaryprotector.item.ItemStack;
 import planetaryprotector.structure.Structure;
 public abstract class Task{
     public final Game game;
@@ -21,20 +20,20 @@ public abstract class Task{
     }
     public int getWorkers(){
         int workers = 0;
-        for(Worker worker : game.workers){
-            if(worker.task==this){
-                workers++;
-            }
-        }
+//        for(Worker worker : game.workers){
+//            if(worker.task==this){
+//                workers++;
+//            }
+//        }
         return workers;
     }
     public int getPendingWorkers(){
         int workers = 0;
-        for(Worker worker : game.workers){
-            if(worker.targetTask==this||worker.task==this){
-                workers++;
-            }
-        }
+//        for(Worker worker : game.workers){
+//            if(worker.targetTask==this||worker.task==this){
+//                workers++;
+//            }
+//        }
         return workers;
     }
     public float progress(){
@@ -65,11 +64,11 @@ public abstract class Task{
         cancelled = true;
         if(started)onCancel();
         structure.setTask(null);
-        for(Worker worker : game.workers){
-            if(worker.targetTask==this||worker.task==this){
-                worker.targetTask = worker.task = null;
-            }
-        }
+//        for(Worker worker : game.workers){
+//            if(worker.targetTask==this||worker.task==this){
+//                worker.targetTask = worker.task = null;
+//            }
+//        }
     }
     public abstract ItemStack[] getTooltip();
 }

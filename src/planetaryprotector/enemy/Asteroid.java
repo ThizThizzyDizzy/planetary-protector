@@ -1,9 +1,4 @@
 package planetaryprotector.enemy;
-import com.thizthizzydizzy.dizzyengine.MathUtil;
-import com.thizthizzydizzy.dizzyengine.ResourceManager;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.GameObject;
 import planetaryprotector.Options;
 import planetaryprotector.game.Game;
@@ -39,64 +34,64 @@ public class Asteroid extends GameObject implements ZComponent{
     }
     @Override
     public void draw(){
-        if(dead)return;
-        Renderer.setColor(1, 1, 1, 1);
-        if(isParticulate()&&frame<=hitFrame){
-            float fallProgress = (frame-1)/(float)hitFrame;
-            float landX = x+width/2;
-            float landY = y+height/2;
-            float startX = landX-game.getWorldBoundingBox().width*.7f;
-            float startY = landY-game.getWorldBoundingBox().height;
-            float X = MathUtil.lerp(startX, landX, fallProgress);
-            float Y = MathUtil.lerp(startY, landY, fallProgress);
-            Renderer.fillRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, 0, 1, 1f/frames);
-            if(material.color!=null){
-                Renderer.setColor(material.color);
-                Renderer.fillRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, 0, 1, 1f/frames);
-            }
-            return;
-        }
-        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
-        if(material.color!=null){
-            Renderer.setColor(material.color);
-            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
-        }
+//        if(dead)return;
+//        Renderer.setColor(1, 1, 1, 1);
+//        if(isParticulate()&&frame<=hitFrame){
+//            float fallProgress = (frame-1)/(float)hitFrame;
+//            float landX = x+width/2;
+//            float landY = y+height/2;
+//            float startX = landX-game.getWorldBoundingBox().width*.7f;
+//            float startY = landY-game.getWorldBoundingBox().height;
+//            float X = MathUtil.lerp(startX, landX, fallProgress);
+//            float Y = MathUtil.lerp(startY, landY, fallProgress);
+//            Renderer.fillRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, 0, 1, 1f/frames);
+//            if(material.color!=null){
+//                Renderer.setColor(material.color);
+//                Renderer.fillRect(X-width/2, Y-width/2, X+width/2, Y+height/2, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, 0, 1, 1f/frames);
+//            }
+//            return;
+//        }
+//        Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/stone.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
+//        if(material.color!=null){
+//            Renderer.setColor(material.color);
+//            Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/asteroids/ore.png"), 0, frame/(float)frames, 1, (frame+1f)/frames);
+//        }
     }
     public void tick(){
-        if(dead)return;
-        frame++;
-        if(frame>=hitFrame&&!hit){
-            hit = true;
-            if(drop){
-                game.damage(x+width/2, y+height/2, material);
-            }else{
-                game.damage(x+width/2, y+height/2);
-            }
-            game.pushParticles(x+width/2, y+height/2, width*2, width/8, Particle.PushCause.ASTEROID);
-        }
-        if(frame>=frames){
-            dead = true;
-        }
-        if(isParticulate()&&frame<=hitFrame){
-            double fallProgress = frame/(double)hitFrame;
-            double landX = x+width/2;
-            double landY = y+height/2;
-            double startX = landX-game.getWorldBoundingBox().width*.7;
-            double startY = landY-game.getWorldBoundingBox().height;
-            double frameDistanceX = (landX-startX)/(double)hitFrame;
-            double frameDistanceY = (landY-startY)/(double)hitFrame;
-            double dX = frameDistanceX/particleResolution;
-            double dY = frameDistanceY/particleResolution;
-            double X = MathUtil.lerp(startX, landX, fallProgress);
-            double Y = MathUtil.lerp(startY, landY, fallProgress);
-            for(int i = 0; i<particleResolution; i++){
-                X -= dX;
-                Y -= dY;
-                Particle particle = new Particle(game, (int)X, (int)Y, ParticleEffectType.SMOKE, 1, true);
-                particle.width = particle.height = 25;
-                game.addParticleEffect(particle);
-            }
-        }
+//        if(dead)return;
+//        frame++;
+//        if(frame>=hitFrame&&!hit){
+//            hit = true;
+//            if(drop){
+//                game.damage(x+width/2, y+height/2, material);
+//            }else{
+//                game.damage(x+width/2, y+height/2);
+//            }
+//            game.pushParticles(x+width/2, y+height/2, width*2, width/8, Particle.PushCause.ASTEROID);
+//        }
+//        if(frame>=frames){
+//            dead = true;
+//        }
+//        if(isParticulate()&&frame<=hitFrame){
+//            double fallProgress = frame/(double)hitFrame;
+//            double landX = x+width/2;
+//            double landY = y+height/2;
+//            double startX = landX-game.getWorldBoundingBox().width*.7;
+//            double startY = landY-game.getWorldBoundingBox().height;
+//            double frameDistanceX = (landX-startX)/(double)hitFrame;
+//            double frameDistanceY = (landY-startY)/(double)hitFrame;
+//            double dX = frameDistanceX/particleResolution;
+//            double dY = frameDistanceY/particleResolution;
+//            double X = MathUtil.lerp(startX, landX, fallProgress);
+//            double Y = MathUtil.lerp(startY, landY, fallProgress);
+//            for(int i = 0; i<particleResolution; i++){
+//                X -= dX;
+//                Y -= dY;
+//                Particle particle = new Particle(game, (int)X, (int)Y, ParticleEffectType.SMOKE, 1, true);
+//                particle.width = particle.height = 25;
+//                game.addParticleEffect(particle);
+//            }
+//        }
     }
     @Override
     public double getZ(){

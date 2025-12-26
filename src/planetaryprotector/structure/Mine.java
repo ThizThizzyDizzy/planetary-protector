@@ -1,8 +1,6 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.item.Item;
-import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
 public class Mine extends Structure implements PowerConsumer, StructureDemolishable{
@@ -19,19 +17,19 @@ public class Mine extends Structure implements PowerConsumer, StructureDemolisha
     }
     private boolean canDeployItem(){
         int items = 0;
-        for(DroppedItem item : game.droppedItems){
-            if(getBoundingBox(false).contains(item.x+item.width/2, item.y+item.height/2))
-                items++;
-        }
+//        for(DroppedItem item : game.droppedItems){
+//            if(getBoundingBox(false).contains(item.x+item.width/2, item.y+item.height/2))
+//                items++;
+//        }
         return items<25*level;
     }
     public void deployItem(){
-        if(!canDeployItem())return;
-        int itemX = x+game.rand.nextInt(79)+11;
-        int itemY = y+game.rand.nextInt(79)+11;
-        itemX -= 5;
-        itemY -= 5;
-        game.addItem(new DroppedItem(game, itemX, itemY, randomItem()));
+//        if(!canDeployItem())return;
+//        int itemX = x+game.rand.nextInt(79)+11;
+//        int itemY = y+game.rand.nextInt(79)+11;
+//        itemX -= 5;
+//        itemY -= 5;
+//        game.addItem(new DroppedItem(game, itemX, itemY, randomItem()));
     }
     @Override
     public void tick(){
@@ -51,14 +49,14 @@ public class Mine extends Structure implements PowerConsumer, StructureDemolisha
         }
         timer--;
     }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        if(power>0)Renderer.drawCenteredText(x, y, x+width, y+20, (int)power+"");
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        if(power>0)Renderer.drawCenteredText(x, y, x+width, y+20, (int)power+"");
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     @Override
     public GameState.Structure save(){
         var state = super.save();

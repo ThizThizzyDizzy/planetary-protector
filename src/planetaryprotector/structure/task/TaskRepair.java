@@ -1,6 +1,5 @@
 package planetaryprotector.structure.task;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
 import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.StructureDamage;
 import java.util.ArrayList;
@@ -87,15 +86,15 @@ public class TaskRepair extends Task{
     }
     @Override
     public void onCancel(){
-        for(ItemStack stack : structure.type.getRepairCosts()){
-            for(int i = 0; i<stack.count*progress()-1; i++){
-                int itemX = structure.x+game.rand.nextInt(79)+11;
-                int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX -= 5;
-                itemY -= 5;
-                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
-            }
-        }
+//        for(ItemStack stack : structure.type.getRepairCosts()){
+//            for(int i = 0; i<stack.count*progress()-1; i++){
+//                int itemX = structure.x+game.rand.nextInt(79)+11;
+//                int itemY = structure.y+game.rand.nextInt(79)+11;
+//                itemX -= 5;
+//                itemY -= 5;
+//                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
+//            }
+//        }
     }
     @Override
     public ItemStack[] getTooltip(){

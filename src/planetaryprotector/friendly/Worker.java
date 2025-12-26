@@ -13,7 +13,6 @@ import planetaryprotector.structure.task.TaskDemolish;
 import planetaryprotector.enemy.Asteroid;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
-import planetaryprotector.structure.ShieldGenerator;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
     public DroppedItem grabbedItem;
@@ -46,7 +45,7 @@ public class Worker extends GameObject{
         Base base = getClosestBase();
         double baseDist = getClosestBaseDistance();
         runningFrom = null;
-        if(base==null)runningFrom = game.getCityBoundingBox().getCenter();
+//        if(base==null)runningFrom = game.getCityBoundingBox().getCenter();
         for(Asteroid asteroid : game.asteroids){
             if(asteroid.getCenter().distance(getCenter())<50){
                 if(!game.superSafe(this)){
@@ -57,9 +56,9 @@ public class Worker extends GameObject{
         for(Structure structure : game.structures){
             if(structure instanceof Skyscraper){
                 if(((Skyscraper)structure).falling){
-                    if(structure.getCenter().distance(getCenter())<structure.width*3/4){
-                        runningFrom = new int[]{structure.x+structure.width/2, structure.y+structure.height/2};
-                    }
+//                    if(structure.getCenter().distance(getCenter())<structure.width*3/4){
+//                        runningFrom = new int[]{structure.x+structure.width/2, structure.y+structure.height/2};
+//                    }
                 }
             }
         }
@@ -102,16 +101,16 @@ public class Worker extends GameObject{
             if(grabbedItem!=null){
                 dropItem();
             }
-            int[] loc = new int[]{targetTask.structure.x+targetTask.structure.width/2,targetTask.structure.y+targetTask.structure.height/2};
-            //<editor-fold defaultstate="collapsed" desc="Movement">
-            if(loc!=null){
-                move(loc);
-                if(getCenter().distance(loc[0], loc[1])<=25){
-                    task = targetTask;
-                    targetTask = null;
-                }
-            }
-//</editor-fold>
+//            int[] loc = new int[]{targetTask.structure.x+targetTask.structure.width/2,targetTask.structure.y+targetTask.structure.height/2};
+//            //<editor-fold defaultstate="collapsed" desc="Movement">
+//            if(loc!=null){
+//                move(loc);
+//                if(getCenter().distance(loc[0], loc[1])<=25){
+//                    task = targetTask;
+//                    targetTask = null;
+//                }
+//            }
+////</editor-fold>
             return;
         }
 //</editor-fold>
@@ -164,12 +163,12 @@ public class Worker extends GameObject{
             targetItem = null;
             //<editor-fold defaultstate="collapsed" desc="Run">
             target = null;
-            for(Structure structure : game.structures){
-                if(structure instanceof ShieldGenerator){
-                    ShieldGenerator gen = (ShieldGenerator) structure;
-                    target = new int[]{structure.x+gen.shield.x,structure.y+gen.shield.y};
-                }
-            }
+//            for(Structure structure : game.structures){
+//                if(structure instanceof ShieldGenerator){
+//                    ShieldGenerator gen = (ShieldGenerator) structure;
+//                    target = new int[]{structure.x+gen.shield.x,structure.y+gen.shield.y};
+//                }
+//            }
 //</editor-fold>
         }
         if(target==null&&base!=null){

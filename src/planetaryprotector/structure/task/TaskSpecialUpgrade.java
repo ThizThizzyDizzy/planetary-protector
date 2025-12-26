@@ -1,6 +1,5 @@
 package planetaryprotector.structure.task;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
 import java.util.ArrayList;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.research.ResearchEvent;
@@ -64,15 +63,15 @@ public class TaskSpecialUpgrade extends TaskAnimated{
     }
     @Override
     public void onCancel() {
-        for(ItemStack stack : upgrade.costs){
-            for(int i = 0; i<stack.count; i++){
-                int itemX = structure.x+game.rand.nextInt(79)+11;
-                int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
-                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
-            }
-        }
+//        for(ItemStack stack : upgrade.costs){
+//            for(int i = 0; i<stack.count; i++){
+//                int itemX = structure.x+game.rand.nextInt(79)+11;
+//                int itemY = structure.y+game.rand.nextInt(79)+11;
+//                itemX-=5;
+//                itemY-=5;
+//                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
+//            }
+//        }
     }
     @Override
     public ItemStack[] getTooltip(){

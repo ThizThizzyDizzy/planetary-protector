@@ -2,13 +2,13 @@ package planetaryprotector.friendly;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import org.joml.Vector2f;
-import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.enemy.EnemyMeteorStrike;
-import planetaryprotector.enemy.Enemy;
-import planetaryprotector.structure.Silo;
 import planetaryprotector.GameObject;
+import planetaryprotector.enemy.Enemy;
+import planetaryprotector.enemy.EnemyMeteorStrike;
 import planetaryprotector.enemy.EnemyMothership;
+import planetaryprotector.particle.Particle;
+import planetaryprotector.particle.ParticleEffectType;
+import planetaryprotector.structure.Silo;
 public class Drone extends GameObject{
     int power = 0;
     int maxPower = 20*60*5;
@@ -21,7 +21,8 @@ public class Drone extends GameObject{
     boolean charge = false;
     boolean deaded = false;
     public Drone(Silo silo, int power){
-        super(silo.game, silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
+        super(null, 0, 0, 50, 50);
+//        super(silo.game, silo.x+silo.width/2, silo.y+silo.height/2, 50, 50);
         this.silo = silo;
         this.power = power;
     }
@@ -41,10 +42,10 @@ public class Drone extends GameObject{
         if(silo!=null&&(silo.damages.size()>=10||!game.structures.contains(silo))){
             silo = null;
         }
-        if(silo!=null&&Vector2f.distance(x, y, silo.x, silo.y)<100&&silo.getPower()>=100&&power<=maxPower-10){
-            silo.addPower(-100);
-            power += 10;
-        }
+//        if(silo!=null&&Vector2f.distance(x, y, silo.x, silo.y)<100&&silo.getPower()>=100&&power<=maxPower-10){
+//            silo.addPower(-100);
+//            power += 10;
+//        }
         power = Math.max(0, Math.min(maxPower, power));
         if(en!=null){
             target = new float[]{en.x, en.y};
@@ -67,7 +68,7 @@ public class Drone extends GameObject{
             if(silo==null||power>=20*60*2.5){
                 charge = false;
             }
-            target = new float[]{silo.x+silo.width/2, silo.y+silo.height/2};
+//            target = new float[]{silo.x+silo.width/2, silo.y+silo.height/2};
         }
         if(power<20*15){
             laserFiring = null;
@@ -79,7 +80,7 @@ public class Drone extends GameObject{
         for(Drone drone : silo.droneList){
             if(drone==this)continue;
             if(drone.x==this.x&&drone.y==this.y){
-                target = new float[]{game.getCityBoundingBox().randX(game.rand), game.getCityBoundingBox().randY(game.rand)};
+//                target = new float[]{game.getCityBoundingBox().randX(game.rand), game.getCityBoundingBox().randY(game.rand)};
             }else{
                 double dist = Vector2f.distance(drone.x, drone.y, x, y);
                 if(dist<width){

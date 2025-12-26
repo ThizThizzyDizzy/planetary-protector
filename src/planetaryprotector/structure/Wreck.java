@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.structure.task.TaskWreckClean;
 import planetaryprotector.game.Action;
@@ -13,13 +12,13 @@ public class Wreck extends Structure{
         super(StructureType.WRECK, game, x, y, 100, 100);
         this.ingots = ingots;
     }
-    @Override
-    public void renderBackground(){
-        if(task!=null){
-            return;
-        }
-        Renderer.fillRect(x, y, x+width, y+height, type.getTexture());
-    }
+//    @Override
+//    public void renderBackground(){
+//        if(task!=null){
+//            return;
+//        }
+//        Renderer.fillRect(x, y, x+width, y+height, type.getTexture());
+//    }
     @Override
     public boolean onDamage(int x, int y){
         ingots = Math.max(0,ingots-10);

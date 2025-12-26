@@ -7,7 +7,6 @@ import org.joml.Matrix4f;
 import planetaryprotector.Options;
 import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.GameObjectAnimated;
-import planetaryprotector.structure.Structure;
 public class Particle extends GameObjectAnimated{
     public final ParticleEffectType type;
     protected float rotation;
@@ -188,13 +187,13 @@ public class Particle extends GameObjectAnimated{
             opacity -= 0.005*(11-size);
             radius += 5+0.5*((11-size));
             game.pushParticles(x+width/2, y+height/2, radius, (5+.5*((11-size)))*Math.min(1, opacity*5), PushCause.EXPLOSION);
-            if(size>=10){
-                for(Structure structure : game.structures){
-                    if(structure.getCenter().distance(x, y)<=radius&&!structure.type.isBackgroundStructure()){
-                        structure.onHit(structure.x-25, structure.y+structure.height-25);
-                    }
-                }
-            }
+//            if(size>=10){
+//                for(Structure structure : game.structures){
+//                    if(structure.getCenter().distance(x, y)<=radius&&!structure.type.isBackgroundStructure()){
+//                        structure.onHit(structure.x-25, structure.y+structure.height-25);
+//                    }
+//                }
+//            }
             return;
         }
         if(type==ParticleEffectType.SMOKE){
@@ -204,9 +203,9 @@ public class Particle extends GameObjectAnimated{
         if(type==ParticleEffectType.CLOUD){
             strength += rateOfChange;
             rotation += rotSpeed;
-            if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
-                dead = true;
-            }
+//            if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
+//                dead = true;
+//            }
             xing += speed;
             int actualX = (int)xing;
             x += actualX;

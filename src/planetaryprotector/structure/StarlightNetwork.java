@@ -1,17 +1,13 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import org.joml.Vector2f;
-import planetaryprotector.Core;
-import planetaryprotector.game.Game;
-import planetaryprotector.structure.Structure;
+import java.util.List;
 public class StarlightNetwork{
     public ArrayList<StarlightConsumer> demand = new ArrayList<>();
     public ArrayList<StarlightProducer> supply = new ArrayList<>();
     private static final int POWER_TRANSFER_RADIUS = 250;
-    public static StarlightNetwork detect(ArrayList<Structure> structures, Structure structure){
+    public static StarlightNetwork detect(List<Structure> structures, Structure structure){
         if(structure instanceof StarlightUser){
             if(!((StarlightUser)structure).isStarlightActive())return null;
             StarlightNetwork network = new StarlightNetwork();
@@ -60,7 +56,7 @@ public class StarlightNetwork{
             distributeStarlight(totalSupply);
         }
     }
-    private void detect(ArrayList<Structure> structures){
+    private void detect(List<Structure> structures){
         boolean foundNew = true;
         while(foundNew){
             foundNew = false;
@@ -72,8 +68,8 @@ public class StarlightNetwork{
                     if(other instanceof StarlightUser&&!network.contains(other)){
                         if(!((StarlightUser)other).isStarlightActive())continue;
                         var struc = (Structure)user;
-                        if(Vector2f.distance(struc.x, struc.y, other.x, other.y)>POWER_TRANSFER_RADIUS)
-                            continue;
+//                        if(Vector2f.distance(struc.x, struc.y, other.x, other.y)>POWER_TRANSFER_RADIUS)
+//                            continue;
                         if(other instanceof StarlightConsumer){
                             demand.add((StarlightConsumer)other);
                             foundNew = true;
@@ -121,44 +117,44 @@ public class StarlightNetwork{
         }
     }
     public void draw(){
-        if(demand.size()+supply.size()==1)return;
-        for(StarlightConsumer consumer : demand){
-            Structure s = (Structure)consumer;
-            if(Core.debugMode){
-                Renderer.setColor(.8f, 0, 0, 1);
-                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 40, 50);
-            }
-            drawConnectors(s);
-            Renderer.setColor(0, .5f, 1, 1);
-            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
-            Renderer.setColor(0, .5f, 1, 1);
-        }
-        for(StarlightProducer producer : supply){
-            Structure s = (Structure)producer;
-            if(Core.debugMode){
-                Renderer.setColor(0, .3f, .9f, 1);
-                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 25, 35);
-            }
-            drawConnectors(s);
-            Renderer.setColor(0, .5f, 1, 1);
-            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
-            Renderer.setColor(0, .5f, 1, 1);
-        }
+//        if(demand.size()+supply.size()==1)return;
+//        for(StarlightConsumer consumer : demand){
+//            Structure s = (Structure)consumer;
+//            if(Core.debugMode){
+//                Renderer.setColor(.8f, 0, 0, 1);
+//                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 40, 50);
+//            }
+//            drawConnectors(s);
+//            Renderer.setColor(0, .5f, 1, 1);
+//            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+//            Renderer.setColor(0, .5f, 1, 1);
+//        }
+//        for(StarlightProducer producer : supply){
+//            Structure s = (Structure)producer;
+//            if(Core.debugMode){
+//                Renderer.setColor(0, .3f, .9f, 1);
+//                Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 10, 25, 35);
+//            }
+//            drawConnectors(s);
+//            Renderer.setColor(0, .5f, 1, 1);
+//            Renderer.fillHollowRegularPolygon(s.x+s.width/2, s.y+s.height/2, 50, POWER_TRANSFER_RADIUS-5, POWER_TRANSFER_RADIUS);
+//            Renderer.setColor(0, .5f, 1, 1);
+//        }
     }
     private void drawConnectors(Structure s){
-        for(StarlightConsumer consumer : demand){
-            Structure other = (Structure)consumer;
-            if(other==s)continue;
-            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
-            }
-        }
-        for(StarlightProducer producer : supply){
-            Structure other = (Structure)producer;
-            if(other==s)continue;
-            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
-                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
-            }
-        }
+//        for(StarlightConsumer consumer : demand){
+//            Structure other = (Structure)consumer;
+//            if(other==s)continue;
+//            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
+//                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
+//            }
+//        }
+//        for(StarlightProducer producer : supply){
+//            Structure other = (Structure)producer;
+//            if(other==s)continue;
+//            if(Vector2f.distance(s.x, s.y, other.x, other.y)<=POWER_TRANSFER_RADIUS){
+//                Game.drawConnector(s.x+s.width/2, s.y+s.height/2, other.x+other.width/2, other.y+other.height/2, 10, .2f, .9f, .8f, 0, .45f, .4f);
+//            }
+//        }
     }
 }

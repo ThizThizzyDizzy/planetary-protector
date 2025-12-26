@@ -1,7 +1,10 @@
 package planetaryprotector.game;
+import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import java.util.List;
 import java.util.Random;
+import org.joml.Vector3f;
 import planetaryprotector.GameObject;
+@Deprecated
 public class BoundingBox{
     public static BoundingBox enclosing(List<? extends GameObject> objects, boolean includeHeight){
         if(objects.isEmpty())return null;
@@ -21,11 +24,19 @@ public class BoundingBox{
     public final int y;
     public final int width;
     public final int height;
+    @Deprecated
     public BoundingBox(int x, int y, int width, int height){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+    @Deprecated
+    public BoundingBox(float x, float y, float width, float height){
+        this.x = (int)x;
+        this.y = (int)y;
+        this.width = (int)width;
+        this.height = (int)height;
     }
     public int randX(Random rand){
         return (int)(x+Math.round(rand.nextDouble()*width));
@@ -85,5 +96,8 @@ public class BoundingBox{
         int newY2 = Math.min(y+height, other.y+other.height);
         if(newX2<=newX1||newY2<=newY1)return null;
         return new BoundingBox(newX1, newY1, newX2-newX1, newY2-newY1);
+    }
+    AxisAlignedBoundingBox toAABB(){
+        return new AxisAlignedBoundingBox(new Vector3f(getLeft(), getTop(), 0), new Vector3f(getRight(), getBottom(), 0));
     }
 }

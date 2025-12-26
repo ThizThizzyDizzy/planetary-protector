@@ -1,15 +1,16 @@
 package planetaryprotector.structure;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.graphics.Material;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.world.flat.object.ThreeQuarterWorldObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import org.joml.Matrix4f;
-import planetaryprotector.GameObject;
+import org.joml.Vector3f;
 import planetaryprotector.Options;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Action;
-import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
 import planetaryprotector.item.Item;
@@ -20,7 +21,7 @@ import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.research.Research;
 import planetaryprotector.structure.task.Task;
 import planetaryprotector.structure.task.TaskAnimated;
-public abstract class Structure extends GameObject{
+public abstract class Structure extends ThreeQuarterWorldObject{
     public ArrayList<StructureDamage> damages = new ArrayList<>();
     public Task task;
     //FIRE
@@ -37,11 +38,19 @@ public abstract class Structure extends GameObject{
     public float mouseover = 0;
     public ShieldGenerator shield = null;//the shield generator that is currently projecting a shield on this building
     public final StructureType type;
-    public Structure(StructureType type, Game game, int x, int y, int width, int height){
+    public final Game game;
+    public Structure(StructureType type, Game game, int x, int y){
+        this(type, game, x, y, type.getStructureWidth(), type.getStructureDepth(), 1, new ArrayList<>());
+    }
+    public Structure(StructureType type, Game game, int x, int y, float width, float height){
         this(type, game, x, y, width, height, 1, new ArrayList<>());
     }
-    public Structure(StructureType type, Game game, int x, int y, int width, int height, int level, ArrayList<Upgrade> upgrades){
-        super(game, x, y, width, height);
+    public Structure(StructureType type, Game game, int x, int y, float width, float height, int level, ArrayList<Upgrade> upgrades){
+        setPosition(new Vector3f(x, y, 0));
+        setSize(new Vector3f(width, height, type.getStructureHeight()));
+        setMaterial(new Material(null, type.getTexture()));
+        setStatic(true);
+        this.game = game;
         this.type = type;
         this.level = level;
         this.upgrades.addAll(upgrades);
@@ -49,10 +58,9 @@ public abstract class Structure extends GameObject{
     public void tick(){
         fire+=fireIncreaseRate;
         if(fire-fireDamage*type.getFireDestroyThreshold()*.1>=type.getFireDestroyThreshold()*.1){
-            int X = getRandX(game.rand);
-            int Y = getRandY(game.rand);
-            damages.add(new StructureDamage(this, X-25, Y-25));
-            fires.add(new Particle(game, X-25, Y-25, ParticleEffectType.FIRE));
+            Vector3f pos = getRandSurfacePosition(game.rand);
+            damages.add(new StructureDamage(this, pos.x-25, pos.y-25));
+            fires.add(new Particle(game, (int)pos.x-25, (int)pos.y-25, ParticleEffectType.FIRE));
             ignite();
             fireDamage++;
         }
@@ -64,36 +72,39 @@ public abstract class Structure extends GameObject{
         }
     }
     public void destroy(){
-        game.addParticleEffect(new Particle(game, x+game.rand.nextInt(100), y+game.rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
-        game.replaceStructure(this, new Wreck(game, x, y, type.getTotalCost(level, Item.ironIngot)));
+        game.addParticleEffect(new Particle(game, (int)getPosition().x+game.rand.nextInt(100), (int)getPosition().y+game.rand.nextInt(100), ParticleEffectType.EXPLOSION, 1));
+        game.replaceStructure(this, new Wreck(game, (int)getPosition().x, (int)getPosition().y, type.getTotalCost(level, Item.ironIngot)));
     }
+    @Deprecated // This is probably for the mouseover or shield effect- this should not be rendered by the world
     public void drawOverlay(){
-        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, 0);
+//        Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, 0);
     }
-    public void render(){
+    @Deprecated
+    public void fakeRender(){
         if(!type.isBackgroundStructure()){
-            Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, type.getTexture());
+            Renderer.fillRect(getPosition().x, getPosition().y-getStructureHeight(), getPosition().x+getSize().x, getPosition().y+getSize().y, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
                 if(count==0)continue;
-                Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
+                Renderer.fillRect(getPosition().x, getPosition().y-getStructureHeight(), getPosition().x+getSize().x, getPosition().y+getSize().y, upgrade.getTexture(type, count));
             }
             renderDamages();
         }
     }
-    public void renderBackground(){
+    @Deprecated
+    public void fakeRenderBackground(){
         if(type.isBackgroundStructure()){
-            Renderer.fillRect(x, y, x+width, y+height, type.getTexture());
+            Renderer.fillRect(getPosition().x, getPosition().y, getPosition().x+getSize().x, getPosition().y+getSize().y, type.getTexture());
             for(Upgrade upgrade : type.upgrades){
                 int count = getUpgrades(upgrade);
                 if(count==0)continue;
-                Renderer.fillRect(x, y-getStructureHeight(), x+width, y+height, upgrade.getTexture(type, count));
+                Renderer.fillRect(getPosition().x, getPosition().y-getStructureHeight(), getPosition().x+getSize().x, getPosition().y+getSize().y, upgrade.getTexture(type, count));
             }
         }
         renderDamages();
     }
-    @Override
-    public void draw(){
+    @Deprecated
+    public void fakeDraw(){
         render();
         Renderer.setColor(1, 0, 0, (game.damageReportTimer/game.damageReportTime)*damages.size()/10f);
         drawOverlay();
@@ -105,22 +116,23 @@ public abstract class Structure extends GameObject{
             drawOverlay();
             Renderer.setColor(1, 1, 1, 1);
         }
-        renderForeground();
-        Renderer.pushModel(new Matrix4f().translate(x, y, 0));
+        fakeRenderForeground();
+        Renderer.pushModel(new Matrix4f().translate(getPosition().x, getPosition().y, 0));
         for(Particle fire : fires){
             fire.draw();
         }
         Renderer.popModel();
     }
-    public void renderForeground(){
+    @Deprecated
+    public void fakeRenderForeground(){
         barOffset = barHeight-getStructureHeight();
         if((this instanceof PowerUser)&&((PowerUser)this).isPowerActive()){
-            drawBar((float)(((PowerUser)this).getDisplayPower()/((PowerUser)this).getDisplayMaxPower()), 0, .25f, 1);
+            fakeDrawBar((float)(((PowerUser)this).getDisplayPower()/((PowerUser)this).getDisplayMaxPower()), 0, .25f, 1);
         }
         if(game.observatory&&(this instanceof StarlightUser)&&((StarlightUser)this).isStarlightActive()){
-            drawBar((float)(((StarlightUser)this).getDisplayStarlight()/((StarlightUser)this).getDisplayMaxStarlight()), .625f, .875f, 1);
+            fakeDrawBar((float)(((StarlightUser)this).getDisplayStarlight()/((StarlightUser)this).getDisplayMaxStarlight()), .625f, .875f, 1);
         }
-        barOffset = height;
+        barOffset = getSize().y;
         if(type.isDamagable()){
             switch(Options.options.health){
                 case 0://none
@@ -129,24 +141,25 @@ public abstract class Structure extends GameObject{
                     if(damages.isEmpty()&&fires.isEmpty())break;
                 case 2:
                     float percent = getHealthPercent();
-                    drawBar(percent, 1-percent, percent, 0);
+                    fakeDrawBar(percent, 1-percent, percent, 0);
             }
         }
     }
     public void renderDamages(){
-        Renderer.pushModel(new Matrix4f().translate(x, y, 0));
+        Renderer.pushModel(new Matrix4f().translate(getPosition().x, getPosition().y, 0));
         for(StructureDamage damage : damages){
             damage.render();
         }
         Renderer.popModel();
     }
-    protected void drawBar(float percent, float r, float g, float b){
+    @Deprecated // this is UI, it should not be rendered by the world
+    protected void fakeDrawBar(float percent, float r, float g, float b){
         if(Double.isNaN(percent))return;
         Renderer.setColor(0, 0, 0, 1);
-        Renderer.fillRect(x,y+barOffset-barHeight,x+width, y+barOffset, 0);
+        Renderer.fillRect(getPosition().x,getPosition().y+barOffset-barHeight,getPosition().x+getSize().x, getPosition().y+barOffset, 0);
         if(percent>0){
             Renderer.setColor(r, g, b, 1);
-            Renderer.fillRect(x+1,y+barOffset-barHeight+1,x+width*percent-1, y+barOffset-1, 0);
+            Renderer.fillRect(getPosition().x+1,getPosition().y+barOffset-barHeight+1,getPosition().x+getSize().x*percent-1, getPosition().y+barOffset-1, 0);
         }
         Renderer.setColor(1, 1, 1, 1);
         barOffset += barHeight;
@@ -187,8 +200,8 @@ public abstract class Structure extends GameObject{
         state.level = level;
         for(var upgrade : upgrades)state.upgrades.add(upgrade.name());
         for(var damage : damages)state.damages.add(damage.save());
-        state.x = x;
-        state.y = y;
+        state.x = (int)getPosition().x;
+        state.y = (int)getPosition().y;
         state.fire = fire;
         state.fireDamage = fireDamage;
         state.fireIncreaseRate = fireIncreaseRate;
@@ -208,11 +221,12 @@ public abstract class Structure extends GameObject{
         return state;
     }
     protected void ignite(){
-        ignite(x+getRandX(game.rand),y+getRandY(game.rand));
+        var pos = getRandSurfacePosition(game.rand);
+        ignite((int)(getPosition().x+pos.x),(int)(getPosition().y+pos.y));
     }
     protected void ignite(int x, int y){
-        x-=this.x;
-        y-=this.y;
+        x-=getPosition().x;
+        y-=getPosition().y;
         if(this instanceof Base){
             y-=25;
         }
@@ -246,13 +260,14 @@ public abstract class Structure extends GameObject{
     }
     public void clearFires(){
         for(Particle fire : fires){
-            fire.x+=x;
-            fire.y+=y;
+            fire.x+=getPosition().x;
+            fire.y+=getPosition().y;
             fire.fading = true;
             game.addParticleEffect(fire);
         }
         fires.clear();
     }
+    @Deprecated
     public int getStructureHeight(){
         return type.getStructureHeight();
     }
@@ -300,9 +315,11 @@ public abstract class Structure extends GameObject{
     public int getIndex(){
         return game.structures.indexOf(this);
     }
-    @Override
-    public int getRandY(Random rand){
-        return (int)Math.round(rand.nextDouble()*(height+getStructureHeight())-getStructureHeight());
+    public Vector3f getRandSurfacePosition(Random rand){
+        float randX = rand.nextFloat()*getSize().x;
+        float randYZ = rand.nextFloat()*(getSize().y+getSize().z);
+        if(randYZ>getSize().y)return new Vector3f(randX, getSize().y, randYZ);
+        else return new Vector3f(randX, randYZ, getSize().z);
     }
     public ArrayList<Upgrade> getBoughtUpgrades(){
         return upgrades;
@@ -372,7 +389,7 @@ public abstract class Structure extends GameObject{
         return 1;
     }
     public int getVariant(){
-        return ((int)x)%getVariants();
+        return ((int)getPosition().x)%getVariants();
     }//TODO random, not linear. Also use X and Y
     public void getActions(MenuGame menu, ArrayList<Action> actions){}
     public void setTask(Task task){
@@ -449,10 +466,5 @@ public abstract class Structure extends GameObject{
             }
             return max+" ~ |"+a+"|"+b+"|"+c+"|"+d+"|"+e+"|";
         }
-    }
-    @Override
-    public BoundingBox getBoundingBox(boolean includeHeight){
-        if(includeHeight)return new BoundingBox(x, y-getStructureHeight(), width, height+getStructureHeight());
-        return super.getBoundingBox(includeHeight);
     }
 }

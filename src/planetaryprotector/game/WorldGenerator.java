@@ -16,7 +16,7 @@ public abstract class WorldGenerator{
             private final int FAILS = 10;
             @Override
             public void generateCity(Game game, BoundingBox bbox){
-                game.addStructure(new Base(game, -50, -50));
+                game.addObject(new Base(game, 0, 0));
                 long tries = 1000L*bbox.area()/1920/1080;
                 int fails = 0;
                 while(fails<FAILS){
@@ -24,11 +24,11 @@ public abstract class WorldGenerator{
                     FOR:
                     for(int i = 0; i<tries; i++){
                         Skyscraper scraper = new Skyscraper(game, bbox.randX(game.rand), bbox.randY(game.rand), game.rand.nextInt(40)+10);
-                        for(Structure structure : game.structures){
-                            if(scraper.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue FOR;
+                        for(Structure structure : game.getObjectIndex(Structure.class)){
+                            if(scraper.getAxisAlignedBoundingBox().intersects(structure.getAxisAlignedBoundingBox()))continue FOR;
                         }
                         scraper.generateApocolypseDecals();
-                        game.addStructure(scraper);
+                        game.addObject(scraper);
                     }
                     //</editor-fold>
                     fails++;
@@ -37,9 +37,9 @@ public abstract class WorldGenerator{
                 for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
+                        if(tree.getAxisAlignedBoundingBox().intersects(structure.getAxisAlignedBoundingBox()))continue GEN;
                     }
-                    game.addStructure(tree);
+                    game.addObject(tree);
                 }
             }
             @Override
@@ -49,9 +49,9 @@ public abstract class WorldGenerator{
                 for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
+                        if(tree.getAxisAlignedBoundingBox().intersects(structure.getAxisAlignedBoundingBox()))continue GEN;
                     }
-                    game.addStructure(tree);
+                    game.addObject(tree);
                 }
             }
             @Override
@@ -87,7 +87,7 @@ public abstract class WorldGenerator{
                         int Y = top+(y*(GAP+100))+bbox.y+bbox.height/2;
                         Structure structure = (x==width/2&&y==height/2)?new Base(game, X, Y):new Skyscraper(game, X, Y, game.rand.nextInt(15)+25);
                         if(structure instanceof Skyscraper)((Skyscraper)structure).generateApocolypseDecals();
-                        game.addStructure(structure);
+                        game.addObject(structure);
                     }
                 }
                 long tries = 1000L*bbox.area()/1920/1080;
@@ -95,9 +95,9 @@ public abstract class WorldGenerator{
                 for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        if(tree.getBoundingBox(false).intersects(structure.getBoundingBox(false)))continue GEN;
+                        if(tree.getAxisAlignedBoundingBox().intersects(structure.getAxisAlignedBoundingBox()))continue GEN;
                     }
-                    game.addStructure(tree);
+                    game.addObject(tree);
                 }
             }
             @Override
@@ -107,9 +107,9 @@ public abstract class WorldGenerator{
                 for(int i = 0; i<tries; i++){
                     Tree tree = new Tree(game, bbox.randX(game.rand), bbox.randY(game.rand));
                     for(Structure structure : game.structures){
-                        if(structure.getBoundingBox(false).intersects(tree.getBoundingBox(false)))continue GEN;
+                        if(structure.getAxisAlignedBoundingBox().intersects(tree.getAxisAlignedBoundingBox()))continue GEN;
                     }
-                    game.addStructure(tree);
+                    game.addObject(tree);
                 }
             }
             @Override

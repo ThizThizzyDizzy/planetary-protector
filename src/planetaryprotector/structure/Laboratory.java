@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Action;
 import planetaryprotector.item.ItemStack;
@@ -61,11 +60,11 @@ public class Laboratory extends Structure implements StructureDemolishable, Powe
             }
         }else setTargetResearch(null);
     }
-    @Override
-    public void renderBackground(){
-        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        super.renderBackground();
-    }
+//    @Override
+//    public void renderBackground(){
+//        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+//        super.renderBackground();
+//    }
     @Override
     public GameState.Structure save(){
         var state = super.save();

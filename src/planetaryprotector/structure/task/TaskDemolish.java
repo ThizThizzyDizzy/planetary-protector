@@ -1,11 +1,6 @@
 package planetaryprotector.structure.task;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.particle.ParticleEffectType;
-import planetaryprotector.structure.Wreck;
-import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.item.ItemStack;
 import java.util.ArrayList;
-import planetaryprotector.item.Item;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.StructureType;
 public class TaskDemolish extends Task{
@@ -53,13 +48,13 @@ public class TaskDemolish extends Task{
     }
     @Override
     public void finish(){
-        game.addParticleEffect(new Particle(game, structure.x+structure.width/2, structure.y+structure.height/2-1, ParticleEffectType.EXPLOSION, 5));
-        if(structure.type==StructureType.SKYSCRAPER){
-            Skyscraper sky = (Skyscraper) structure;
-            sky.falling = true;
-        }else{
-            game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, structure.type.getTotalCost(structure.level, Item.ironIngot)));
-        }
+//        game.addParticleEffect(new Particle(game, structure.x+structure.width/2, structure.y+structure.height/2-1, ParticleEffectType.EXPLOSION, 5));
+//        if(structure.type==StructureType.SKYSCRAPER){
+//            Skyscraper sky = (Skyscraper) structure;
+//            sky.falling = true;
+//        }else{
+//            game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, structure.type.getTotalCost(structure.level, Item.ironIngot)));
+//        }
     }
     @Override
     public void begin(){}

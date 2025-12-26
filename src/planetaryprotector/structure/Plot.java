@@ -1,6 +1,5 @@
 package planetaryprotector.structure;
 import java.util.ArrayList;
-import planetaryprotector.structure.task.TaskConstruct;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
@@ -11,17 +10,17 @@ public class Plot extends Structure{
     }
     @Override
     public void destroy(){
-        game.replaceStructure(this, new Wreck(game, x, y, 0));
+//        game.replaceStructure(this, new Wreck(game, x, y, 0));
     }
     public static Plot loadSpecific(GameState.Structure state, Game game, int x, int y) {
         return new Plot(game, x, y);
     }
     @Override
     public void getActions(MenuGame menu, ArrayList<Action> actions){
-        for(StructureType type : StructureType.structureTypes){
-            if(type.isConstructible(game)){
-                actions.add(new Action("Build "+type.getDisplayName(), new TaskConstruct(this, type.createStructure(game, x, y))));
-            }
-        }
+//        for(StructureType type : StructureType.structureTypes){
+//            if(type.isConstructible(game)){
+//                actions.add(new Action("Build "+type.getDisplayName(), new TaskConstruct(this, type.createStructure(game, x, y))));
+//            }
+//        }
     }
 }

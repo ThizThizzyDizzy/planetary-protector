@@ -81,8 +81,8 @@ public class ParticleFog extends Particle{
     public void tick(){
         rotation+=rotSpeed;
         x+=5;
-        if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
-            dead = true;
-        }
+//        if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
+//            dead = true;
+//        }
     }
 }

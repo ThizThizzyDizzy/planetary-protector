@@ -1,9 +1,6 @@
 package planetaryprotector.structure.task;
-import planetaryprotector.item.Item;
-import planetaryprotector.item.DroppedItem;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.Wreck;
-import planetaryprotector.structure.Plot;
 import java.util.ArrayList;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.item.ItemStack;
@@ -46,26 +43,26 @@ public class TaskWreckClean extends TaskAnimated{
     @Override
     public void work(){
         progress++;
-        if(wreck.ingots>0){
-            int itemX = structure.x+game.rand.nextInt(79)+11;
-            int itemY = structure.y+game.rand.nextInt(79)+11;
-            itemX-=5;
-            itemY-=5;
-            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
-            wreck.ingots--;
-        }
+//        if(wreck.ingots>0){
+//            int itemX = structure.x+game.rand.nextInt(79)+11;
+//            int itemY = structure.y+game.rand.nextInt(79)+11;
+//            itemX-=5;
+//            itemY-=5;
+//            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
+//            wreck.ingots--;
+//        }
     }
     @Override
     public void finish(){
-        game.replaceStructure(structure, new Plot(game, structure.x, structure.y));
-        while(wreck.ingots>0){
-            int itemX = structure.x+game.rand.nextInt(79)+11;
-            int itemY = structure.y+game.rand.nextInt(79)+11;
-            itemX-=5;
-            itemY-=5;
-            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
-            wreck.ingots--;
-        }
+//        game.replaceStructure(structure, new Plot(game, structure.x, structure.y));
+//        while(wreck.ingots>0){
+//            int itemX = structure.x+game.rand.nextInt(79)+11;
+//            int itemY = structure.y+game.rand.nextInt(79)+11;
+//            itemX-=5;
+//            itemY-=5;
+//            game.addItem(new DroppedItem(game, itemX, itemY, Item.ironIngot));
+//            wreck.ingots--;
+//        }
     }
     @Override
     public boolean canPerform(){

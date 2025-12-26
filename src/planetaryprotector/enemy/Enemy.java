@@ -1,14 +1,10 @@
 package planetaryprotector.enemy;
-import planetaryprotector.Core;
+import java.util.ArrayList;
+import planetaryprotector.GameObject;
 import planetaryprotector.game.Game;
 import planetaryprotector.structure.ShieldGenerator;
-import planetaryprotector.structure.Wreck;
-import planetaryprotector.structure.Skyscraper;
-import java.util.ArrayList;
-import java.util.Iterator;
-import org.joml.Vector2f;
-import planetaryprotector.GameObject;
 import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.Wreck;
 public abstract class Enemy extends GameObject{
     public static double strength = 1;
     public static final double maxStrength = 15;
@@ -43,6 +39,7 @@ public abstract class Enemy extends GameObject{
     private static boolean canMeteorStrike(Game game){
         return EnemyMeteorStrike.getMeteorStrike(game)!=null;
     }
+    @Deprecated
     public static int[] getBestStrike(Game game){
         ArrayList<ShieldGenerator> shieldGen = new ArrayList<>();
         for(Structure structure : game.structures){
@@ -57,30 +54,30 @@ public abstract class Enemy extends GameObject{
                     continue;
                 }
             }
-            int[] hitBox = new int[]{structure.x, structure.y, structure.x+structure.width, structure.y+structure.height};
-            if(structure instanceof Skyscraper){
-                Skyscraper sky = (Skyscraper)structure;
-                hitBox = new int[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
-            }
-            int[][] corners = new int[][]{new int[]{hitBox[0]+1, hitBox[1]+1}, new int[]{hitBox[2]-1, hitBox[1]+1}, new int[]{hitBox[0]+1, hitBox[3]-1}, new int[]{hitBox[2]-1, hitBox[3]-1}};
-            FOR:
-            for(int[] d : corners){
-                int X = d[0];
-                int Y = d[1];
-                if(Y<0)continue;
-                for(Iterator<Enemy> it = game.enemies.iterator(); it.hasNext();){
-                    Enemy enemy = it.next();
-                    if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50)
-                        continue FOR;
-                }
-                if(shieldGen.isEmpty()){
-                    possibleStrikes.add(new int[]{X, Y, 0});
-                }
-                for(ShieldGenerator gen : shieldGen){
-                    double dist = Vector2f.distance(gen.x, gen.y, X, Y);
-                    possibleStrikes.add(new int[]{X, Y, (int)dist});
-                }
-            }
+//            int[] hitBox = new int[]{structure.x, structure.y, structure.x+structure.width, structure.y+structure.height};
+//            if(structure instanceof Skyscraper){
+//                Skyscraper sky = (Skyscraper)structure;
+//                hitBox = new int[]{sky.x, sky.y-(sky.floorCount*sky.floorHeight), sky.x+sky.width, sky.y+sky.height};
+//            }
+//            int[][] corners = new int[][]{new int[]{hitBox[0]+1, hitBox[1]+1}, new int[]{hitBox[2]-1, hitBox[1]+1}, new int[]{hitBox[0]+1, hitBox[3]-1}, new int[]{hitBox[2]-1, hitBox[3]-1}};
+//            FOR:
+//            for(int[] d : corners){
+//                int X = d[0];
+//                int Y = d[1];
+//                if(Y<0)continue;
+//                for(Iterator<Enemy> it = game.enemies.iterator(); it.hasNext();){
+//                    Enemy enemy = it.next();
+//                    if(enemy.x>X-50&&enemy.x<X+50&&enemy.y>Y-50&&enemy.y<Y+50)
+//                        continue FOR;
+//                }
+//                if(shieldGen.isEmpty()){
+//                    possibleStrikes.add(new int[]{X, Y, 0});
+//                }
+//                for(ShieldGenerator gen : shieldGen){
+//                    double dist = Vector2f.distance(gen.x, gen.y, X, Y);
+//                    possibleStrikes.add(new int[]{X, Y, (int)dist});
+//                }
+//            }
         }
         double max = Double.NEGATIVE_INFINITY;
         for(int[] strike : possibleStrikes){

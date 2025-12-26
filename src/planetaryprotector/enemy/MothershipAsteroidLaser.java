@@ -7,7 +7,8 @@ public class MothershipAsteroidLaser extends GameObject{
     int speed = 1;
     int damageMult = 1;
     public MothershipAsteroidLaser(Game game){
-        super(game, game.getCityBoundingBox().x-150, game.getCityBoundingBox().getCenterY(), 0, 0);
+        super(game, 0, 0, 0, 0);
+//        super(game, game.getCityBoundingBox().x-150, game.getCityBoundingBox().getCenterY(), 0, 0);
         target = new int[]{x,y};
     }
     public void tick(){

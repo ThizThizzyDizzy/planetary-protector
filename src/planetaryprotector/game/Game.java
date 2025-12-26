@@ -2,6 +2,7 @@ package planetaryprotector.game;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
@@ -9,7 +10,6 @@ import com.thizthizzydizzy.dizzyengine.world.flat.ThreeQuarterWorldLayer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,8 +17,10 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import planetaryprotector.Expedition;
 import planetaryprotector.GameObject;
@@ -30,7 +32,6 @@ import planetaryprotector.enemy.AsteroidMaterial;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyAlien;
 import planetaryprotector.enemy.EnemyMothership;
-import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.friendly.Drone;
 import planetaryprotector.friendly.ShootingStar;
 import planetaryprotector.friendly.Worker;
@@ -69,9 +70,10 @@ public class Game extends ThreeQuarterWorldLayer{
     public boolean meteorShower;
     public int meteorShowerTimer = 100;
     public ArrayList<Worker> workers = new ArrayList<>();
-    public ArrayList<Structure> structures = new ArrayList<>();
+    public final List<Structure> structures;
     public Structure selectedStructure;
     public int actionUpdateRequired = 0;
+    @Deprecated
     HashMap<Structure, Structure> structuresToReplace = new HashMap<>();
     public boolean paused;
     public int workerCooldown = 1020;
@@ -162,7 +164,7 @@ public class Game extends ThreeQuarterWorldLayer{
     private final WorldGenerator worldGenerator;
     public final Story story;
     public boolean tutorial = false;
-    public BoundingBox generatedBBox;//the portion of the world that has been generated
+    public AxisAlignedBoundingBox generatedBBox;//the portion of the world that has been generated
     public int speedMult;
     public boolean debugMode;
 //</editor-fold>
@@ -171,6 +173,16 @@ public class Game extends ThreeQuarterWorldLayer{
         resources.add(new ItemStack(Item.coal, 0));
         resources.add(new ItemStack(Item.ironOre, 0));
         resources.add(new ItemStack(Item.ironIngot, 0));
+    }
+    {
+        structures = createObjectIndex(Structure.class);
+//        createObjectIndex(DroppedItem.class);
+//        createObjectIndex(Worker.class);
+//        createObjectIndex(Enemy.class);
+//        createObjectIndex(Drone.class);
+//        createObjectIndex(Asteroid.class);
+//        createObjectIndex(ShootingStar.class);
+//        createObjectIndex(Particle.class);
     }
     public static Game generate(String name, int level, WorldGenerator worldGenerator, BoundingBox cityBBox, Story story, boolean tutorial){
         Game game = new Game(name, level, worldGenerator, story, tutorial);
@@ -191,28 +203,28 @@ public class Game extends ThreeQuarterWorldLayer{
         //675x365
         int chunkWidth = 1350;
         int chunkHeight = 730;
-        BoundingBox bbox = getWorldBoundingBox(false);
-        int left = bbox.getLeft()/chunkWidth-1;
-        int top = bbox.getTop()/chunkHeight-1;
-        int right = bbox.getRight()/chunkWidth+1;
-        int bottom = bbox.getBottom()/chunkHeight+1;
+        AxisAlignedBoundingBox bbox = getWorldBoundingBox();
+        int left = (int)(bbox.min.x/chunkWidth-1);
+        int top = (int)(bbox.min.y/chunkHeight-1);
+        int right = (int)(bbox.max.x/chunkWidth+1);
+        int bottom = (int)(bbox.max.y/chunkHeight+1);
         for(int x = left; x<right; x++){
             for(int y = top; y<bottom; y++){
-                Renderer.fillRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, Game.theme.getBackgroundTexture(level));
+                Renderer.fillXYRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, 0, Game.theme.getBackgroundTexture(level));
             }
         }
         totalTime+=deltaTime;
         var screenSize = DizzyEngine.screenSize;
         float borderWallHeight = screenSize.y;
         Renderer.setColor(0, 0, 0, 1);
-        Renderer.fillXYRect(bbox.getLeft()-screenSize.x, bbox.getTop()-screenSize.y, bbox.getLeft(), bbox.getBottom()+screenSize.y+borderWallHeight, borderWallHeight, 0);//left (but really high up)
-        Renderer.fillXYRect(bbox.getRight(), bbox.getTop()-screenSize.y, bbox.getRight()+screenSize.x, bbox.getBottom()+screenSize.y+borderWallHeight, borderWallHeight, 0);//right
-        Renderer.fillXZRect(bbox.getLeft()-screenSize.x, 0, bbox.getRight()+screenSize.x, screenSize.y+borderWallHeight, bbox.getTop(), 0); // top (vertical)
-        Renderer.fillXYRect(bbox.getLeft(), bbox.getBottom()+getShearFactor()*borderWallHeight, bbox.getRight(), bbox.getBottom()+screenSize.y+getShearFactor()*borderWallHeight, borderWallHeight, 0);//bottom
+        Renderer.fillXYRect(bbox.min.x-screenSize.x, bbox.min.y-screenSize.y, bbox.min.x, bbox.max.y+screenSize.y+borderWallHeight, borderWallHeight, 0);//left (but really high up)
+        Renderer.fillXYRect(bbox.max.x, bbox.min.y-screenSize.y, bbox.max.x+screenSize.x, bbox.max.y+screenSize.y+borderWallHeight, borderWallHeight, 0);//right
+        Renderer.fillXZRect(bbox.min.x-screenSize.x, 0, bbox.max.x+screenSize.x, screenSize.y+borderWallHeight, bbox.min.y, 0); // top (vertical)
+        Renderer.fillXYRect(bbox.min.x, bbox.max.y+getShearFactor()*borderWallHeight, bbox.max.x, bbox.max.y+screenSize.y+getShearFactor()*borderWallHeight, borderWallHeight, 0);//bottom
     }
     @Deprecated
     public synchronized void renderBackground(){
-        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
+//        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
     }
     @Deprecated
     public void fakeRender(double deltaTime){
@@ -226,9 +238,9 @@ public class Game extends ThreeQuarterWorldLayer{
     }
     @Deprecated
     public synchronized void fakeRenderWorld(Vector3i chunk, double deltaTime){
-        for(Structure structure : structures){
-            structure.renderBackground();
-        }
+//        for(Structure structure : structures){
+//            structure.renderBackground();
+//        }
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())anim.draw();
         }
@@ -238,7 +250,7 @@ public class Game extends ThreeQuarterWorldLayer{
         }
         ArrayList<GameObject> mainLayer = new ArrayList<>();
         mainLayer.addAll(groundParticles);
-        mainLayer.addAll(structures);
+//        mainLayer.addAll(structures);
         mainLayer.addAll(droppedItems);
         mainLayer.addAll(workers);
         for(Enemy e : enemies){
@@ -258,7 +270,7 @@ public class Game extends ThreeQuarterWorldLayer{
         var viewBbox = getViewBoundingBox();
         for(GameObject o : mainLayer){
             if(o!=null){
-                if(!viewBbox.intersects(o.getBoundingBox(true)))continue;
+                if(!viewBbox.intersects(o.getBoundingBox(true).toAABB()))continue;
                 o.draw();
             }
         }
@@ -319,27 +331,28 @@ public class Game extends ThreeQuarterWorldLayer{
         }
     }
     public synchronized void tick(){
+        if(true)return;
         cachedCityBoundingBox = null;
-        BoundingBox worldBBox = getWorldBoundingBox().expand(worldGenerator.getGenerationBuffer());
-        if(worldBBox.x<generatedBBox.x){
-            int leftExpansion = generatedBBox.x-worldBBox.x;
-            generate(new BoundingBox(worldBBox.getLeft(), generatedBBox.getTop(), leftExpansion, generatedBBox.height));
-            generatedBBox = generatedBBox.expandLeft(leftExpansion);
+        AxisAlignedBoundingBox worldBBox = getWorldBoundingBox().expand(worldGenerator.getGenerationBuffer());
+        if(worldBBox.min.x<generatedBBox.min.x){
+            float leftExpansion = generatedBBox.min.x-worldBBox.min.x;
+            generate(new BoundingBox(worldBBox.min.x, generatedBBox.min.y, leftExpansion, generatedBBox.getHeight()));
+            generatedBBox.min.x-=leftExpansion;
         }
-        if(worldBBox.y<generatedBBox.y){
-            int topExpansion = generatedBBox.y-worldBBox.y;
-            generate(new BoundingBox(generatedBBox.getLeft(), worldBBox.getTop(), generatedBBox.width, topExpansion));
-            generatedBBox = generatedBBox.expandUp(topExpansion);
+        if(worldBBox.min.y<generatedBBox.min.y){
+            float topExpansion = generatedBBox.min.y-worldBBox.min.y;
+            generate(new BoundingBox(generatedBBox.min.x, worldBBox.min.y, generatedBBox.getWidth(), topExpansion));
+            generatedBBox.min.y-=topExpansion;
         }
-        if(worldBBox.getRight()>generatedBBox.getRight()){
-            int rightExpansion = worldBBox.getRight()-generatedBBox.getRight();
-            generate(new BoundingBox(generatedBBox.getRight(), generatedBBox.getTop(), rightExpansion, generatedBBox.height));
-            generatedBBox = generatedBBox.expandRight(rightExpansion);
+        if(worldBBox.max.x>generatedBBox.max.x){
+            float rightExpansion = worldBBox.max.x-generatedBBox.max.x;
+            generate(new BoundingBox(generatedBBox.max.x, generatedBBox.min.y, rightExpansion, generatedBBox.getHeight()));
+            generatedBBox.max.x+=rightExpansion;
         }
-        if(worldBBox.getBottom()>generatedBBox.getBottom()){
-            int bottomExpansion = worldBBox.getBottom()-generatedBBox.getBottom();
-            generate(new BoundingBox(generatedBBox.getLeft(), generatedBBox.getBottom(), generatedBBox.width, bottomExpansion));
-            generatedBBox = generatedBBox.expandDown(bottomExpansion);
+        if(worldBBox.max.y>generatedBBox.max.y){
+            float bottomExpansion = worldBBox.max.y-generatedBBox.max.y;
+            generate(new BoundingBox(generatedBBox.min.x, generatedBBox.max.y, generatedBBox.getWidth(), bottomExpansion));
+            generatedBBox.max.y+=bottomExpansion;
         }
         saveTimer++;
         if(saveTimer>=saveInterval){
@@ -401,35 +414,35 @@ public class Game extends ThreeQuarterWorldLayer{
         for(Iterator<Structure> it = structures.iterator(); it.hasNext();){
             Structure structure = it.next();
             structure.tick();
-            if(structure.dead)it.remove();
+//            if(structure.dead)it.remove();
         }
-        while(!structuresToReplace.isEmpty()){
-            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
-            Structure start = list.get(0);
-            Structure end = structuresToReplace.remove(start);
-            if(!structures.contains(start)){
-                start.dead = true;
-                continue;
-            }
-            removeStructure(start);
-            start.dead = true;
-            if(selectedStructure==start){
-                selectedStructure = end;
-                actionUpdateRequired = 2;
-            }
-            if(setTarget==start){
-                if(end instanceof ShieldGenerator)
-                    setTarget = (ShieldGenerator)end;
-                else
-                    setTarget = null;
-            }
-            for(Structure s : structures){
-                if(s instanceof StructureChangeEventListener){
-                    ((StructureChangeEventListener)s).onStructureChange(start, end);
-                }
-            }
-            addStructure(end);
-        }
+//        while(!structuresToReplace.isEmpty()){
+//            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
+//            Structure start = list.get(0);
+//            Structure end = structuresToReplace.remove(start);
+//            if(!structures.contains(start)){
+//                start.dead = true;
+//                continue;
+//            }
+//            removeStructure(start);
+//            start.dead = true;
+//            if(selectedStructure==start){
+//                selectedStructure = end;
+//                actionUpdateRequired = 2;
+//            }
+//            if(setTarget==start){
+//                if(end instanceof ShieldGenerator)
+//                    setTarget = (ShieldGenerator)end;
+//                else
+//                    setTarget = null;
+//            }
+//            for(Structure s : structures){
+//                if(s instanceof StructureChangeEventListener){
+//                    ((StructureChangeEventListener)s).onStructureChange(start, end);
+//                }
+//            }
+//            addStructure(end);
+//        }
         refreshNetworks();
         tickingEnemies = true;
         for(Iterator<Enemy> it = enemies.iterator(); it.hasNext();){
@@ -584,11 +597,11 @@ public class Game extends ThreeQuarterWorldLayer{
             }
         }
         //<editor-fold defaultstate="collapsed" desc="Meteors">
-        BoundingBox box = getWorldBoundingBox();
-        double intensity = METEOR_INTENSITY*(meteorShower?METEOR_SHOWER_MULT:1)*meteorManualIntensityMult*meteorPhaseIntensityMult*(rand.nextDouble()+1)*box.area()/100_00;
+        AxisAlignedBoundingBox box = getWorldBoundingBox();
+        double intensity = METEOR_INTENSITY*(meteorShower?METEOR_SHOWER_MULT:1)*meteorManualIntensityMult*meteorPhaseIntensityMult*(rand.nextDouble()+1)*box.getArea()/100_00;
         meteorTimer -= intensity;
         while(meteorTimer<0){
-            addAsteroid(new Asteroid(this, box.randX(rand), box.randY(rand), AsteroidMaterial.random(rand), 1));
+            addAsteroid(new Asteroid(this, (int)(rand.nextFloat()*box.getWidth()+box.min.x), (int)(rand.nextFloat()*box.getHeight()+box.min.y), AsteroidMaterial.random(rand), 1));
             meteorTimer++;
         }
 //</editor-fold>
@@ -687,8 +700,8 @@ public class Game extends ThreeQuarterWorldLayer{
                         shieldArea += Math.PI*Math.pow(shield.shieldSize/2, 2);
                     }
                 }
-                BoundingBox bbox = getCityBoundingBox();
-                if(shieldArea>=bbox.area()*.7&&meteorShowerTimer>phaseShowerPadding){
+                AxisAlignedBoundingBox bbox = getCityBoundingBox();
+                if(shieldArea>=bbox.getArea()*.7&&meteorShowerTimer>phaseShowerPadding){
                     phaseCounter++;
                     if(phaseCounter>=phaseTime){
                         phase(2);
@@ -878,7 +891,7 @@ public class Game extends ThreeQuarterWorldLayer{
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
                 ShieldGenerator gen = (ShieldGenerator)structure;
-                if(gen.shieldSize/2-50>=Vector2f.distance(gen.x, gen.y, worker.x, worker.y)){
+                if(gen.shieldSize/2-50>=Vector2f.distance(gen.getPosition().x, gen.getPosition().y, worker.x, worker.y)){
                     safe = true;
                 }
             }
@@ -986,15 +999,15 @@ public class Game extends ThreeQuarterWorldLayer{
             resource.count = stack.count;
             state.resources.add(resource);
         }
-        state.bboxX = generatedBBox.x;
-        state.bboxY = generatedBBox.y;
-        state.bboxWidth = generatedBBox.width;
-        state.bboxHeight = generatedBBox.height;
-        try(FileWriter writer = new FileWriter("saves"+File.separator+name.replaceAll("[:<>?\\\"*|\\\\/]", "-")+".json")){//TODO fail-safe dual saving
-            DizzyEngine.gson.toJson(state, writer);
-        }catch(IOException ex){
-            Logger.error(ex);
-        }
+        state.bboxX = (int)generatedBBox.min.x;
+        state.bboxY = (int)generatedBBox.min.y;
+        state.bboxWidth = (int)generatedBBox.getWidth();
+        state.bboxHeight = (int)generatedBBox.getHeight();
+//        try(FileWriter writer = new FileWriter("saves"+File.separator+name.replaceAll("[:<>?\\\"*|\\\\/]", "-")+".json")){//TODO fail-safe dual saving
+//            DizzyEngine.gson.toJson(state, writer);
+//        }catch(IOException ex){
+//            Logger.error(ex);
+//        }
     }
     public static Game load(String save){
         GameState state;
@@ -1033,7 +1046,7 @@ public class Game extends ThreeQuarterWorldLayer{
         HashMap<Structure, GameState.Structure> structures = new HashMap<>();
         for(var structure : state.structures){
             Structure s = Structure.load(structure, game);
-            addStructure(s);
+            game.addObject(s);
             structures.put(s, structure);
         }
         for(Structure s : game.structures)s.postLoad(game, structures.get(s));
@@ -1070,7 +1083,7 @@ public class Game extends ThreeQuarterWorldLayer{
             game.resources.add(new ItemStack(item, res.count));
         }
         game.losing = state.losing;
-        game.generatedBBox = new BoundingBox(state.bboxX, state.bboxY, state.bboxWidth, state.bboxHeight);
+        game.generatedBBox = new BoundingBox(state.bboxX, state.bboxY, state.bboxWidth, state.bboxHeight).toAABB();
         return game;
     }
     public void addCivilians(int civilians){
@@ -1208,8 +1221,8 @@ public class Game extends ThreeQuarterWorldLayer{
     }
     public void addCloud(){
         if(!Options.options.clouds)return;
-        BoundingBox worldBBox = getWorldBoundingBox();
-        addCloud(worldBBox.getLeft(), worldBBox.randY(rand));
+        var worldBBox = getWorldBoundingBox();
+        addCloud((int)worldBBox.min.x, (int)(rand.nextFloat()*worldBBox.getHeight()+worldBBox.min.y));
     }
     public void addCloud(int x, int y){
         if(!Options.options.clouds)return;
@@ -1323,12 +1336,12 @@ public class Game extends ThreeQuarterWorldLayer{
         float o1 = (float)density;
         float o2 = (float)(density*height);
         double size = ParticleFog.SIZE*.75;
-        BoundingBox bbox = getWorldBoundingBox();
-        int count = (int)(bbox.height/size+1);
+        AxisAlignedBoundingBox bbox = getWorldBoundingBox();
+        int count = (int)(bbox.getHeight()/size+1);
         double xOffset = count/size;
         for(int i = 0; i<count; i++){
-            addParticleEffect(new ParticleFog(this, (int)(bbox.getLeft()-size*2-xOffset*i), (int)(bbox.getTop()+i*size-50), false, o1));
-            addParticleEffect(new ParticleFog(this, (int)(bbox.getLeft()-size*2-xOffset*i), (int)(bbox.getTop()+i*size-50), true, o2));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size*2-xOffset*i), (int)(bbox.min.y+i*size-50), false, o1));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size*2-xOffset*i), (int)(bbox.min.y+i*size-50), true, o2));
         }
     }
     private void stopFog(){
@@ -1349,7 +1362,7 @@ public class Game extends ThreeQuarterWorldLayer{
             for(Structure structure : structures){
                 if(structure instanceof ShieldGenerator){
                     ShieldGenerator shield = (ShieldGenerator)structure;
-                    if(structure.getCenter().distance(x, y)<=shield.getShieldSize()/2){
+                    if(structure.getPosition().distance(x, y, 0)<=shield.getShieldSize()/2){
                         if(shield.shieldHit()){
                             continue DAMAGE;
                         }else{
@@ -1393,7 +1406,7 @@ public class Game extends ThreeQuarterWorldLayer{
     public Structure getStructure(int x, int y){
         Structure hit = null;
         for(Structure structure : structures)
-            if(structure.getBoundingBox(true).contains(x, y))hit = structure;
+            if(structure.getAxisAlignedBoundingBox().contains(new Vector3f(x, y, 0)))hit = structure;
         return hit;
     }
     /**
@@ -1453,8 +1466,8 @@ public class Game extends ThreeQuarterWorldLayer{
         }
     }
     private void addShootingStar(){
-        BoundingBox bbox = getCityBoundingBox();
-        addShootingStar(new ShootingStar(this, bbox.randX(rand), bbox.randY(rand)));
+        var bbox = getCityBoundingBox();
+        addShootingStar(new ShootingStar(this, (int)(rand.nextFloat()*bbox.getWidth()+bbox.min.x), (int)(rand.nextFloat()*bbox.getHeight()+bbox.min.y)));
     }
     public ShootingStar addShootingStar(ShootingStar star){
         shootingStars.add(star);
@@ -1493,8 +1506,8 @@ public class Game extends ThreeQuarterWorldLayer{
             float a = MathUtil.lerp(night.getAlpha(), noon.getAlpha(), percent)/255f;
             Renderer.setColor(r, g, b, a);
         }
-        BoundingBox bbox = getWorldBoundingBox();
-        Renderer.fillRect(bbox.getLeft(), bbox.getTop(), bbox.getRight(), bbox.getBottom(), 0);
+        var bbox = getWorldBoundingBox();
+        Renderer.fillRect(bbox.min.x, bbox.min.y, bbox.max.x, bbox.max.y, 0);
         Renderer.setColor(1, 1, 1, 1);
     }
     private Worker getAvailableWorker(int x, int y){
@@ -1637,10 +1650,11 @@ public class Game extends ThreeQuarterWorldLayer{
             research.event(event);
         }
     }
+    @Deprecated
     public synchronized Structure getMouseoverStructure(double x, double y){
         Structure hit = null;
         for(Structure structure : structures){
-            if(structure.getBoundingBox(!hideSkyscrapers).contains((int)x, (int)y))
+            if(structure.getAxisAlignedBoundingBox().contains(new Vector3f((int)x, (int)y, 0)))
                 hit = structure;
         }
         return hit;
@@ -1762,24 +1776,16 @@ public class Game extends ThreeQuarterWorldLayer{
         }
         //</editor-fold>
         addWorker();
-        generatedBBox = bbox;
+        generatedBBox = bbox.toAABB();
     }
     private void generate(BoundingBox boundingBox){
         worldGenerator.generate(this, boundingBox);
     }
     public double getXGamePadding(){
-        return Math.max(DizzyEngine.screenSize.x/MenuGame.minZoom/4, getCityBoundingBox().width/2);
+        return Math.max(DizzyEngine.screenSize.x/MenuGame.minZoom/4, getCityBoundingBox().getWidth()/2);
     }
     public double getYGamePadding(){
-        return Math.max(DizzyEngine.screenSize.y/MenuGame.minZoom/4, getCityBoundingBox().height/2);
-    }
-    public void addStructure(Structure structure){
-        structures.add(structure);
-        objects.add(structure);
-    }
-    public void removeStructure(Structure structure){
-        structures.remove(structure);
-        objects.remove(structure);
+        return Math.max(DizzyEngine.screenSize.y/MenuGame.minZoom/4, getCityBoundingBox().getHeight()/2);
     }
     public static enum Theme{
         NORMAL("normal", new Color(255, 216, 0, 32), new Color(22, 36, 114, 72), new Color(255, 255, 255, 255)),
@@ -1857,11 +1863,11 @@ public class Game extends ThreeQuarterWorldLayer{
             if(selectedStructure.task!=null){
                 actions.add(new Action("Add Worker", () -> {
                     if(selectedStructure==null)return;
-                    Worker worker = getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2);
+                    Worker worker = getAvailableWorker((int)selectedStructure.getPosition().x, (int)selectedStructure.getPosition().y);
                     if(worker==null)return;
                     worker.targetTask = selectedStructure.task;
                 }, () -> {
-                    return getAvailableWorker(selectedStructure.x+selectedStructure.width/2, selectedStructure.y+selectedStructure.height/2)!=null;
+                    return getAvailableWorker((int)selectedStructure.getPosition().x, (int)selectedStructure.getPosition().y)!=null;
                 }));
                 actions.add(new Action("Cancel Task", () -> {
                     selectedStructure.task.cancel();
@@ -1872,23 +1878,28 @@ public class Game extends ThreeQuarterWorldLayer{
         }
         return actions;
     }
-    private BoundingBox cachedCityBoundingBox = null;
-    public BoundingBox getCityBoundingBox(){return getCityBoundingBox(true);}
-    public BoundingBox getCityBoundingBox(boolean includeHeight){
-        if(cachedCityBoundingBox!=null)return cachedCityBoundingBox;
-        if(structures.isEmpty())return new BoundingBox(0, 0, 0, 0);
+    private AxisAlignedBoundingBox cachedCityBoundingBox = null;
+    public AxisAlignedBoundingBox getCityBoundingBox(){
+        if(cachedCityBoundingBox!=null)return new AxisAlignedBoundingBox(cachedCityBoundingBox);
+        if(structures.isEmpty())return new AxisAlignedBoundingBox();
         ArrayList<Structure> buildings = new ArrayList<>();
         for(Structure s : structures){
             if(!s.type.isDecoration())buildings.add(s);
         }
-        return cachedCityBoundingBox = BoundingBox.enclosing(buildings, includeHeight).expand(100);
+        return new AxisAlignedBoundingBox(cachedCityBoundingBox = AxisAlignedBoundingBox.enclosing(buildings).expand(100));
     }
-    public BoundingBox getWorldBoundingBox(){return getWorldBoundingBox(true);}
-    public BoundingBox getWorldBoundingBox(boolean includeHeight){
-        BoundingBox cityBBox = getCityBoundingBox(includeHeight);
-        return new BoundingBox(cityBBox.x-(int)getXGamePadding(), cityBBox.y-(int)getYGamePadding(), cityBBox.width+(int)getXGamePadding()*2, cityBBox.height+(int)getYGamePadding()*2);
+    public AxisAlignedBoundingBox getWorldBoundingBox(){
+        AxisAlignedBoundingBox cityBBox = getCityBoundingBox();
+        cityBBox.min.x-=getXGamePadding();
+        cityBBox.min.y-=getYGamePadding();
+        cityBBox.max.x+=getXGamePadding();
+        cityBBox.max.y+=getYGamePadding();
+        return cityBBox;
     }
-    public BoundingBox getViewBoundingBox(){
-        return new BoundingBox((int)(-panX/zoom-DizzyEngine.screenSize.x/zoom/2), (int)(-panY/zoom-DizzyEngine.screenSize.y/zoom/2), (int)(DizzyEngine.screenSize.x/zoom), (int)(DizzyEngine.screenSize.y/zoom)).expand(1);
+    public AxisAlignedBoundingBox getViewBoundingBox(){
+        var box = new AxisAlignedBoundingBox();
+        box.min = new Vector3f((int)(-panX/zoom-DizzyEngine.screenSize.x/zoom/2), (int)(-panY/zoom-DizzyEngine.screenSize.y/zoom/2), 0);
+        box.max = new Vector3f((int)(DizzyEngine.screenSize.x/zoom), (int)(DizzyEngine.screenSize.y/zoom), 0).add(box.min);
+        return box.expand(1);
     }
 }

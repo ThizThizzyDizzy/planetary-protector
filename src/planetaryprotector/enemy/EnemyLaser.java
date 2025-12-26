@@ -1,13 +1,10 @@
 package planetaryprotector.enemy;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import org.joml.Vector2f;
-import planetaryprotector.particle.Particle;
 import planetaryprotector.game.Game;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 import planetaryprotector.structure.ShieldGenerator;
-import planetaryprotector.Core;
-import planetaryprotector.structure.Structure;
 public class EnemyLaser extends Enemy{
     public int initialDelay = 20*5;
     public float laserPower = 1;
@@ -17,9 +14,9 @@ public class EnemyLaser extends Enemy{
     public EnemyLaser(Game game){
         super(game, 0, 0, 50, 50, 100);
         int[] location = getBestStrike(game);
-        if(location==null){
-            location = game.getCityBoundingBox().getCenter();
-        }
+//        if(location==null){
+//            location = game.getCityBoundingBox().getCenter();
+//        }
         x = location[0];
         y = location[1];
         laserPower *= strength;
@@ -88,13 +85,13 @@ public class EnemyLaser extends Enemy{
         laserFiring = null;
         double dist = Double.POSITIVE_INFINITY;
         ShieldGenerator gen = null;
-        for(Structure structure : game.structures){
-            if(structure instanceof ShieldGenerator){
-                ShieldGenerator g = (ShieldGenerator)structure;
-                dist = Math.min(dist, Vector2f.distance(x, y, g.x, g.y));
-                gen = g;
-            }
-        }
+//        for(Structure structure : game.structures){
+//            if(structure instanceof ShieldGenerator){
+//                ShieldGenerator g = (ShieldGenerator)structure;
+//                dist = Math.min(dist, Vector2f.distance(x, y, g.x, g.y));
+//                gen = g;
+//            }
+//        }
         if(gen==null)return;
         if(gen.getShieldSize(laserPower*40)<=0){
             increase = false;
@@ -108,7 +105,7 @@ public class EnemyLaser extends Enemy{
             laserSizing *= -1;
         }
         laserTime--;
-        laserFiring = new float[]{gen.x+gen.width/2, gen.y+gen.height/2};
+//        laserFiring = new float[]{gen.x+gen.width/2, gen.y+gen.height/2};
         gen.setShieldSize(gen.getShieldSize()-laserPower*10);
     }
 }

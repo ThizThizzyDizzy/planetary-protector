@@ -2,26 +2,19 @@ package planetaryprotector.game;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.Core;
-import planetaryprotector.Sounds;
-import planetaryprotector.structure.Wreck;
-import planetaryprotector.structure.Plot;
-import planetaryprotector.structure.Skyscraper;
-import planetaryprotector.structure.Base;
-import planetaryprotector.particle.Particle;
 import java.util.ArrayList;
-import java.util.Collections;
-import org.joml.Vector3i;
+import java.util.List;
 import org.lwjgl.opengl.GL11;
-import planetaryprotector.GameObject;
+import planetaryprotector.Core;
 import planetaryprotector.Options;
-import planetaryprotector.structure.ShieldGenerator;
-import planetaryprotector.structure.task.TaskAnimation;
-import planetaryprotector.enemy.Asteroid;
-import planetaryprotector.friendly.ShootingStar;
+import planetaryprotector.Sounds;
 import planetaryprotector.menu.MenuEpilogue2;
 import planetaryprotector.menu.MenuGame;
+import planetaryprotector.particle.Particle;
+import planetaryprotector.structure.Base;
+import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.Wreck;
 public class Epilogue extends Game{//TODO no Display
     private int timer = 195;
     private int i;
@@ -37,13 +30,13 @@ public class Epilogue extends Game{//TODO no Display
             if(structure==null){
                 continue;
             }
-            addStructure(new Wreck(this, structure.x, structure.y, i));
+            addObject(new Wreck(this, (int)structure.getPosition().x, (int)structure.getPosition().y, i));
         }
         phase = 0;
         for(Structure structure : structures){
             if(structure instanceof Base)continue;
             if(structure.type.isBackgroundStructure())continue;
-            replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));
+//            replaceStructure(structure, new Wreck(this, structure.x, structure.y, 0));
         }
         doNotDisturb = true;
         offset = 0;
@@ -53,7 +46,7 @@ public class Epilogue extends Game{//TODO no Display
         updatePhaseMarker = false;
         generatedBBox = getWorldBoundingBox();
     }
-    private static Structure genBuilding(Game game, ArrayList<Structure> structures){
+    private static Structure genBuilding(Game game, List<Structure> structures){
         int buildingX;
         int buildingY;
         int i = 0;
@@ -65,13 +58,13 @@ public class Epilogue extends Game{//TODO no Display
             }
             buildingX = game.rand.nextInt(DizzyEngine.screenSize.x-100);
             buildingY = game.rand.nextInt(DizzyEngine.screenSize.y-100);
-            for(Structure structure : structures){
-                var bbox = structure.getBoundingBox(true);
-                if(bbox.contains(buildingX, buildingY))continue WHILE;
-                if(bbox.contains(buildingX+100, buildingY))continue WHILE;
-                if(bbox.contains(buildingX, buildingY+100))continue WHILE;
-                if(bbox.contains(buildingX+100, buildingY+100))continue WHILE;
-            }
+//            for(Structure structure : structures){
+//                var bbox = structure.getBoundingBox(true);
+//                if(bbox.contains(buildingX, buildingY))continue WHILE;
+//                if(bbox.contains(buildingX+100, buildingY))continue WHILE;
+//                if(bbox.contains(buildingX, buildingY+100))continue WHILE;
+//                if(bbox.contains(buildingX+100, buildingY+100))continue WHILE;
+//            }
             break;
         }
         return new Skyscraper(game, buildingX, buildingY, game.rand.nextInt(40)+10);
@@ -109,40 +102,40 @@ public class Epilogue extends Game{//TODO no Display
             }
         }
         if(offset>=DizzyEngine.screenSize.y)return;
-        if((Sounds.songTimer()>576&&i>1)||i>=10){
-            for(Particle p : clouds){
-                p.tick();
-            }
-            if(rand.nextDouble()<.1){
-                addCloud();
-            }
-            for(int[] p : w){
-                p[0] = rand.nextInt(DizzyEngine.screenSize.x);
-                p[1] = rand.nextInt(DizzyEngine.screenSize.y);
-            }
-            for(int i = 0; i<DizzyEngine.screenSize.y/100; i++){
-                w.add(new int[]{rand.nextInt(DizzyEngine.screenSize.x), rand.nextInt(DizzyEngine.screenSize.y)});
-            }
-            for(Structure structure : structures){
-                if(structure instanceof Wreck&&rand.nextInt(25)==1){
-                    replaceStructure(structure, new Plot(this, structure.x, structure.y));
-                }
-                if(structure instanceof Plot&&rand.nextInt(15)==1){
-                    replaceStructure(structure, new Skyscraper(this, structure.x, structure.y, 1));
-                }
-                if(structure instanceof Skyscraper&&rand.nextInt(4)==1){
-                    Skyscraper sky = (Skyscraper)structure;
-                    sky.floorCount++;
-                }
-            }
-        }
-        while(!structuresToReplace.isEmpty()){
-            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
-            Structure start = list.get(0);
-            Structure end = structuresToReplace.remove(start);
-            removeStructure(start);
-            addStructure(end);
-        }
+//        if((Sounds.songTimer()>576&&i>1)||i>=10){
+//            for(Particle p : clouds){
+//                p.tick();
+//            }
+//            if(rand.nextDouble()<.1){
+//                addCloud();
+//            }
+//            for(int[] p : w){
+//                p[0] = rand.nextInt(DizzyEngine.screenSize.x);
+//                p[1] = rand.nextInt(DizzyEngine.screenSize.y);
+//            }
+//            for(int i = 0; i<DizzyEngine.screenSize.y/100; i++){
+//                w.add(new int[]{rand.nextInt(DizzyEngine.screenSize.x), rand.nextInt(DizzyEngine.screenSize.y)});
+//            }
+//            for(Structure structure : structures){
+//                if(structure instanceof Wreck&&rand.nextInt(25)==1){
+//                    replaceStructure(structure, new Plot(this, structure.x, structure.y));
+//                }
+//                if(structure instanceof Plot&&rand.nextInt(15)==1){
+//                    replaceStructure(structure, new Skyscraper(this, structure.x, structure.y, 1));
+//                }
+//                if(structure instanceof Skyscraper&&rand.nextInt(4)==1){
+//                    Skyscraper sky = (Skyscraper)structure;
+//                    sky.floorCount++;
+//                }
+//            }
+//        }
+//        while(!structuresToReplace.isEmpty()){
+//            ArrayList<Structure> list = new ArrayList<>(structuresToReplace.keySet());
+//            Structure start = list.get(0);
+//            Structure end = structuresToReplace.remove(start);
+//            removeStructure(start);
+//            addStructure(end);
+//        }
         super.tick();
     }
     @Override
@@ -152,61 +145,61 @@ public class Epilogue extends Game{//TODO no Display
             offset = (Sounds.songTimer()-1726)/97.5D;
         }
     }
-    @Override
-    public void renderWorld(Vector3i chunk, double deltaTime){
-        Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
-        for(Structure structure : structures){
-            structure.renderBackground();
-        }
-        for(int[] p : w){
-            Renderer.fillRect(p[0]-5, p[1]-5, p[0]+5, p[1]+5, ResourceManager.getTexture("/textures/worker.png"));
-        }
-        for(TaskAnimation anim : taskAnimations){
-            if(anim.task.isInBackground())anim.draw();
-        }
-        ArrayList<Particle> groundParticles = new ArrayList<>();
-        for(Particle particle : particles){
-            if(!particle.air)groundParticles.add(particle);
-        }
-        ArrayList<GameObject> mainLayer = new ArrayList<>();
-        mainLayer.addAll(groundParticles);
-        mainLayer.addAll(structures);
-        mainLayer.addAll(droppedItems);
-        mainLayer.addAll(workers);
-        for(TaskAnimation anim : taskAnimations){
-            if(!anim.task.isInBackground())mainLayer.add(anim);
-        }
-        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
-            int y1 = (int)o1.y;
-            int height1 = (int)o1.getBoundingBox(false).height;
-            int y2 = (int)o2.y;
-            int height2 = (int)o2.getBoundingBox(false).height;
-            y1 += height1/2;
-            y2 += height2/2;
-            return y1-y2;
-        });
-        for(GameObject o : mainLayer){
-            o.draw();
-        }
-        for(Particle particle : particles){
-            if(particle.air)particle.draw();
-        }
-        //<editor-fold defaultstate="collapsed" desc="Shields">
-        for(Structure structure : structures){
-            if(structure instanceof ShieldGenerator){
-                ShieldGenerator gen = (ShieldGenerator)structure;
-                gen.shield.render(deltaTime);
-            }
-        }
-        //</editor-fold>
-        for(Asteroid asteroid : asteroids){
-            asteroid.draw();
-        }
-        for(ShootingStar star : shootingStars){
-            star.draw();
-        }
-        drawDayNightCycle();
-    }
+//    @Override
+//    public void renderWorld(Vector3i chunk, double deltaTime){
+//        Renderer.fillRect(0, 0, DizzyEngine.screenSize.x, DizzyEngine.screenSize.y, Game.theme.getBackgroundTexture(1));
+//        for(Structure structure : structures){
+//            structure.renderBackground();
+//        }
+//        for(int[] p : w){
+//            Renderer.fillRect(p[0]-5, p[1]-5, p[0]+5, p[1]+5, ResourceManager.getTexture("/textures/worker.png"));
+//        }
+//        for(TaskAnimation anim : taskAnimations){
+//            if(anim.task.isInBackground())anim.draw();
+//        }
+//        ArrayList<Particle> groundParticles = new ArrayList<>();
+//        for(Particle particle : particles){
+//            if(!particle.air)groundParticles.add(particle);
+//        }
+//        ArrayList<GameObject> mainLayer = new ArrayList<>();
+//        mainLayer.addAll(groundParticles);
+//        mainLayer.addAll(structures);
+//        mainLayer.addAll(droppedItems);
+//        mainLayer.addAll(workers);
+//        for(TaskAnimation anim : taskAnimations){
+//            if(!anim.task.isInBackground())mainLayer.add(anim);
+//        }
+//        Collections.sort(mainLayer, (GameObject o1, GameObject o2) -> {
+//            int y1 = (int)o1.y;
+//            int height1 = (int)o1.getBoundingBox(false).height;
+//            int y2 = (int)o2.y;
+//            int height2 = (int)o2.getBoundingBox(false).height;
+//            y1 += height1/2;
+//            y2 += height2/2;
+//            return y1-y2;
+//        });
+//        for(GameObject o : mainLayer){
+//            o.draw();
+//        }
+//        for(Particle particle : particles){
+//            if(particle.air)particle.draw();
+//        }
+//        //<editor-fold defaultstate="collapsed" desc="Shields">
+//        for(Structure structure : structures){
+//            if(structure instanceof ShieldGenerator){
+//                ShieldGenerator gen = (ShieldGenerator)structure;
+//                gen.shield.render(deltaTime);
+//            }
+//        }
+//        //</editor-fold>
+//        for(Asteroid asteroid : asteroids){
+//            asteroid.draw();
+//        }
+//        for(ShootingStar star : shootingStars){
+//            star.draw();
+//        }
+//        drawDayNightCycle();
+//    }
     @Override
     public void render(double deltaTime){
         GL11.glTranslated(0, -DizzyEngine.screenSize.y*offset, 0);

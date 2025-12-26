@@ -1,7 +1,5 @@
 package planetaryprotector.structure.task;
-import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
 import java.util.ArrayList;
 import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
@@ -50,15 +48,15 @@ public class TaskUpgrade extends Task{
         progress++;
         if(structure.type==StructureType.MINE){
             if(game.rand.nextDouble()<=0.025){
-                int itemX = structure.x+game.rand.nextInt(79)+11;
-                int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
-                Item item = null;
-                while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
-                    item = Item.items.get(game.rand.nextInt(Item.items.size()));
-                }
-                game.addItem(new DroppedItem(game, itemX, itemY, item));
+//                int itemX = structure.x+game.rand.nextInt(79)+11;
+//                int itemY = structure.y+game.rand.nextInt(79)+11;
+//                itemX-=5;
+//                itemY-=5;
+//                Item item = null;
+//                while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
+//                    item = Item.items.get(game.rand.nextInt(Item.items.size()));
+//                }
+//                game.addItem(new DroppedItem(game, itemX, itemY, item));
             }
         }
     }
@@ -75,15 +73,15 @@ public class TaskUpgrade extends Task{
     }
     @Override
     public void onCancel() {
-        for(ItemStack stack : structure.type.getUpgradeCosts(structure.level)){
-            for(int i = 0; i<stack.count; i++){
-                int itemX = structure.x+game.rand.nextInt(79)+11;
-                int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
-                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
-            }
-        }
+//        for(ItemStack stack : structure.type.getUpgradeCosts(structure.level)){
+//            for(int i = 0; i<stack.count; i++){
+//                int itemX = structure.x+game.rand.nextInt(79)+11;
+//                int itemY = structure.y+game.rand.nextInt(79)+11;
+//                itemX-=5;
+//                itemY-=5;
+//                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
+//            }
+//        }
     }
     @Override
     public ItemStack[] getTooltip(){

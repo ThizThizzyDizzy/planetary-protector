@@ -1,5 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
@@ -54,54 +53,54 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         if(shootTimer>=0)shootTimer++;
         if(shootTimer>=20)shootTimer = -1;
     }
-    @Override
-    public void render(){
-        super.render();
-        Renderer.setColor(1, 1, 1, 1);
-        float laserSize = (float)Math.max((size/starlightSpeed)*collecting,shootTimer>10?20-shootTimer:shootTimer);
-        if(laserSize>0){
-            float yDiff = -y-100;
-            float dist = Math.abs(yDiff);
-            Renderer.setColor(.8f, .8f, 1, 1);//big outer one
-            for(int i = 0; i<dist; i++){
-                float percent = i/dist;
-                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, laserSize/2f);
-            }
-            Renderer.setColor(.5f, .5f, 1, 1);
-            Renderer.fillRect(x, y+60, x+width, y+70, 0);
-            Renderer.setColor(.9f, .9f, 1, 1);//small inner one
-            for(int i = 0; i<dist; i++){
-                float percent = i/dist;
-                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, (laserSize*(1/3f))/2f);
-            }
-//            Renderer.fillRect(x+1, y+61, x+(width*(1-game.getSunlight()))-1, y+69, 0);
-            Renderer.setColor(1, 1, 1, 1);
-        }
-    }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        if(scanning==1){
-            Renderer.drawCenteredText(x, y, x+width, y+15, "Charging");
-        }
-        if(scanning==2){
-            Renderer.drawCenteredText(x, y, x+width, y+15, "Scanning");
-        }
-        if(!scan.isEmpty()){
-            yOff = height-scan.size()*textHeight;
-            for(String str : scan){
-                text(str);
-            }
-        }
-        if(starlight>0){
-            Renderer.drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
-        }
-        if(collecting>0){
-            Renderer.drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
-        }
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void render(){
+//        super.render();
+//        Renderer.setColor(1, 1, 1, 1);
+//        float laserSize = (float)Math.max((size/starlightSpeed)*collecting,shootTimer>10?20-shootTimer:shootTimer);
+//        if(laserSize>0){
+//            float yDiff = -y-100;
+//            float dist = Math.abs(yDiff);
+//            Renderer.setColor(.8f, .8f, 1, 1);//big outer one
+//            for(int i = 0; i<dist; i++){
+//                float percent = i/dist;
+//                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, laserSize/2f);
+//            }
+//            Renderer.setColor(.5f, .5f, 1, 1);
+//            Renderer.fillRect(x, y+60, x+width, y+70, 0);
+//            Renderer.setColor(.9f, .9f, 1, 1);//small inner one
+//            for(int i = 0; i<dist; i++){
+//                float percent = i/dist;
+//                Renderer.fillRegularPolygon(x+width/2, y+(yDiff*percent)+height/4, 10, (laserSize*(1/3f))/2f);
+//            }
+////            Renderer.fillRect(x+1, y+61, x+(width*(1-game.getSunlight()))-1, y+69, 0);
+//            Renderer.setColor(1, 1, 1, 1);
+//        }
+//    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        if(scanning==1){
+//            Renderer.drawCenteredText(x, y, x+width, y+15, "Charging");
+//        }
+//        if(scanning==2){
+//            Renderer.drawCenteredText(x, y, x+width, y+15, "Scanning");
+//        }
+//        if(!scan.isEmpty()){
+//            yOff = height-scan.size()*textHeight;
+//            for(String str : scan){
+//                text(str);
+//            }
+//        }
+//        if(starlight>0){
+//            Renderer.drawCenteredText(x, y+47, x+width, y+58, "Starlight: "+Math.round(starlight*100)/100d);
+//        }
+//        if(collecting>0){
+//            Renderer.drawCenteredText(x, y+30, x+width, y+45, "+"+Math.round(collecting*100)/100d);
+//        }
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     @Override
     public GameState.Structure save(){
         var state = super.save();
@@ -157,7 +156,7 @@ public class Observatory extends Structure implements PowerConsumer, StarlightPr
         }
     }
     private void text(String str){
-        Renderer.drawText(x, y+yOff, x+width, y+yOff+textHeight, str);
+//        Renderer.drawText(x, y+yOff, x+width, y+yOff+textHeight, str);
         yOff+=textHeight;
     }
     public boolean canAddStar(){

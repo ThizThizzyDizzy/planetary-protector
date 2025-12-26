@@ -1,6 +1,4 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.ResourceManager;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import planetaryprotector.game.GameState;
 public class StructureDamage{
     private final Structure structure;
@@ -25,12 +23,12 @@ public class StructureDamage{
         this.tex2 = tex2;
     }
     public void render(){
-        Renderer.setColor(0, 0, 0, opacity);
-        Renderer.bound(0, -structure.getStructureHeight(), structure.width, structure.height);
-        Renderer.fillRect(x-structure.x, y-structure.y, x+size-structure.x, y+size-structure.y, ResourceManager.getTexture("/textures/structures/damage/"+(tex1+1)+".png"));
-        Renderer.fillRect(x-structure.x, y-structure.y, x+size-structure.x, y+size-structure.y, ResourceManager.getTexture("/textures/structures/damage/"+(tex2+1)+".png"));
-        Renderer.unBound();
-        Renderer.setColor(1, 1, 1, 1);
+//        Renderer.setColor(0, 0, 0, opacity);
+//        Renderer.bound(0, -structure.getStructureHeight(), structure.width, structure.height);
+//        Renderer.fillRect(x-structure.x, y-structure.y, x+size-structure.x, y+size-structure.y, ResourceManager.getTexture("/textures/structures/damage/"+(tex1+1)+".png"));
+//        Renderer.fillRect(x-structure.x, y-structure.y, x+size-structure.x, y+size-structure.y, ResourceManager.getTexture("/textures/structures/damage/"+(tex2+1)+".png"));
+//        Renderer.unBound();
+//        Renderer.setColor(1, 1, 1, 1);
     }
     public GameState.Structure.Damage save(){
         GameState.Structure.Damage damage = new GameState.Structure.Damage();

@@ -9,7 +9,6 @@ import org.joml.Vector2d;
 import org.lwjgl.glfw.GLFW;
 import planetaryprotector.structure.Laboratory;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.game.Game;
 import planetaryprotector.research.DiscoveryPrerequisite;
 import planetaryprotector.research.DiscoveryStage;
 import planetaryprotector.research.Research;
@@ -20,13 +19,13 @@ public class MenuComponentSelectedResearch extends Component{
     public HorizontalLang title = new HorizontalLang();
     private static final int[] nonsense = {4, 4};
     private final Laboratory lab;
-    private final Game game;
+//    private final Game game;
     public MenuComponentSelectedResearch(Laboratory lab, float x, float y, float width, float height){
         this.x = x;
         this.y = y;
         setSize(width, height);
         this.lab = lab;
-        this.game = lab.game;
+//        this.game = lab.game;
     }
     @Override
     public void draw(double deltaTime){
@@ -57,11 +56,11 @@ public class MenuComponentSelectedResearch extends Component{
         if(research.isDiscovered()){
             drawDescription(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40+getWidth()*.3f, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDescription());
         }else{
-            if(game.cheats){
-                drawDescription(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40+getWidth()*.3f, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
-            }else{
-                drawNonsense(x+border, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+getHeight()-border-borderThickness, 40);
-            }
+//            if(game.cheats){
+//                drawDescription(x+border+getWidth()*.3f, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+borderThickness+getWidth()*.15f+40+getWidth()*.3f, x+border, x+getWidth()-border, y+getHeight()-border-borderThickness, 40, research.getDiscoveryStage().getProgressDescription(game));
+//            }else{
+//                drawNonsense(x+border, y+borderThickness+getWidth()*.15f+40, x+getWidth()-border, y+getHeight()-border-borderThickness, 40);
+//            }
         }
         Renderer.setColor(1, 1, 1, 1);
         drawTheImageAndItsBorder(x+border, y+borderThickness+getWidth()*.15f+40, x+border+getWidth()/4, y+borderThickness+getWidth()*.15f+40+getWidth()/4);
@@ -105,15 +104,15 @@ public class MenuComponentSelectedResearch extends Component{
     @Override
     public void onMouseButton(int id, Vector2d pos, int button, int action, int mods){
         super.onMouseButton(id, pos, button, action, mods); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
-        if(button==0&&action==GLFW.GLFW_PRESS&&game.cheats&&mods==(GLFW.GLFW_MOD_CONTROL&GLFW.GLFW_MOD_SHIFT)){
-            if(lab.targetResearch==research)lab.setTargetResearch(null);
-            if(!research.isDiscovered()){
-                research.cheatDiscover();
-            }else if(!research.isCompleted()){
-                research.complete(game);
-            }
-            return;
-        }
+//        if(button==0&&action==GLFW.GLFW_PRESS&&game.cheats&&mods==(GLFW.GLFW_MOD_CONTROL&GLFW.GLFW_MOD_SHIFT)){
+//            if(lab.targetResearch==research)lab.setTargetResearch(null);
+//            if(!research.isDiscovered()){
+//                research.cheatDiscover();
+//            }else if(!research.isCompleted()){
+//                research.complete(game);
+//            }
+//            return;
+//        }
         if(button==0&&action==GLFW.GLFW_PRESS&&research.isDiscovered()&&!research.isCompleted()){
             if(lab.targetResearch==research)lab.setTargetResearch(null);
             else

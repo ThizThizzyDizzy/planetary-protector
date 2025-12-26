@@ -1,9 +1,9 @@
 package planetaryprotector;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
-import com.thizthizzydizzy.dizzyengine.debug.PerformanceOverlay;
+import com.thizthizzydizzy.dizzyengine.debug.performance.PerformanceOverlay;
 import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
-import com.thizthizzydizzy.dizzyengine.graphics.Font;
+import com.thizthizzydizzy.dizzyengine.graphics.text.Font;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.ui.FlatUI;

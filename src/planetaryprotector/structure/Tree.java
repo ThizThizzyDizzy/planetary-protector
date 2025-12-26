@@ -1,10 +1,19 @@
 package planetaryprotector.structure;
+import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import java.util.ArrayList;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
 public class Tree extends Structure{
     public Tree(Game game, int x, int y){
-        super(StructureType.TREE, game, x, y, 10, 4);
+        super(StructureType.TREE, game, x, y);
+    }
+    @Override
+    public AxisAlignedBoundingBox getAxisAlignedBoundingBox(){
+        // The tree renders paper-thin, but we want the bbox bigger, so add some Y
+        var bbox = super.getAxisAlignedBoundingBox();
+        bbox.min.y-=5;
+        bbox.max.y+=5;
+        return bbox;
     }
     @Override
     public String getName(){
@@ -12,7 +21,7 @@ public class Tree extends Structure{
     }
     @Override
     public boolean damage(int x, int y){
-        dead = true;
+//        dead = true;
         return true;
     }
     public static Tree loadSpecific(GameState.Structure state, Game game, int x, int y){

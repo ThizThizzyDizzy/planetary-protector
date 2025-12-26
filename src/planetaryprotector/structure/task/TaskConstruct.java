@@ -1,12 +1,10 @@
 package planetaryprotector.structure.task;
-import planetaryprotector.item.Item;
-import planetaryprotector.item.ItemStack;
-import planetaryprotector.item.DroppedItem;
-import planetaryprotector.structure.Wreck;
-import planetaryprotector.structure.Skyscraper;
 import java.util.ArrayList;
 import planetaryprotector.anim.Animation;
+import planetaryprotector.item.Item;
+import planetaryprotector.item.ItemStack;
 import planetaryprotector.research.ResearchEvent;
+import planetaryprotector.structure.Skyscraper;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.StructureType;
 public class TaskConstruct extends TaskAnimated{
@@ -55,15 +53,15 @@ public class TaskConstruct extends TaskAnimated{
         progress++;
         if(target.type==StructureType.MINE){
             if(game.rand.nextDouble()<=0.05){
-                int itemX = target.x+game.rand.nextInt(79)+11;
-                int itemY = target.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
-                Item item = null;
-                while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
-                    item = Item.items.get(game.rand.nextInt(Item.items.size()));
-                }
-                game.addItem(new DroppedItem(game, itemX, itemY, item));
+//                int itemX = target.x+game.rand.nextInt(79)+11;
+//                int itemY = target.y+game.rand.nextInt(79)+11;
+//                itemX-=5;
+//                itemY-=5;
+//                Item item = null;
+//                while(item!=Item.coal&&item!=Item.stone&&item!=Item.ironOre){
+//                    item = Item.items.get(game.rand.nextInt(Item.items.size()));
+//                }
+//                game.addItem(new DroppedItem(game, itemX, itemY, item));
             }
         }
     }
@@ -90,15 +88,15 @@ public class TaskConstruct extends TaskAnimated{
                 ingots += stack.count;
                 continue;
             }
-            for(int i = 0; i<stack.count; i++){
-                int itemX = structure.x+game.rand.nextInt(79)+11;
-                int itemY = structure.y+game.rand.nextInt(79)+11;
-                itemX-=5;
-                itemY-=5;
-                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
-            }
+//            for(int i = 0; i<stack.count; i++){
+//                int itemX = structure.x+game.rand.nextInt(79)+11;
+//                int itemY = structure.y+game.rand.nextInt(79)+11;
+//                itemX-=5;
+//                itemY-=5;
+//                game.addItem(new DroppedItem(game, itemX, itemY, stack.item));
+//            }
         }
-        game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, ingots));
+//        game.replaceStructure(structure, new Wreck(game, structure.x, structure.y, ingots));
     }
     @Override
     public ItemStack[] getTooltip(){

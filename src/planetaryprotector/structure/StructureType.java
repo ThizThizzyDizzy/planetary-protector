@@ -2,6 +2,7 @@ package planetaryprotector.structure;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import java.util.ArrayList;
 import java.util.function.Function;
+import org.joml.Vector2f;
 import planetaryprotector.anim.Animation;
 import planetaryprotector.game.Game;
 import planetaryprotector.game.GameState;
@@ -20,7 +21,7 @@ public abstract class StructureType{
         public Structure load(GameState.Structure state, Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
             return Tree.loadSpecific(state, game, x, y);
         }
-    }.setDisplayName("Tree").setDecoration(true).setStructureHeight(14));
+    }.setDisplayName("Tree").setDecoration(true).setStructureSize(10, 0).setStructureHeight(18));
     public static final StructureType BASE = registerStructureType(new StructureType("base"){
         @Override
         public Structure createStructure(Game game, int x, int y){
@@ -179,6 +180,7 @@ public abstract class StructureType{
     private double fireDestroyThreshold = 1.1;
     private int structureHeight = 0;
     private boolean isBackgroundStructure = false;
+    private Vector2f size = new Vector2f(100,100);
     public StructureType(String name){
         this.name = name;
     }
@@ -338,6 +340,16 @@ public abstract class StructureType{
     }
     public int getStructureHeight(){
         return structureHeight;
+    }
+    public StructureType setStructureSize(float x, float y){
+        size.set(x,y);
+        return this;
+    }
+    public float getStructureWidth(){
+        return size.x;
+    }
+    public float getStructureDepth(){
+        return size.y;
     }
     public StructureType setBackgroundStructure(boolean b){
         isBackgroundStructure = b;

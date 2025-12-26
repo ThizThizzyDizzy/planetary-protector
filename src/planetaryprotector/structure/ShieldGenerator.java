@@ -1,15 +1,11 @@
 package planetaryprotector.structure;
-import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import java.util.ArrayList;
 import java.util.Iterator;
-import planetaryprotector.enemy.Enemy;
+import planetaryprotector.event.StructureChangeEventListener;
 import planetaryprotector.game.Action;
 import planetaryprotector.game.Game;
-import planetaryprotector.menu.MenuGame;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.event.StructureChangeEventListener;
-import planetaryprotector.game.BoundingBox;
 import planetaryprotector.game.GameState;
+import planetaryprotector.menu.MenuGame;
 public class ShieldGenerator extends Structure implements PowerConsumer, StructureDemolishable, StructureChangeEventListener{
     public double shieldSize = 0;
     public double maxShieldSize = 500;
@@ -26,14 +22,16 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
     public ArrayList<Double> shieldDecals = new ArrayList<>();
     public ShieldGenerator(Game game, int x, int y){
         super(StructureType.SHIELD_GENERATOR, game, x, y, 100, 100);
-        shield = new Shield(this, width/2, height/2);
+        shield = null;
+//        shield = new Shield(this, width/2, height/2);
     }
     public ShieldGenerator(Game game, int x, int y, int level, ArrayList<Upgrade> upgrades){
         super(StructureType.SHIELD_GENERATOR, game, x, y, 100, 100, level, upgrades);
         canBlast = level>=10;
         shieldStrength = getStats(level);
         maxShieldSize += (level)*250;
-        shield = new Shield(this, width/2, height/4);
+        shield = null;
+//        shield = new Shield(this, width/2, height/4);
     }
     public void blast(){
         if(!canBlast||blastRecharge!=0)return;
@@ -56,23 +54,23 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         }
         if(blastRecharge>0)blastRecharge--;
         if(blastRecharge<0){//<editor-fold defaultstate="collapsed" desc="Shield blast">
-            blastRecharge++;
-            BoundingBox city = game.getCityBoundingBox();
-            double size = ((city.width*1.8)-(((-blastRecharge)%10)*(city.width/5)));
-            shieldSize = size;
-            game.pushParticles(x+width/2, y+height/2, size, size/50, Particle.PushCause.SHEILD_BLAST);
-            if(size==0){
-                for(Enemy enemy : game.enemies){
-                    enemy.shieldBlast();
-                }
-                game.meteorShower = false;
-                game.meteorTimer++;
-            }
-            if(blastRecharge==0){
-                blastRecharge = 20*60*10;
-                shieldSize = 0;
-                power = 0;
-            }
+//            blastRecharge++;
+//            BoundingBox city = game.getCityBoundingBox();
+//            double size = ((city.width*1.8)-(((-blastRecharge)%10)*(city.width/5)));
+//            shieldSize = size;
+//            game.pushParticles(x+width/2, y+height/2, size, size/50, Particle.PushCause.SHEILD_BLAST);
+//            if(size==0){
+//                for(Enemy enemy : game.enemies){
+//                    enemy.shieldBlast();
+//                }
+//                game.meteorShower = false;
+//                game.meteorTimer++;
+//            }
+//            if(blastRecharge==0){
+//                blastRecharge = 20*60*10;
+//                shieldSize = 0;
+//                power = 0;
+//            }
         }//</editor-fold>
         double surface = 2*Math.PI*Math.pow(shieldSize/2, 2);
         if(projectorTarget!=null){
@@ -93,18 +91,18 @@ public class ShieldGenerator extends Structure implements PowerConsumer, Structu
         }
         shieldSize = Math.max(0, Math.min(maxShieldSize, shieldSize));
     }
-    @Override
-    public void renderBackground(){
-        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
-        super.renderBackground();
-    }
-    @Override
-    public void renderForeground(){
-        super.renderForeground();
-        Game.theme.applyTextColor();
-        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
-        Renderer.setColor(1, 1, 1, 1);
-    }
+//    @Override
+//    public void renderBackground(){
+//        Renderer.fillRect(x, y, x+width, y+height, StructureType.EMPTY_PLOT.getTexture());
+//        super.renderBackground();
+//    }
+//    @Override
+//    public void renderForeground(){
+//        super.renderForeground();
+//        Game.theme.applyTextColor();
+//        Renderer.drawCenteredText(x, y+height-20, x+width, y+height, "Level "+level);
+//        Renderer.setColor(1, 1, 1, 1);
+//    }
     /**
      * @return the shieldSize
      */
