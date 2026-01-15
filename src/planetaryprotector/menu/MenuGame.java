@@ -1,6 +1,7 @@
 package planetaryprotector.menu;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import com.thizthizzydizzy.dizzyengine.discord.DiscordPresence;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.FlatUI;
@@ -164,6 +165,43 @@ public class MenuGame extends Menu{
         if(DizzyEngine.isKeyDown(Controls.down)){
             yOff += maxZoom/zoom*panFac;
         }
+        AxisAlignedBoundingBox worldBBox = game.getWorldBoundingBox();
+        float viewWidth = getWidth()/zoom;
+        float viewHeight = getHeight()/zoom;
+        
+        double minY = worldBBox.min.y;
+        double padding = game.getYGamePadding();
+        
+        for(Structure s : game.structures){
+            double top = s.getPosition().y - s.getStructureHeight()*game.getShearFactor();
+            double requiredY = top - padding * 0.25;
+            if(requiredY < minY){
+                minY = requiredY;
+            }
+        }
+        
+        float minX = worldBBox.min.x + viewWidth/2;
+        float maxX = worldBBox.max.x - viewWidth/2;
+        float topY = (float)minY + viewHeight/2;
+        float bottomY = worldBBox.max.y - viewHeight/2;
+        
+        if(xOff < minX) xOff = minX;
+        if(xOff > maxX) xOff = maxX;
+        
+        if(yOff < topY) yOff = topY;
+        if(yOff > bottomY) yOff = bottomY;
+        
+        // Handle case where view is larger than bounds (center it)
+        if(minX > maxX) xOff = (worldBBox.min.x + worldBBox.max.x)/2;
+        if(topY > bottomY) yOff = (float)(minY + worldBBox.max.y)/2;
+        
+//        AxisAlignedBoundingBox bbox = game.getWorldBoundingBox();
+//        float viewWidth = getWidth()/zoom;
+//        float viewHeight = getHeight()/zoom;
+//        if(xOff < bbox.min.x + viewWidth/2) xOff = bbox.min.x + viewWidth/2;
+//        if(xOff > bbox.max.x - viewWidth/2) xOff = bbox.max.x - viewWidth/2;
+//        if(yOff < bbox.min.y + viewHeight/2 - 400) yOff = bbox.min.y + viewHeight/2 - 400; // Allow panning up a bit
+//        if(yOff > bbox.max.y - viewHeight/2) yOff = bbox.max.y - viewHeight/2;
 //        BoundingBox bbox = game.getCityBoundingBox();
 //        if(xOff>bbox.getRight())xOff = bbox.getRight();
 //        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
