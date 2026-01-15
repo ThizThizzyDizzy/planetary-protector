@@ -25,7 +25,10 @@ public class Skyscraper extends Structure implements StructureDemolishable{
     public Skyscraper(Game game, int x, int y, int floors){
         super(StructureType.SKYSCRAPER, game, x, y, 100, 100);
         this.floorCount = floors;
+        //briefly make it not static to supress the warning
+        setStatic(false);
         setSize(new Vector3f(100, 100, getStructureHeight()));
+        setStatic(true);
     }
     @Override
     public void tick(){
@@ -37,7 +40,7 @@ public class Skyscraper extends Structure implements StructureDemolishable{
         if(falling){
             for(Iterator<Particle> it = fires.iterator(); it.hasNext();){
                 Particle fire = it.next();
-                fire.y+=fallSpeed;
+                fire.setPosition(fire.getPosition().add(0,fallSpeed,0));
                 fire.offsetSubParticles(fallSpeed);
 //                if(fire.y-50>0){
 //                    it.remove();

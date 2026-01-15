@@ -4,13 +4,13 @@ import com.thizthizzydizzy.dizzyengine.Framebuffer;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.ui.Menu;
-import planetaryprotector.game.Game;
 import java.util.ArrayList;
 import java.util.Random;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.Core;
 import planetaryprotector.Sounds;
+import planetaryprotector.game.Game;
 import planetaryprotector.particle.Particle;
 import planetaryprotector.particle.ParticleEffectType;
 public class MenuLost extends Menu{
@@ -66,7 +66,7 @@ public class MenuLost extends Menu{
             if(laserBig){
                 if(!explosion){
                     explosion = true;
-                    game.addParticleEffect(new Particle(game, laserFiring[0], laserFiring[1], ParticleEffectType.EXPLOSION, 10, false){
+                    game.addParticleEffect(new Particle(game, laserFiring[0], laserFiring[1], ParticleEffectType.EXPLOSION, 10){
                         @Override
                         public void tick(){
                             radius += 80;

@@ -2,15 +2,15 @@ package planetaryprotector.friendly;
 import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import planetaryprotector.particle.Particle;
-import planetaryprotector.particle.ParticleEffectType;
 import org.lwjgl.opengl.GL11;
 import planetaryprotector.GameObject;
 import planetaryprotector.Options;
+import planetaryprotector.game.Game;
 import planetaryprotector.item.DroppedItem;
 import planetaryprotector.item.Item;
-import planetaryprotector.game.Game;
 import planetaryprotector.menu.component.ZComponent;
+import planetaryprotector.particle.Particle;
+import planetaryprotector.particle.ParticleEffectType;
 public class ShootingStar extends GameObject implements ZComponent{
     private final int particleResolution = Options.options.particles+1;
     public int landing = 0;
@@ -57,7 +57,7 @@ public class ShootingStar extends GameObject implements ZComponent{
             X -= dX;
             Y -= dY;
             Particle particle = new Particle(game, (int)X, (int)Y, ParticleEffectType.SMOKE, 1, true);
-            particle.width = particle.height = 25;
+//            particle.width = particle.height = 25;
             game.addParticleEffect(particle);
         }
     }

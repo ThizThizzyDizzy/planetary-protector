@@ -1,27 +1,24 @@
 package planetaryprotector.particle;
-import com.thizthizzydizzy.dizzyengine.ResourceManager;
+import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
-import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import planetaryprotector.Options;
 import planetaryprotector.enemy.Enemy;
 import planetaryprotector.enemy.EnemyMothership;
 import planetaryprotector.game.Game;
 public class ParticleFog extends Particle{
-    public static final int SIZE = 200;
-    public ParticleFog(Game game, int x, int y, boolean air, float opacity){
+    public static final int SIZE = 500;
+    public ParticleFog(Game game, int x, int y, float z, float opacity){
         super(game, x, y, ParticleEffectType.FOG);
-        x+=(game.rand.nextDouble()-.5)*SIZE/10;
-        y+=(game.rand.nextDouble()-.5)*SIZE/10;
-        width = height = SIZE;
-        this.air = air;
+        setPosition(getPosition().add((float)(game.rand.nextDouble()-.5)*SIZE/20, (float)(game.rand.nextDouble()-.5)*SIZE/20, z+(float)(game.rand.nextDouble())*SIZE/20));
+        setSize(new Vector3f(SIZE));
         this.opacity = opacity;
         rotSpeed = game.rand.nextDouble()*10-5;
     }
     @Override
-    public void draw(){
-        if(dead){
-            return;
-        }
+    public void preRender(){
+        super.preRender();
+        var game = DizzyEngine.getLayer(Game.class);
         float lightness = 1;
         float redTint = 0;
         switch(game.phase){
@@ -36,7 +33,7 @@ public class ParticleFog extends Particle{
                 int mothershipPhase = 0;
                 for(Enemy e : game.enemies){
                     if(e instanceof EnemyMothership){
-                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership) e).phase);
+                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership)e).phase);
                     }
                 }
                 if(mothershipPhase>=0){
@@ -65,24 +62,21 @@ public class ParticleFog extends Particle{
                 lightness = 1;
         }
         if(Game.theme==Game.Theme.SPOOKY){
-            redTint+=.01;
-            lightness-=.125;
+            redTint += .01;
+            lightness -= .125;
         }
         if(Game.theme==Game.Theme.SNOWY){
             lightness = (float)Math.sqrt(lightness);
         }
         Renderer.setColor(lightness, lightness-redTint, lightness-redTint, opacity*Options.options.fogIntensity);
-        Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate((float)Math.toRadians(rotation), 0, 0, 1));
-        Renderer.fillRect(-2*(width/2), -2*(height/2), 2*(width/2), 2*(height/2), ResourceManager.getTexture(images[0]));
-        Renderer.popModel();
-        Renderer.setColor(1,1,1,1);
     }
     @Override
     public void tick(){
-        rotation+=rotSpeed;
-        x+=5;
-//        if(x>game.getCityBoundingBox().getRight()+game.getXGamePadding()){
-//            dead = true;
-//        }
+        var game = DizzyEngine.getLayer(Game.class);
+        rotation += rotSpeed;
+        setPosition(getPosition().add(5, 0, 0));
+        if(getPosition().x>game.getCityBoundingBox().max.x+game.getXGamePadding()+SIZE){
+            remove();
+        }
     }
 }

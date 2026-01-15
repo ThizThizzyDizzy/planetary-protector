@@ -3,6 +3,7 @@ import com.thizthizzydizzy.dizzyengine.DizzyEngine;
 import com.thizthizzydizzy.dizzyengine.MathUtil;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
+import com.thizthizzydizzy.dizzyengine.debug.performance.PerformanceTracker;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.logging.Logger;
@@ -144,7 +145,7 @@ public class Game extends ThreeQuarterWorldLayer{
     public ArrayList<TaskAnimation> taskAnimations = new ArrayList<>();
     public ArrayList<Asteroid> asteroids = new ArrayList<>();
     public ArrayList<ShootingStar> shootingStars = new ArrayList<>();
-    public ArrayList<Particle> particles = new ArrayList<>();
+    public final List<Particle> particles;
     public boolean hideSkyscrapers = false;
     public boolean showPowerNetworks = false;
     private int saveTimer = 0;
@@ -182,7 +183,7 @@ public class Game extends ThreeQuarterWorldLayer{
 //        createObjectIndex(Drone.class);
 //        createObjectIndex(Asteroid.class);
 //        createObjectIndex(ShootingStar.class);
-//        createObjectIndex(Particle.class);
+        particles = createObjectIndex(Particle.class);
     }
     public static Game generate(String name, int level, WorldGenerator worldGenerator, BoundingBox cityBBox, Story story, boolean tutorial){
         Game game = new Game(name, level, worldGenerator, story, tutorial);
@@ -222,6 +223,10 @@ public class Game extends ThreeQuarterWorldLayer{
         Renderer.fillXZRect(bbox.min.x-screenSize.x, 0, bbox.max.x+screenSize.x, screenSize.y+borderWallHeight, bbox.min.y, 0); // top (vertical)
         Renderer.fillXYRect(bbox.min.x, bbox.max.y+getShearFactor()*borderWallHeight, bbox.max.x, bbox.max.y+screenSize.y+getShearFactor()*borderWallHeight, borderWallHeight, 0);//bottom
     }
+    @Override
+    public synchronized void render(double deltaTime){
+        super.render(deltaTime);
+    }
     @Deprecated
     public synchronized void renderBackground(){
 //        Collections.sort(structures, (Structure o1, Structure o2) -> (o1.y+o1.height/2)-(o2.y+o2.height/2));//TODO only sort structures when stuff is added to the list!
@@ -238,19 +243,12 @@ public class Game extends ThreeQuarterWorldLayer{
     }
     @Deprecated
     public synchronized void fakeRenderWorld(Vector3i chunk, double deltaTime){
-//        for(Structure structure : structures){
-//            structure.renderBackground();
-//        }
+        PerformanceTracker.push("FAKE Task Animations");
         for(TaskAnimation anim : taskAnimations){
             if(anim.task.isInBackground())anim.draw();
         }
-        ArrayList<Particle> groundParticles = new ArrayList<>();
-        for(Particle particle : particles){
-            if(!particle.air)groundParticles.add(particle);
-        }
+        PerformanceTracker.pop();
         ArrayList<GameObject> mainLayer = new ArrayList<>();
-        mainLayer.addAll(groundParticles);
-//        mainLayer.addAll(structures);
         mainLayer.addAll(droppedItems);
         mainLayer.addAll(workers);
         for(Enemy e : enemies){
@@ -268,12 +266,14 @@ public class Game extends ThreeQuarterWorldLayer{
             }
         }
         var viewBbox = getViewBoundingBox();
+        PerformanceTracker.push("FAKE main layer");
         for(GameObject o : mainLayer){
             if(o!=null){
                 if(!viewBbox.intersects(o.getBoundingBox(true).toAABB()))continue;
                 o.draw();
             }
         }
+        PerformanceTracker.pop();
         if(showPowerNetworks){
             for(PowerNetwork n : powerNetworks){
                 n.draw();
@@ -282,12 +282,12 @@ public class Game extends ThreeQuarterWorldLayer{
                 s.draw();
             }
         }
-        for(Particle particle : particles){
-            if(particle.air)particle.draw();
-        }
+        PerformanceTracker.push("FAKE drones");
         for(Drone drone : drones){
             drone.draw();
         }
+        PerformanceTracker.pop();
+        PerformanceTracker.push("FAKE shields");
         //<editor-fold defaultstate="collapsed" desc="Shields">
         for(Structure structure : structures){
             if(structure instanceof ShieldGenerator){
@@ -296,16 +296,25 @@ public class Game extends ThreeQuarterWorldLayer{
             }
         }
         //</editor-fold>
+        PerformanceTracker.pop();
+        PerformanceTracker.push("FAKE asteroids");
         for(Asteroid asteroid : asteroids){
             asteroid.draw();
         }
+        PerformanceTracker.pop();
+        PerformanceTracker.push("FAKE shooting stars");
         for(ShootingStar star : shootingStars){
             star.draw();
         }
+        PerformanceTracker.pop();
+        PerformanceTracker.push("FAKE enemies");
         for(Enemy e : enemies){
             if(!(e instanceof EnemyAlien))e.draw();
         }
+        PerformanceTracker.pop();
+        PerformanceTracker.push("FAKE day/night cycle");
         drawDayNightCycle();
+        PerformanceTracker.pop();
     }
     public void click(int x, int y, int button){
         if(button==0){
@@ -331,7 +340,6 @@ public class Game extends ThreeQuarterWorldLayer{
         }
     }
     public synchronized void tick(){
-        if(true)return;
         cachedCityBoundingBox = null;
         AxisAlignedBoundingBox worldBBox = getWorldBoundingBox().expand(worldGenerator.getGenerationBuffer());
         if(worldBBox.min.x<generatedBBox.min.x){
@@ -481,10 +489,9 @@ public class Game extends ThreeQuarterWorldLayer{
             shootingStar.tick();
             if(shootingStar.dead)it.remove();
         }
-        for(Iterator<Particle> it = particles.iterator(); it.hasNext();){
-            Particle particle = it.next();
+        for(int i = 0; i<particles.size(); i++){
+            var particle = particles.get(i);
             particle.tick();
-            if(particle.dead)it.remove();
         }
         for(Structure s : structures){
             if(s instanceof Laboratory){
@@ -837,7 +844,7 @@ public class Game extends ThreeQuarterWorldLayer{
         return count;
     }
     public Particle addParticleEffect(Particle particle){
-        particles.add(particle);
+        addObject(particle);
         return particle;
     }
     public void addWorker(){
@@ -1335,13 +1342,22 @@ public class Game extends ThreeQuarterWorldLayer{
         double density = a*fogIntensity;
         float o1 = (float)density;
         float o2 = (float)(density*height);
-        double size = ParticleFog.SIZE*.75;
+        double size = ParticleFog.SIZE/2*.75;
         AxisAlignedBoundingBox bbox = getWorldBoundingBox();
         int count = (int)(bbox.getHeight()/size+1);
         double xOffset = count/size;
+//        for(int i = 0; i<count*10; i++){
+//            float x = (int)(bbox.min.x-size-xOffset*i);
+//            float y = (int)(bbox.min.y+bbox.getHeight()*rand.nextFloat());
+//            float zMult = (float)(0.5+Math.abs(rand.nextGaussian()));
+//            float z = ParticleFog.SIZE*zMult;
+//            float particleDensity = MathUtil.lerp(o1, o2, zMult);
+//            addParticleEffect(new ParticleFog(this, (int)x, (int)y, z, particleDensity));
+//        }
+        float stagger = (float)(rand.nextFloat()*size);
         for(int i = 0; i<count; i++){
-            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size*2-xOffset*i), (int)(bbox.min.y+i*size-50), false, o1));
-            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size*2-xOffset*i), (int)(bbox.min.y+i*size-50), true, o2));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size-xOffset*i), (int)(bbox.min.y+i*size-50+stagger), ParticleFog.SIZE/2, o1));
+            addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size-xOffset*i), (int)(bbox.min.y+i*size-50+stagger), ParticleFog.SIZE*1.2f, o2));
         }
     }
     private void stopFog(){
@@ -1432,8 +1448,8 @@ public class Game extends ThreeQuarterWorldLayer{
      */
     public void pushParticles(int x, int y, double radius, double distance, double fadeFactor, Particle.PushCause cause){
         for(Particle particle : particles){
-            if(particle.getPosition().distance(x, y)<=radius){
-                double mult = 1-(particle.getPosition().distance(x, y)/radius);
+            if(particle.getPosition().distance(x, y, 0)<=radius){
+                double mult = 1-(particle.getPosition().distance(x, y, 0)/radius);
                 double distX = particle.getX()-x;
                 double distY = particle.getY()-y;
                 double totalDist = Math.sqrt(distX*distX+distY*distY);

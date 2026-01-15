@@ -60,12 +60,9 @@ public abstract class Structure extends ThreeQuarterWorldObject{
         if(fire-fireDamage*type.getFireDestroyThreshold()*.1>=type.getFireDestroyThreshold()*.1){
             Vector3f pos = getRandSurfacePosition(game.rand);
             damages.add(new StructureDamage(this, pos.x-25, pos.y-25));
-            fires.add(new Particle(game, (int)pos.x-25, (int)pos.y-25, ParticleEffectType.FIRE));
+            fires.add(game.addParticleEffect(new Particle(game, (int)pos.x-25, (int)pos.y-25, ParticleEffectType.FIRE)));
             ignite();
             fireDamage++;
-        }
-        for(Particle particle : fires){
-            particle.tick();
         }
         if(damages.size()>=type.getDamageDestroyThreshold()){
             destroy();
@@ -117,11 +114,11 @@ public abstract class Structure extends ThreeQuarterWorldObject{
             Renderer.setColor(1, 1, 1, 1);
         }
         fakeRenderForeground();
-        Renderer.pushModel(new Matrix4f().translate(getPosition().x, getPosition().y, 0));
-        for(Particle fire : fires){
-            fire.draw();
-        }
-        Renderer.popModel();
+//        Renderer.pushModel(new Matrix4f().translate(getPosition().x, getPosition().y, 0));
+//        for(Particle fire : fires){
+//            fire.draw();
+//        }
+//        Renderer.popModel();
     }
     @Deprecated
     public void fakeRenderForeground(){
@@ -183,7 +180,7 @@ public abstract class Structure extends ThreeQuarterWorldObject{
         s.fireDamage = state.fireDamage;
         s.fireIncreaseRate = state.fireIncreaseRate;
         for(var fire : state.fires){
-            s.fires.add(new Particle(game, fire.x, fire.y, ParticleEffectType.FIRE));
+            s.fires.add(game.addParticleEffect(new Particle(game, fire.x, fire.y, ParticleEffectType.FIRE)));
         }
         return s;
     }
@@ -207,8 +204,8 @@ public abstract class Structure extends ThreeQuarterWorldObject{
         state.fireIncreaseRate = fireIncreaseRate;
         for(var fire : fires){
             GameState.Structure.Fire f = new GameState.Structure.Fire();
-            f.x = fire.x;
-            f.y = fire.y;
+            f.x = (int)fire.getX();
+            f.y = (int)fire.getY();
             state.fires.add(f);
         }
         if(this instanceof PowerConsumer){
@@ -230,7 +227,7 @@ public abstract class Structure extends ThreeQuarterWorldObject{
         if(this instanceof Base){
             y-=25;
         }
-        fires.add(new Particle(game, x-25, y-25, ParticleEffectType.FIRE));
+        fires.add(game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.FIRE)));
     }
     public final boolean onHit(int x, int y){
         if(shield!=null){
@@ -260,10 +257,10 @@ public abstract class Structure extends ThreeQuarterWorldObject{
     }
     public void clearFires(){
         for(Particle fire : fires){
-            fire.x+=getPosition().x;
-            fire.y+=getPosition().y;
+//            fire.x+=getPosition().x;
+//            fire.y+=getPosition().y;
             fire.fading = true;
-            game.addParticleEffect(fire);
+//            game.addParticleEffect(fire);
         }
         fires.clear();
     }

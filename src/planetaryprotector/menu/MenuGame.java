@@ -47,7 +47,7 @@ public class MenuGame extends Menu{
     private float yOff = 0;
     private float zoom = 1;
     public static final float minZoom = .5f;
-    public static final float maxZoom = 5;
+    public static final float maxZoom = 2f;
     private float zoomFac = .05f;
     private float panFac = 7;
     public MenuGame(Game game){
@@ -123,7 +123,7 @@ public class MenuGame extends Menu{
 //</editor-fold>
         if(game.fading)game.blackScreenOpacity += 0.01;
         if(!game.paused){
-            game.tick();
+//            game.tick();
             game.story.tick(game);
         }
         if(game.lost&&game.phase>3){
