@@ -4,6 +4,7 @@ import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import com.thizthizzydizzy.dizzyengine.graphics.Material;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.Shader;
 import com.thizthizzydizzy.dizzyengine.graphics.batch.Instanceable;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
 import com.thizthizzydizzy.dizzyengine.graphics.mesh.Mesh;
@@ -33,6 +34,10 @@ public class Particle extends SizedWorldObject implements Instanceable{
     protected double rotSpeed = 1;
     private static final double lightningChance = 0.0005;
     //FIRE
+    private static Shader shader;
+    public static void init(){
+        shader = Shader.loadInternal("particle.vert", "particle.frag");
+    }
     public boolean fading;
     public Lightning lightning = null;
     private ArrayList<float[]> snow = new ArrayList<>();
@@ -42,7 +47,7 @@ public class Particle extends SizedWorldObject implements Instanceable{
     public Particle(Game game, int x, int y, ParticleEffectType type, int size){
         setPosition(new Vector3f(x, y, 25));
         setSize(new Vector3f(50));
-        setMaterial(new Material(null, ResourceManager.getTexture(type.images[0])));
+        setMaterial(new Material(shader, ResourceManager.getTexture(type.images[0])));
         this.type = type;
         this.size = size;
         if(type==ParticleEffectType.CLOUD){
@@ -192,6 +197,7 @@ public class Particle extends SizedWorldObject implements Instanceable{
         if(type==ParticleEffectType.CLOUD){
             strength += rateOfChange;
             rotation += rotSpeed;
+            opacity = (float)(Math.log10(strength/(rainThreshold/4))*.75f);
             if(getX()>game.getCityBoundingBox().max.x+game.getXGamePadding()){
                 remove();
             }
@@ -297,13 +303,17 @@ public class Particle extends SizedWorldObject implements Instanceable{
     }
     @Override
     public boolean canInstance(WorldObject other){
-        return other instanceof Particle p&&p.type==type&&p.opacity==opacity;
+        return other instanceof Particle p&&p.type==type;
     }
     private Mesh mesh;
     @Override
     public Mesh getMesh(){
         if(mesh==null)mesh = generateMesh();
         return mesh;
+    }
+    @Override
+    public float[] getInstanceData(){
+        return new float[]{opacity};
     }
     protected Mesh generateMesh(){
         var builder = new AxialQuadMeshBuilder();
@@ -314,15 +324,14 @@ public class Particle extends SizedWorldObject implements Instanceable{
     public void preRender(){
         GL11.glDepthMask(false);
         switch(type){
-            case SMOKE -> Renderer.setColor(Color.BLACK, opacity);
+            case SMOKE -> Renderer.setColor(Color.BLACK, 1);
             case CLOUD -> {
-                opacity = (float)(Math.log10(strength/(rainThreshold/4))*.75f);
                 float lightness = 1-((strength-(rainThreshold*(3/4f)))/50);
                 if(Game.theme==Game.Theme.SNOWY)
                     lightness = (float)Math.sqrt(lightness);
-                Renderer.setColor(lightness, lightness, lightness, opacity*Options.options.cloudIntensity);
+                Renderer.setColor(lightness, lightness, lightness, Options.options.cloudIntensity);
             }
-            default -> Renderer.setColor(Color.WHITE, opacity);
+            default -> Renderer.setColor(Color.WHITE, 1);
         }
     }
     @Override

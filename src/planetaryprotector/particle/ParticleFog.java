@@ -68,7 +68,7 @@ public class ParticleFog extends Particle{
         if(Game.theme==Game.Theme.SNOWY){
             lightness = (float)Math.sqrt(lightness);
         }
-        Renderer.setColor(lightness, lightness-redTint, lightness-redTint, opacity*Options.options.fogIntensity);
+        Renderer.setColor(lightness, lightness-redTint, lightness-redTint, Options.options.fogIntensity);
     }
     @Override
     public void tick(){

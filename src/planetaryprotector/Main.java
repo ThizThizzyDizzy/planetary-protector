@@ -23,12 +23,15 @@ import planetaryprotector.game.Story;
 import planetaryprotector.game.WorldGenerator;
 import planetaryprotector.menu.MenuGame;
 import planetaryprotector.menu.MenuLoadTextures;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.structure.Structure.Upgrade;
 import planetaryprotector.structure.StructureType;
 import planetaryprotector.ui.component.layer.ButtonBackgroundLayer;
 public class Main{
     public static void main(String[] args){
         DizzyEngine.init("Planetary Protector");
+        //initialize static stuff that requires GL context
+        Particle.init();
         DizzyEngine.addFixedUpdateThread("Tick Thread", Main::tick, () -> {
             saveOptions();
         }, 20);
