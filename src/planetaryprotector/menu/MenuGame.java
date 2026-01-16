@@ -28,12 +28,12 @@ import planetaryprotector.game.Game;
 import planetaryprotector.game.Notification;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
-import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.component.MenuComponentActionButton;
 import planetaryprotector.menu.component.MenuComponentFalling;
 import planetaryprotector.menu.component.MenuComponentRising;
 import planetaryprotector.menu.ingame.MenuComponentOverlay;
 import planetaryprotector.menu.ingame.MenuIngame;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.structure.Structure;
 import planetaryprotector.structure.Structure.Upgrade;
 public class MenuGame extends Menu{
@@ -57,145 +57,146 @@ public class MenuGame extends Menu{
     }
     @Override
     public void render(double deltaTime){
-        //<editor-fold defaultstate="collapsed" desc="Tick">
-        if(game.updatePhaseMarker){
-            game.paused = true;
-            game.updatePhaseMarker = false;
-            createPhaseMarker();
-        }
-        if(phaseMarker!=null){
-            if(phaseMarker.opacity<0)phaseMarker = null;
-        }
-        //<editor-fold defaultstate="collapsed" desc="Discord">
-        DiscordPresence.setState("");
-        DiscordPresence.setSmallImage("", "");
-        switch(game.phase){
-            case 1:
-                DiscordPresence.setDetails("Phase 1 - Armogeddon");
-                DiscordPresence.setLargeImage("base", "Phase 1 - Armogeddon");
-                break;
-            case 2:
-                DiscordPresence.setDetails("Phase 2 - Reconstruction");
-                DiscordPresence.setLargeImage("skyscraper", "Phase 2 - Reconstruction");
-                int maxPop = game.calculatePopulationCapacity();
-                DiscordPresence.setState("Pop. Cap.: "+maxPop/1000+"k/"+game.targetPopulation/1000+"k ("+Math.round(maxPop/(double)game.targetPopulation*10000D)/100D+"%)");
-                break;
-            case 3:
-                DiscordPresence.setDetails("Phase 3 - Repopulation");
-                DiscordPresence.setLargeImage("city", "Phase 3 - Repopulation");
-                int pop = game.calculatePopulation();
-                maxPop = game.calculatePopulationCapacity();
-                DiscordPresence.setState("Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
-                break;
-            case 4:
-                int mothershipPhase = 0;
-                for(Enemy e : game.enemies){
-                    if(e instanceof EnemyMothership){
-                        mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership)e).phase);
+        synchronized(game){
+            //<editor-fold defaultstate="collapsed" desc="Tick">
+            if(game.updatePhaseMarker){
+                game.paused = true;
+                game.updatePhaseMarker = false;
+                createPhaseMarker();
+            }
+            if(phaseMarker!=null){
+                if(phaseMarker.opacity<0)phaseMarker = null;
+            }
+            //<editor-fold defaultstate="collapsed" desc="Discord">
+            DiscordPresence.setState("");
+            DiscordPresence.setSmallImage("", "");
+            switch(game.phase){
+                case 1:
+                    DiscordPresence.setDetails("Phase 1 - Armogeddon");
+                    DiscordPresence.setLargeImage("base", "Phase 1 - Armogeddon");
+                    break;
+                case 2:
+                    DiscordPresence.setDetails("Phase 2 - Reconstruction");
+                    DiscordPresence.setLargeImage("skyscraper", "Phase 2 - Reconstruction");
+                    int maxPop = game.calculatePopulationCapacity();
+                    DiscordPresence.setState("Pop. Cap.: "+maxPop/1000+"k/"+game.targetPopulation/1000+"k ("+Math.round(maxPop/(double)game.targetPopulation*10000D)/100D+"%)");
+                    break;
+                case 3:
+                    DiscordPresence.setDetails("Phase 3 - Repopulation");
+                    DiscordPresence.setLargeImage("city", "Phase 3 - Repopulation");
+                    int pop = game.calculatePopulation();
+                    maxPop = game.calculatePopulationCapacity();
+                    DiscordPresence.setState("Population: "+pop/1000+"k/"+maxPop/1000+"k ("+Math.round(pop/(double)maxPop*10000D)/100D+"%)");
+                    break;
+                case 4:
+                    int mothershipPhase = 0;
+                    for(Enemy e : game.enemies){
+                        if(e instanceof EnemyMothership){
+                            mothershipPhase = Math.max(mothershipPhase, ((EnemyMothership)e).phase);
+                        }
                     }
-                }
-                if(mothershipPhase>0){
-                    DiscordPresence.setDetails("Boss Fight - Phase "+mothershipPhase);
-                    DiscordPresence.setLargeImage(switch(mothershipPhase){
-                        case 1 ->
-                            "mothership_1";
-                        case 2 ->
-                            "mothership_2";
-                        case 3 ->
-                            "mothership_3";
-                        case 4 ->
-                            "mothership_4";
-                        default ->
-                            "";
-                    }, "Boss Fight - Phase "+mothershipPhase);
+                    if(mothershipPhase>0){
+                        DiscordPresence.setDetails("Boss Fight - Phase "+mothershipPhase);
+                        DiscordPresence.setLargeImage(switch(mothershipPhase){
+                            case 1 ->
+                                "mothership_1";
+                            case 2 ->
+                                "mothership_2";
+                            case 3 ->
+                                "mothership_3";
+                            case 4 ->
+                                "mothership_4";
+                            default ->
+                                "";
+                        }, "Boss Fight - Phase "+mothershipPhase);
 
-                }
-                break;
-        }
-        if(game.meteorShower){
-            DiscordPresence.setState("Meteor Shower!");
-            DiscordPresence.setSmallImage("asteroid_stone", "Meteor Shower!");
-        }
-        if(game.lost){
-            DiscordPresence.setState("Game Over");
-        }
-        if(game.won){
-            DiscordPresence.setState("Victory!");
-        }
+                    }
+                    break;
+            }
+            if(game.meteorShower){
+                DiscordPresence.setState("Meteor Shower!");
+                DiscordPresence.setSmallImage("asteroid_stone", "Meteor Shower!");
+            }
+            if(game.lost){
+                DiscordPresence.setState("Game Over");
+            }
+            if(game.won){
+                DiscordPresence.setState("Victory!");
+            }
 //</editor-fold>
-        if(game.fading)game.blackScreenOpacity += 0.01;
-        if(!game.paused){
+            if(game.fading)game.blackScreenOpacity += 0.01;
+            if(!game.paused){
 //            game.tick();
-            game.story.tick(game);
-        }
-        if(game.lost&&game.phase>3){
-            if(game.lostTimer>game.loseSongLength/10){
-                if(Sounds.songTimer()<game.loseSongLength/20){
-                    if(game.lostTimer>game.loseSongLength/20+20*5){
-                        new MenuLost(game).open();
+                game.story.tick(game);
+            }
+            if(game.lost&&game.phase>3){
+                if(game.lostTimer>game.loseSongLength/10){
+                    if(Sounds.songTimer()<game.loseSongLength/20){
+                        if(game.lostTimer>game.loseSongLength/20+20*5){
+                            new MenuLost(game).open();
+                        }
                     }
                 }
             }
-        }
-        if(game.blackScreenOpacity>=1){
-            Epilogue g = new Epilogue();
-            g.blackScreenOpacity = 1;
-            g.fading = false;
-            new MenuGame(g).open();
-        }
-        if(game.addingIron>0){
-            add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.ironOre));
-            game.addingIron--;
-        }
-        if(game.addingCoal>0){
-            add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.coal));
-            game.addingCoal--;
-        }
-        if(game.smeltingIron>0){
-            add(new MenuComponentRising(this, getWidth()-90+game.rand.nextInt(60), getHeight()-20+game.rand.nextInt(10), Item.ironIngot));
-        }
-        if(DizzyEngine.isKeyDown(Controls.left)){
-            xOff -= maxZoom/zoom*panFac;
-        }
-        if(DizzyEngine.isKeyDown(Controls.up)){
-            yOff -= maxZoom/zoom*panFac;
-        }
-        if(DizzyEngine.isKeyDown(Controls.right)){
-            xOff += maxZoom/zoom*panFac;
-        }
-        if(DizzyEngine.isKeyDown(Controls.down)){
-            yOff += maxZoom/zoom*panFac;
-        }
-        AxisAlignedBoundingBox worldBBox = game.getWorldBoundingBox();
-        float viewWidth = getWidth()/zoom;
-        float viewHeight = getHeight()/zoom;
-        
-        double minY = worldBBox.min.y;
-        double padding = game.getYGamePadding();
-        
-        for(Structure s : game.structures){
-            double top = s.getPosition().y - s.getStructureHeight()*game.getShearFactor();
-            double requiredY = top - padding * 0.25;
-            if(requiredY < minY){
-                minY = requiredY;
+            if(game.blackScreenOpacity>=1){
+                Epilogue g = new Epilogue();
+                g.blackScreenOpacity = 1;
+                g.fading = false;
+                new MenuGame(g).open();
             }
-        }
-        
-        float minX = worldBBox.min.x + viewWidth/2;
-        float maxX = worldBBox.max.x - viewWidth/2;
-        float topY = (float)minY + viewHeight/2;
-        float bottomY = worldBBox.max.y - viewHeight/2;
-        
-        if(xOff < minX) xOff = minX;
-        if(xOff > maxX) xOff = maxX;
-        
-        if(yOff < topY) yOff = topY;
-        if(yOff > bottomY) yOff = bottomY;
-        
-        // Handle case where view is larger than bounds (center it)
-        if(minX > maxX) xOff = (worldBBox.min.x + worldBBox.max.x)/2;
-        if(topY > bottomY) yOff = (float)(minY + worldBBox.max.y)/2;
-        
+            if(game.addingIron>0){
+                add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.ironOre));
+                game.addingIron--;
+            }
+            if(game.addingCoal>0){
+                add(new MenuComponentFalling(this, getWidth()-90+game.rand.nextInt(60), getHeight()-180+game.rand.nextInt(50), Item.coal));
+                game.addingCoal--;
+            }
+            if(game.smeltingIron>0){
+                add(new MenuComponentRising(this, getWidth()-90+game.rand.nextInt(60), getHeight()-20+game.rand.nextInt(10), Item.ironIngot));
+            }
+            if(DizzyEngine.isKeyDown(Controls.left)){
+                xOff -= maxZoom/zoom*panFac;
+            }
+            if(DizzyEngine.isKeyDown(Controls.up)){
+                yOff -= maxZoom/zoom*panFac;
+            }
+            if(DizzyEngine.isKeyDown(Controls.right)){
+                xOff += maxZoom/zoom*panFac;
+            }
+            if(DizzyEngine.isKeyDown(Controls.down)){
+                yOff += maxZoom/zoom*panFac;
+            }
+            AxisAlignedBoundingBox worldBBox = game.getWorldBoundingBox();
+            float viewWidth = getWidth()/zoom;
+            float viewHeight = getHeight()/zoom;
+
+            double minY = worldBBox.min.y;
+            double padding = game.getYGamePadding();
+
+            for(Structure s : game.structures){
+                double top = s.getPosition().y-s.getStructureHeight()*game.getShearFactor();
+                double requiredY = top-padding*0.25;
+                if(requiredY<minY){
+                    minY = requiredY;
+                }
+            }
+
+            float minX = worldBBox.min.x+viewWidth/2;
+            float maxX = worldBBox.max.x-viewWidth/2;
+            float topY = (float)minY+viewHeight/2;
+            float bottomY = worldBBox.max.y-viewHeight/2;
+
+            if(xOff<minX)xOff = minX;
+            if(xOff>maxX)xOff = maxX;
+
+            if(yOff<topY)yOff = topY;
+            if(yOff>bottomY)yOff = bottomY;
+
+            // Handle case where view is larger than bounds (center it)
+            if(minX>maxX)xOff = (worldBBox.min.x+worldBBox.max.x)/2;
+            if(topY>bottomY)yOff = (float)(minY+worldBBox.max.y)/2;
+
 //        AxisAlignedBoundingBox bbox = game.getWorldBoundingBox();
 //        float viewWidth = getWidth()/zoom;
 //        float viewHeight = getHeight()/zoom;
@@ -208,141 +209,141 @@ public class MenuGame extends Menu{
 //        if(xOff<bbox.getLeft())xOff = bbox.getLeft();
 //        if(yOff>bbox.getBottom())yOff = bbox.getBottom();
 //        if(yOff<bbox.getTop())yOff = bbox.getTop();
-        //</editor-fold>
-
-        //<editor-fold defaultstate="collapsed" desc="Render World">
-        Renderer.pushModel(new Matrix4f().translate(getWidth()/2, getHeight()/2, 0));
+            //</editor-fold>
+            //<editor-fold defaultstate="collapsed" desc="Render World">
+            Renderer.pushModel(new Matrix4f().translate(getWidth()/2, getHeight()/2, 0));
 //.scale(zoom, zoom, 1).translate(-xOff, -yOff, 0));
-        game.panX = -xOff;
-        game.panY = -yOff;
-        game.zoom = zoom;
-        game.fakeRender(deltaTime);
-        Renderer.popModel();
+            game.panX = -xOff;
+            game.panY = -yOff;
+            game.zoom = zoom;
+            game.fakeRender(deltaTime);
+            Renderer.popModel();
 //</editor-fold>
 
-        synchronized(game){
-            for(Structure structure : game.structures){
-                structure.mouseover = 0;
-            }
-        }
-        game.renderBackground();
-        Structure structure = game.getMouseoverStructure(getMouseX(), getMouseY());
-        if(structure!=null){
-            structure.mouseover = .1f;
-        }
-        if(game.selectedStructure!=null){
-            game.selectedStructure.mouseover += .2;
-        }
-//        game.fakeRender(deltaTime);
-        if(game instanceof Epilogue)return;
-        Renderer.setColor(1, 1, 1, 1);
-        super.render(deltaTime);
-        //<editor-fold defaultstate="collapsed" desc="Updating Action Buttons">
-        if(game.actionUpdateRequired==2){
-            game.actionUpdateRequired = 0;
-            components.removeAll(actionButtons);
-            actionButtons.clear();
-            actionButtonOffset = 20;
-            for(Action action : game.getActions(this)){
-                actionButtonOffset += action.divider;
-                if(!action.isDivider()){
-                    actionButtons.add(add(new MenuComponentActionButton(this, game, 0, actionButtons.size()*actionButtonHeight+actionButtonOffset, actionButtonWidth, actionButtonHeight, action)));
-                    actionButtonOffset += action.divider;
+            synchronized(game){
+                for(Structure structure : game.structures){
+                    structure.mouseover = 0;
                 }
             }
-        }
-        if(game.actionUpdateRequired==1){
-            for(MenuComponentActionButton button : actionButtons){
-                button.update();
+            game.renderBackground();
+            Structure structure = game.getMouseoverStructure(getMouseX(), getMouseY());
+            if(structure!=null){
+                structure.mouseover = .1f;
             }
-        }
-//</editor-fold>
-        if(game.isPlayable()){
-            Renderer.fillRect(getWidth()-100, getHeight()-200, getWidth(), getHeight(), ResourceManager.getTexture("/textures/gui/sidebar.png"));
             if(game.selectedStructure!=null){
-                String upgrades = "";
-                for(Upgrade u : game.selectedStructure.getBoughtUpgrades())
-                    upgrades += "*";
-                textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedStructure.getName());
+                game.selectedStructure.mouseover += .2;
             }
-            if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)){
-                Renderer.setColor(0, (float)(Math.sin(game.tick/5d)/4+.75), 0, 1);
-                Renderer.fillRegularPolygon(getWidth()-100+5, getHeight()-100+5, 25, 5);
-                Renderer.setColor(1, 1, 1, 1);
-            }
-            Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth(), getHeight(), ResourceManager.getTexture("/textures/furnace "+game.furnaceLevel+".png"));
-            var mousePos = DizzyEngine.getLayer(FlatUI.class).cursorPosition[0];
-            if(mousePos!=null&&mousePos.x>=getWidth()-100&&mousePos.y>=getHeight()-100&&game.furnaceLevel<Game.maxFurnaceLevel){
-                Renderer.setColor(0, 1, 0, .25f);
-                float percent = (float)(game.furnaceXP/Math.pow(20, game.furnaceLevel+1));
-                Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth()-100+(100*percent), getHeight(), 0);
-                Renderer.setColor(1, 1, 1, 1);
-            }
-            Renderer.setColor(0, 0, 0, 1);
-            Renderer.drawText(getWidth()-90, getHeight()-60, getWidth()-10, getHeight()-40, game.furnaceOre+" Ore");
-            Renderer.drawText(getWidth()-90, getHeight()-40, getWidth()-10, getHeight()-20, game.furnaceCoal+" Coal");
-            Renderer.drawText(getWidth()-90, getHeight()-20, getWidth()-10, getHeight(), game.furnaceLevel>=game.maxFurnaceLevel?"Maxed":"Level "+(game.furnaceLevel+1));
+//        game.fakeRender(deltaTime);
+            if(game instanceof Epilogue)return;
             Renderer.setColor(1, 1, 1, 1);
+            super.render(deltaTime);
+            //<editor-fold defaultstate="collapsed" desc="Updating Action Buttons">
+            if(game.actionUpdateRequired==2){
+                game.actionUpdateRequired = 0;
+                components.removeAll(actionButtons);
+                actionButtons.clear();
+                actionButtonOffset = 20;
+                for(Action action : game.getActions(this)){
+                    actionButtonOffset += action.divider;
+                    if(!action.isDivider()){
+                        actionButtons.add(add(new MenuComponentActionButton(this, game, 0, actionButtons.size()*actionButtonHeight+actionButtonOffset, actionButtonWidth, actionButtonHeight, action)));
+                        actionButtonOffset += action.divider;
+                    }
+                }
+            }
+            if(game.actionUpdateRequired==1){
+                for(MenuComponentActionButton button : actionButtons){
+                    button.update();
+                }
+            }
+//</editor-fold>
             if(game.isPlayable()){
-                for(int i = 0; i<game.resources.size(); i++){
-                    int I = 1;
-                    if(i==0)I = 0;
-                    if(i==game.resources.size()-1)I = 2;
-                    Renderer.fillRect(getWidth()-100, i*20, getWidth(), (i+1)*20+(I==2?5:0), ResourceManager.getTexture("/textures/gui/sidebar "+I+".png"));
-                    Renderer.setColor(0, 0, 0, 1);
-                    Renderer.drawText(getWidth()-80, i*20, getWidth(), (i+1)*20, game.resources.get(i).count+"");
+                Renderer.fillRect(getWidth()-100, getHeight()-200, getWidth(), getHeight(), ResourceManager.getTexture("/textures/gui/sidebar.png"));
+                if(game.selectedStructure!=null){
+                    String upgrades = "";
+                    for(Upgrade u : game.selectedStructure.getBoughtUpgrades())
+                        upgrades += "*";
+                    textWithBackground(0, 0, actionButtonWidth, 20, upgrades+" "+game.selectedStructure.getName());
+                }
+                if(game.furnaceLevel<game.maxFurnaceLevel&&game.furnaceXP>=Math.pow(20, game.furnaceLevel+1)){
+                    Renderer.setColor(0, (float)(Math.sin(game.tick/5d)/4+.75), 0, 1);
+                    Renderer.fillRegularPolygon(getWidth()-100+5, getHeight()-100+5, 25, 5);
                     Renderer.setColor(1, 1, 1, 1);
-                    Renderer.fillRect(getWidth()-100, i*20, getWidth()-80, (i+1)*20, game.resources.get(i).item.getTexture());
                 }
-            }
-        }
-        if(game.won){
-            if(game.phase>0){
-                centeredTextWithBackground(0, 0, getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
-                if(game.winTimer<20&&"VictoryMusic1".equals(Sounds.nowPlaying())){
-                    centeredTextWithBackground(0, 35, getWidth(), 85, "Only one problem remains...");
+                Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth(), getHeight(), ResourceManager.getTexture("/textures/furnace "+game.furnaceLevel+".png"));
+                var mousePos = DizzyEngine.getLayer(FlatUI.class).cursorPosition[0];
+                if(mousePos!=null&&mousePos.x>=getWidth()-100&&mousePos.y>=getHeight()-100&&game.furnaceLevel<Game.maxFurnaceLevel){
+                    Renderer.setColor(0, 1, 0, .25f);
+                    float percent = (float)(game.furnaceXP/Math.pow(20, game.furnaceLevel+1));
+                    Renderer.fillRect(getWidth()-100, getHeight()-100, getWidth()-100+(100*percent), getHeight(), 0);
+                    Renderer.setColor(1, 1, 1, 1);
                 }
-            }
-        }else{
-            int offset = 0;
-            for(Iterator<Notification> it = game.notifications.iterator(); it.hasNext();){
-                Notification n = it.next();
-                float wide = Renderer.getStringWidth(n.toString(), 20);
-                float left = getWidth()/2-(wide/2*n.width);
-                float right = getWidth()/2+(wide/2*n.width);
-                int y = 20-n.height;
-                Renderer.setColor(0, 0, 0, .5f);
-                Renderer.bound(left, offset, right, offset+n.height);
-                Renderer.fillRect(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, 0);
+                Renderer.setColor(0, 0, 0, 1);
+                Renderer.drawText(getWidth()-90, getHeight()-60, getWidth()-10, getHeight()-40, game.furnaceOre+" Ore");
+                Renderer.drawText(getWidth()-90, getHeight()-40, getWidth()-10, getHeight()-20, game.furnaceCoal+" Coal");
+                Renderer.drawText(getWidth()-90, getHeight()-20, getWidth()-10, getHeight(), game.furnaceLevel>=game.maxFurnaceLevel?"Maxed":"Level "+(game.furnaceLevel+1));
                 Renderer.setColor(1, 1, 1, 1);
-                Renderer.drawCenteredText(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, n.toString());
-                offset += n.height;
-                if(n.isDead())it.remove();
-                Renderer.unBound();
+                if(game.isPlayable()){
+                    for(int i = 0; i<game.resources.size(); i++){
+                        int I = 1;
+                        if(i==0)I = 0;
+                        if(i==game.resources.size()-1)I = 2;
+                        Renderer.fillRect(getWidth()-100, i*20, getWidth(), (i+1)*20+(I==2?5:0), ResourceManager.getTexture("/textures/gui/sidebar "+I+".png"));
+                        Renderer.setColor(0, 0, 0, 1);
+                        Renderer.drawText(getWidth()-80, i*20, getWidth(), (i+1)*20, game.resources.get(i).count+"");
+                        Renderer.setColor(1, 1, 1, 1);
+                        Renderer.fillRect(getWidth()-100, i*20, getWidth()-80, (i+1)*20, game.resources.get(i).item.getTexture());
+                    }
+                }
             }
-        }
-        if(game.selectedStructure!=null&&game.selectedStructure.task!=null){
-            for(int i = 0; i<game.selectedStructure.task.getDetails().length; i++){
-                textWithBackground(actionButtonWidth, 30*i, getWidth(), 30*(i+1), game.selectedStructure.task.getDetails()[i], game.selectedStructure.task.important);
+            if(game.won){
+                if(game.phase>0){
+                    centeredTextWithBackground(0, 0, getWidth(), 35, "Congratulations! You have destroyed the alien mothership and saved the planet!");
+                    if(game.winTimer<20&&"VictoryMusic1".equals(Sounds.nowPlaying())){
+                        centeredTextWithBackground(0, 35, getWidth(), 85, "Only one problem remains...");
+                    }
+                }
+            }else{
+                int offset = 0;
+                for(Iterator<Notification> it = game.notifications.iterator(); it.hasNext();){
+                    Notification n = it.next();
+                    float wide = Renderer.getStringWidth(n.toString(), 20);
+                    float left = getWidth()/2-(wide/2*n.width);
+                    float right = getWidth()/2+(wide/2*n.width);
+                    int y = 20-n.height;
+                    Renderer.setColor(0, 0, 0, .5f);
+                    Renderer.bound(left, offset, right, offset+n.height);
+                    Renderer.fillRect(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, 0);
+                    Renderer.setColor(1, 1, 1, 1);
+                    Renderer.drawCenteredText(getWidth()/2-wide/2, offset-y/2, getWidth()/2+wide/2, offset+20-y/2, n.toString());
+                    offset += n.height;
+                    if(n.isDead())it.remove();
+                    Renderer.unBound();
+                }
             }
-        }
-        if(game.paused){
-            Renderer.drawCenteredText(0, getHeight()/2-50, getWidth(), getHeight()/2+50, "Paused");
-        }
-        if(game.debugMode&&game.cheats){
-            debugYOffset = 0;
-            ArrayList<String> debugData = game.getDebugData();
-            float textHeight = getHeight()/(debugData.size());
-            debugText(textHeight, "("+getMouseX()+", "+getMouseY()+")");
-            for(String str : debugData){
-                debugText(textHeight, str);
+            if(game.selectedStructure!=null&&game.selectedStructure.task!=null){
+                for(int i = 0; i<game.selectedStructure.task.getDetails().length; i++){
+                    textWithBackground(actionButtonWidth, 30*i, getWidth(), 30*(i+1), game.selectedStructure.task.getDetails()[i], game.selectedStructure.task.important);
+                }
             }
+            if(game.paused){
+                Renderer.drawCenteredText(0, getHeight()/2-50, getWidth(), getHeight()/2+50, "Paused");
+            }
+            if(game.debugMode&&game.cheats){
+                debugYOffset = 0;
+                ArrayList<String> debugData = game.getDebugData();
+                float textHeight = getHeight()/(debugData.size());
+                debugText(textHeight, "("+getMouseX()+", "+getMouseY()+")");
+                for(String str : debugData){
+                    debugText(textHeight, str);
+                }
+            }
+            if(phaseMarker!=null)phaseMarker.render(deltaTime);
+            if(overlay!=null)overlay.render(deltaTime);
+            Renderer.setColor(0, 0, 0, game.blackScreenOpacity);
+            Renderer.fillRect(0, 0, getWidth(), getHeight(), 0);
+            Renderer.setColor(1, 1, 1, 1);
         }
-        if(phaseMarker!=null)phaseMarker.render(deltaTime);
-        if(overlay!=null)overlay.render(deltaTime);
-        Renderer.setColor(0, 0, 0, game.blackScreenOpacity);
-        Renderer.fillRect(0, 0, getWidth(), getHeight(), 0);
-        Renderer.setColor(1, 1, 1, 1);
     }
     @Override
     public void onKey(int id, int key, int scancode, int action, int mods){
@@ -503,7 +504,7 @@ public class MenuGame extends Menu{
                 }
                 case Controls.CHEAT_CLOUD -> {
                     game.notify("Cheat: Cloud");
-                    game.addCloud(getMouseX(), (int) (getMouseY() + Particle.CLOUD_HEIGHT * game.getShearFactor()));
+                    game.addCloud(getMouseX(), (int)(getMouseY()+Particle.CLOUD_HEIGHT*game.getShearFactor()));
                 }
                 case Controls.CHEAT_FOG -> {
                     game.notify("Cheat: Fog");
