@@ -28,6 +28,7 @@ import planetaryprotector.game.Game;
 import planetaryprotector.game.Notification;
 import planetaryprotector.item.Item;
 import planetaryprotector.item.ItemStack;
+import planetaryprotector.particle.Particle;
 import planetaryprotector.menu.component.MenuComponentActionButton;
 import planetaryprotector.menu.component.MenuComponentFalling;
 import planetaryprotector.menu.component.MenuComponentRising;
@@ -502,7 +503,7 @@ public class MenuGame extends Menu{
                 }
                 case Controls.CHEAT_CLOUD -> {
                     game.notify("Cheat: Cloud");
-                    game.addCloud(getMouseX(), getMouseY());
+                    game.addCloud(getMouseX(), (int) (getMouseY() + Particle.CLOUD_HEIGHT * game.getShearFactor()));
                 }
                 case Controls.CHEAT_FOG -> {
                     game.notify("Cheat: Fog");

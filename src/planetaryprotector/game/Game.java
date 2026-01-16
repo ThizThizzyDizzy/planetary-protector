@@ -1229,7 +1229,7 @@ public class Game extends ThreeQuarterWorldLayer{
     public void addCloud(){
         if(!Options.options.clouds)return;
         var worldBBox = getWorldBoundingBox();
-        addCloud((int)worldBBox.min.x, (int)(rand.nextFloat()*worldBBox.getHeight()+worldBBox.min.y));
+        addCloud((int)worldBBox.min.x, (int)(rand.nextFloat() * worldBBox.getHeight() + worldBBox.min.y + Particle.CLOUD_HEIGHT * getShearFactor()));
     }
     public void addCloud(int x, int y){
         if(!Options.options.clouds)return;

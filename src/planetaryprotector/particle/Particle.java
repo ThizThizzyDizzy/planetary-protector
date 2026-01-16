@@ -41,16 +41,23 @@ public class Particle extends SizedWorldObject implements Instanceable{
     public boolean fading;
     public Lightning lightning = null;
     private ArrayList<float[]> snow = new ArrayList<>();
+    public static final int CLOUD_HEIGHT = 800;
     public Particle(Game game, int x, int y, ParticleEffectType type){
         this(game, x, y, type, 1);
     }
     public Particle(Game game, int x, int y, ParticleEffectType type, int size){
-        setPosition(new Vector3f(x, y, 25));
+        if(type==ParticleEffectType.CLOUD){
+            rotation = game.rand.nextInt(360);
+            strength = game.rand.nextInt(25);
+            rateOfChange = (game.rand.nextDouble()-.25)/100;
+        }
+        setPosition(new Vector3f(x, y, type == ParticleEffectType.CLOUD ? CLOUD_HEIGHT : 25));
         setSize(new Vector3f(50));
         setMaterial(new Material(shader, ResourceManager.getTexture(type.images[0])));
         this.type = type;
         this.size = size;
         if(type==ParticleEffectType.CLOUD){
+            setSize(new Vector3f(100));
             rotation = game.rand.nextInt(360);
             strength = game.rand.nextInt(25);
             rateOfChange = (game.rand.nextDouble()-.25)/100;
