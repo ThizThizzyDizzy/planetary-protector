@@ -1,9 +1,16 @@
 package planetaryprotector.item;
+import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import com.thizthizzydizzy.dizzyengine.graphics.batch.Instanceable;
+import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
+import com.thizthizzydizzy.dizzyengine.graphics.mesh.Mesh;
+import com.thizthizzydizzy.dizzyengine.graphics.mesh.builder.AxialQuadMeshBuilder;
+import com.thizthizzydizzy.dizzyengine.world.object.SizedWorldObject;
+import com.thizthizzydizzy.dizzyengine.world.object.WorldObject;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import planetaryprotector.game.Game;
-import planetaryprotector.GameObject;
-public class DroppedItem extends GameObject{
+public class DroppedItem extends SizedWorldObject implements Instanceable{
     public final Item item;
     private int flashDelay = 20;
     private int flashTimer = 20;
@@ -12,22 +19,40 @@ public class DroppedItem extends GameObject{
     private float rot;
     public boolean dead = false;
     public DroppedItem(Game game, int x, int y, Item item){
-        super(game, x, y, 10, 10);
+        setPosition(new Vector3f(x, y, 0));
+        setSize(new Vector3f(item==Item.star?20:10, item==Item.star?20:10, 0));
         this.item = item;
         rot = (float)(game.rand.nextDouble()*360);
     }
     @Override
-    public void draw(){
-        Renderer.setColor(1, 1, 1, opacity);
-        if(item==Item.star){
-            rot += .75;
-            Renderer.pushModel(new Matrix4f().translate(x+width/2, y+height/2, 0).rotate(rot, 0, 0, 1));
-            Renderer.fillRect(-width, -height, width, height, item.getWorldTexture());
-            Renderer.popModel();
-        }else{
-            Renderer.fillRect(x, y, x+width, y+height, item.getWorldTexture());
-        }
-        Renderer.setColor(1, 1, 1, 1);
+    public Matrix4f getModelMatrix(){
+        return super.getModelMatrix().rotate((float)Math.toRadians(rot), 0, 0, 1);
+    }
+    private Mesh mesh;
+    @Override
+    public Mesh getMesh(){
+        if(mesh==null)mesh = generateMesh();
+        return mesh;
+    }
+    protected Mesh generateMesh(){
+        var builder = new AxialQuadMeshBuilder();
+        builder.quadXY(-getSize().x/2, -getSize().y/2, getSize().x/2, getSize().y/2, 0, true, 0, 0, 1, 1);
+        return builder.build();
+    }
+    @Override
+    public AxisAlignedBoundingBox getAxisAlignedBoundingBox(){
+        AxisAlignedBoundingBox bbox = new AxisAlignedBoundingBox();
+        bbox.min.set(getSize()).mul(-.5f).add(getPosition());
+        bbox.max.set(getSize()).mul(.5f).add(getPosition());
+        return bbox;
+    }
+    @Override
+    public void preRender(){
+        Renderer.setColor(Color.WHITE, opacity);
+    }
+    @Override
+    public boolean canInstance(WorldObject other){
+        return other instanceof DroppedItem i&&i.item==item&&i.opacity==opacity;
     }
     public void tick(){
         if(life==-1){
@@ -41,6 +66,7 @@ public class DroppedItem extends GameObject{
             flashTimer--;
             flashDelay = (life/600)*20;
             if(flashTimer<=0){
+                setStatic(false);
                 flashTimer += flashDelay;
                 if(opacity==1){
                     opacity = 0.5f;

@@ -1,18 +1,19 @@
 package planetaryprotector.friendly;
 import com.thizthizzydizzy.dizzyengine.ResourceManager;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
+import java.util.ArrayList;
 import java.util.Collections;
-import planetaryprotector.item.DroppedItem;
-import planetaryprotector.game.Game;
-import planetaryprotector.structure.task.Task;
 import java.util.Iterator;
 import planetaryprotector.GameObject;
+import planetaryprotector.enemy.Asteroid;
+import planetaryprotector.game.Game;
+import planetaryprotector.item.DroppedItem;
+import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Base;
 import planetaryprotector.structure.Skyscraper;
-import planetaryprotector.structure.task.TaskDemolish;
-import planetaryprotector.enemy.Asteroid;
-import planetaryprotector.research.ResearchEvent;
 import planetaryprotector.structure.Structure;
+import planetaryprotector.structure.task.Task;
+import planetaryprotector.structure.task.TaskDemolish;
 public class Worker extends GameObject{
     public DroppedItem targetItem;
     public DroppedItem grabbedItem;
@@ -31,9 +32,6 @@ public class Worker extends GameObject{
     @Override
     public void draw(){
         Renderer.fillRect(x, y, x+width, y+height, ResourceManager.getTexture("/textures/worker.png"));
-        if(grabbedItem!=null){
-            grabbedItem.draw();
-        }
     }
     public void tick(){
         if(dead){
@@ -125,15 +123,16 @@ public class Worker extends GameObject{
 //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Go to Item">
         if(targetItem==null&&grabbedItem==null){
-            Collections.sort(game.droppedItems, (o1, o2) -> {
+            ArrayList<DroppedItem> items = new ArrayList<>(game.droppedItems);
+            Collections.sort(items, (o1, o2) -> {
                 if(o1.item.priority!=o2.item.priority){
                     return o2.item.priority-o1.item.priority;
                 }
-                float x1 = (int)o1.x-(int)x, y1 = (int)o1.y-(int)y;
-                float x2 = (int)o2.x-(int)x, y2 = (int)o2.y-(int)y;
+                float x1 = o1.getPosition().x-x, y1 = o1.getPosition().y-y;
+                float x2 = o2.getPosition().x-x, y2 = o2.getPosition().y-y;
                 return (int)Math.sqrt(x1*x1+y1*y1)-(int)Math.sqrt(x2*x2+y2*y2);
             });
-            ONE:for(DroppedItem item : game.droppedItems){
+            ONE:for(DroppedItem item : items){
                 for(Worker c : game.workers){
                     if(c.targetItem==item){
                         continue ONE;
@@ -145,9 +144,9 @@ public class Worker extends GameObject{
         }
 //</editor-fold>
         if(targetItem!=null&&grabbedItem==null){
-            target = new int[]{targetItem.x+targetItem.width/2,targetItem.y+targetItem.height/2};
+            target = new int[]{(int)targetItem.getPosition().x,(int)targetItem.getPosition().y};
             //<editor-fold defaultstate="collapsed" desc="Grab Item">
-            if(getCenter().distance(targetItem.getCenter())<=10){
+            if(getCenter().distance(targetItem.getPosition().x, targetItem.getPosition().y)<=10){
                 game.droppedItems.remove(targetItem);
                 grabbedItem = targetItem;
                 targetItem = null;
@@ -178,8 +177,7 @@ public class Worker extends GameObject{
         if(target!=null&&runningFrom==null){
             move(target);
             if(grabbedItem!=null){
-                grabbedItem.x = x;
-                grabbedItem.y = y-10;
+                grabbedItem.setPosition(new org.joml.Vector3f(x, y, 10));
             }
             if(getCenter().distance(target[0],target[1])<=workerSpeed){
                 target = null;

@@ -65,7 +65,7 @@ import planetaryprotector.structure.task.TaskType;
 import planetaryprotector.structure.task.TaskUpgrade;
 public class Game extends ThreeQuarterWorldLayer{
     //<editor-fold defaultstate="collapsed" desc="Variables">
-    public ArrayList<DroppedItem> droppedItems = new ArrayList<>();
+    public List<DroppedItem> droppedItems;
     public Random rand = new Random();
     public boolean lost = false;
     public boolean meteorShower;
@@ -177,7 +177,7 @@ public class Game extends ThreeQuarterWorldLayer{
     }
     {
         structures = createObjectIndex(Structure.class);
-//        createObjectIndex(DroppedItem.class);
+        droppedItems = createObjectIndex(DroppedItem.class);
 //        createObjectIndex(Worker.class);
 //        createObjectIndex(Enemy.class);
 //        createObjectIndex(Drone.class);
@@ -249,7 +249,6 @@ public class Game extends ThreeQuarterWorldLayer{
         }
         PerformanceTracker.pop();
         ArrayList<GameObject> mainLayer = new ArrayList<>();
-        mainLayer.addAll(droppedItems);
         mainLayer.addAll(workers);
         for(Enemy e : enemies){
             if(e instanceof EnemyAlien)mainLayer.add(e);
@@ -971,8 +970,8 @@ public class Game extends ThreeQuarterWorldLayer{
             var item = new GameState.Item();
             item.item = droppedItem.item.name;
             item.life = droppedItem.life;
-            item.x = droppedItem.x;
-            item.y = droppedItem.y;
+            item.x = (int)droppedItem.getPosition().x;
+            item.y = (int)droppedItem.getPosition().y;
             state.droppedItems.add(item);
         }
         state.meteorShower = meteorShower;
@@ -1395,7 +1394,7 @@ public class Game extends ThreeQuarterWorldLayer{
                     if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains(x, y))
                         worker.damage(x, y);
                 for(DroppedItem item : droppedItems)
-                    if(new BoundingBox(item.x-dmgRad, item.y-dmgRad, item.width+dmgRad*2, item.height+dmgRad*2).contains(x, y))
+                    if(new BoundingBox(item.getPosition().x-dmgRad, item.getPosition().y-dmgRad, item.getSize().x+dmgRad*2, item.getSize().y+dmgRad*2).contains(x, y))
                         item.damage(x, y);
                 if(material!=null){
                     if(material.forceDrop){
