@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>planetaryprotector</groupId>
+    <artifactId>planetary-protector</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Project dependency on Dizzy Engine (System JAR) -->
+        <dependency>
+            <groupId>com.thizthizzydizzy</groupId>
+            <artifactId>dizzyengine</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/dist/DizzyEngine.jar</systemPath>
+        </dependency>
+
+        <!-- Local Jars -->
+        <dependency>
+            <groupId>planetaryprotector</groupId>
+            <artifactId>jl</artifactId>
+            <version>1.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/jl1.0.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.thizthizzydizzy</groupId>
+            <artifactId>java-discord-rpc</artifactId>
+            <version>2.0.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/java-discord-rpc-2.0.1-all.jar</systemPath>
+        </dependency>
+
+        <!-- LWJGL & JOML (Provided via engine but explicitly linked here for LSP) -->
+        <dependency>
+            <groupId>org.joml</groupId>
+            <artifactId>joml</artifactId>
+            <version>1.10.5</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/lib/joml-1.10.5.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+            <version>3.3.3</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/lib/lwjgl.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-glfw</artifactId>
+            <version>3.3.3</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/lib/lwjgl-glfw.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-opengl</artifactId>
+            <version>3.3.3</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/lib/lwjgl-opengl.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>system</scope>
+            <systemPath>/home/thiz/NetBeansProjects/Dizzy-Engine/lib/gson-2.10.1.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+    </build>
+</project>
