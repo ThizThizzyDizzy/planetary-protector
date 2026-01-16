@@ -1344,7 +1344,7 @@ public class Game extends ThreeQuarterWorldLayer{
         float o2 = (float)(density*height);
         double size = ParticleFog.SIZE/2*.75;
         AxisAlignedBoundingBox bbox = getWorldBoundingBox();
-        int count = (int)(bbox.getHeight()/size+1);
+        int count = (int)(bbox.getHeight()/size+2);
         double xOffset = count/size;
 //        for(int i = 0; i<count*10; i++){
 //            float x = (int)(bbox.min.x-size-xOffset*i);
@@ -1355,7 +1355,7 @@ public class Game extends ThreeQuarterWorldLayer{
 //            addParticleEffect(new ParticleFog(this, (int)x, (int)y, z, particleDensity));
 //        }
         float stagger = (float)(rand.nextFloat()*size);
-        for(int i = 0; i<count; i++){
+        for(int i = -1; i<count; i++){
             addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size-xOffset*i), (int)(bbox.min.y+i*size-50+stagger), ParticleFog.SIZE/2, o1));
             addParticleEffect(new ParticleFog(this, (int)(bbox.min.x-size-xOffset*i), (int)(bbox.min.y+i*size-50+stagger), ParticleFog.SIZE*1.2f, o2));
         }
