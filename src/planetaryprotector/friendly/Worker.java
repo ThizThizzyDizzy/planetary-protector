@@ -47,7 +47,7 @@ public class Worker extends GameObject{
         for(Asteroid asteroid : game.asteroids){
             if(asteroid.getCenter().distance(getCenter())<50){
                 if(!game.superSafe(this)){
-                    runningFrom = new int[]{asteroid.x+asteroid.width/2,asteroid.y+asteroid.height/2};
+                    runningFrom = new int[]{(int)asteroid.targetX,(int)asteroid.targetY};
                 }
             }
         }
@@ -147,7 +147,7 @@ public class Worker extends GameObject{
             target = new int[]{(int)targetItem.getPosition().x,(int)targetItem.getPosition().y};
             //<editor-fold defaultstate="collapsed" desc="Grab Item">
             if(getCenter().distance(targetItem.getPosition().x, targetItem.getPosition().y)<=10){
-                game.droppedItems.remove(targetItem);
+                game.removeObject(targetItem);
                 grabbedItem = targetItem;
                 targetItem = null;
                 target = null;
@@ -156,7 +156,7 @@ public class Worker extends GameObject{
 //</editor-fold>
         if(!game.safe(this)){
             if(grabbedItem!=null){
-                game.droppedItems.add(grabbedItem);
+                game.addItem(grabbedItem);
             }
             dropItem();
             targetItem = null;
@@ -212,7 +212,11 @@ public class Worker extends GameObject{
     public boolean isAvailable(){
         return !(dead||isWorking()||grabbedItem!=null);
     }
+    @Deprecated
     public void damage(double x, double y){
+        damage();
+    }
+    public void damage(){
         dead = true;
     }
     private void move(int[] location){
@@ -242,7 +246,7 @@ public class Worker extends GameObject{
     private void dropItem(){
         if(grabbedItem==null)return;
         if(!grabbedItem.dead){
-            game.droppedItems.add(grabbedItem);
+            game.addItem(grabbedItem);
         }
         grabbedItem = null;
     }

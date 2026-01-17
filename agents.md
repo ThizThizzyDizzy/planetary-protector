@@ -5,6 +5,7 @@
 - **Logic & Representation:** Game logic and state are moving to the `Game` class.
 - **Bounding Boxes:** Legacy `BoundingBox` classes are being replaced by `AxisAlignedBoundingBox` from the engine.
 - **Legacy Rendering:** Methods prefixed with `fake` (e.g., `fakeRenderWorld`) represent the old fixed-function pipeline rendering. These are still active temporarily until their functionality is fully refactored into the new system.
+- **2D to 3D** The game was previously 2D, existing entirely in screen-space coordinates. It is now internally 3D, albeit with a 2D three-quarters projection to achieve the same look.
 
 ## Project Structure & Environment
 - **Build System:** This is an `ant` NetBeans project.

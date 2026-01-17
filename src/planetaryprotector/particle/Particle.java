@@ -310,7 +310,7 @@ public class Particle extends SizedWorldObject implements Instanceable{
     }
     @Override
     public boolean canInstance(WorldObject other){
-        return other instanceof Particle p&&p.type==type;
+        return other instanceof Particle p&&p.type==type && p.strength==strength;
     }
     private Mesh mesh;
     @Override

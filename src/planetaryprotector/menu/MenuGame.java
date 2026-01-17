@@ -528,15 +528,9 @@ public class MenuGame extends Menu{
                         }else{
                             game.notify("Cheat: Spawn Asteroid");
                             switch(game.rand.nextInt(3)){
-                                case 0:
-                                    game.addAsteroid(new Asteroid(game, getMouseX()-25, getMouseY()-25, AsteroidMaterial.COAL, 1));
-                                    break;
-                                case 1:
-                                    game.addAsteroid(new Asteroid(game, getMouseX()-25, getMouseY()-25, AsteroidMaterial.STONE, 1));
-                                    break;
-                                case 2:
-                                    game.addAsteroid(new Asteroid(game, getMouseX()-25, getMouseY()-25, AsteroidMaterial.IRON, 1));
-                                    break;
+                                case 0 -> game.addAsteroid(new Asteroid(game, getMouseX(), getMouseY(), AsteroidMaterial.COAL, 1));
+                                case 1 -> game.addAsteroid(new Asteroid(game, getMouseX(), getMouseY(), AsteroidMaterial.STONE, 1));
+                                case 2 -> game.addAsteroid(new Asteroid(game, getMouseX(), getMouseY(), AsteroidMaterial.IRON, 1));
                             }
                         }
                     }

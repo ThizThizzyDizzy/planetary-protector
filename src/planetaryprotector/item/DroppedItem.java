@@ -1,5 +1,6 @@
 package planetaryprotector.item;
 import com.thizthizzydizzy.dizzyengine.collision.AxisAlignedBoundingBox;
+import com.thizthizzydizzy.dizzyengine.graphics.Material;
 import com.thizthizzydizzy.dizzyengine.graphics.Renderer;
 import com.thizthizzydizzy.dizzyengine.graphics.batch.Instanceable;
 import com.thizthizzydizzy.dizzyengine.graphics.image.Color;
@@ -18,9 +19,10 @@ public class DroppedItem extends SizedWorldObject implements Instanceable{
     private float opacity = 1;
     private float rot;
     public boolean dead = false;
-    public DroppedItem(Game game, int x, int y, Item item){
+    public DroppedItem(Game game, float x, float y, Item item){
         setPosition(new Vector3f(x, y, 0));
         setSize(new Vector3f(item==Item.star?20:10, item==Item.star?20:10, 0));
+        setMaterial(new Material(null, item.getTexture()));
         this.item = item;
         rot = (float)(game.rand.nextDouble()*360);
     }
@@ -76,7 +78,11 @@ public class DroppedItem extends SizedWorldObject implements Instanceable{
             }
         }
     }
+    @Deprecated
     public void damage(double x, double y){
+        damage();
+    }
+    public void damage(){
         dead = true;
     }
 }

@@ -143,7 +143,7 @@ public class Game extends ThreeQuarterWorldLayer{
     private ArrayList<StarlightNetwork> starlightNetworks = new ArrayList<>();
     public ArrayList<Notification> notifications = new ArrayList<>();
     public ArrayList<TaskAnimation> taskAnimations = new ArrayList<>();
-    public ArrayList<Asteroid> asteroids = new ArrayList<>();
+    public List<Asteroid> asteroids;
     public ArrayList<ShootingStar> shootingStars = new ArrayList<>();
     public final List<Particle> particles;
     public boolean hideSkyscrapers = false;
@@ -181,7 +181,7 @@ public class Game extends ThreeQuarterWorldLayer{
 //        createObjectIndex(Worker.class);
 //        createObjectIndex(Enemy.class);
 //        createObjectIndex(Drone.class);
-//        createObjectIndex(Asteroid.class);
+        asteroids = createObjectIndex(Asteroid.class);
 //        createObjectIndex(ShootingStar.class);
         particles = createObjectIndex(Particle.class);
     }
@@ -211,7 +211,7 @@ public class Game extends ThreeQuarterWorldLayer{
         int bottom = (int)(bbox.max.y/chunkHeight+1);
         for(int x = left; x<right; x++){
             for(int y = top; y<bottom; y++){
-                Renderer.fillXYRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, 0, Game.theme.getBackgroundTexture(level));
+                Renderer.fillXYRect(x*chunkWidth, y*chunkHeight, x*chunkWidth+chunkWidth, y*chunkHeight+chunkHeight, -1, Game.theme.getBackgroundTexture(level));
             }
         }
         totalTime+=deltaTime;
@@ -295,11 +295,6 @@ public class Game extends ThreeQuarterWorldLayer{
             }
         }
         //</editor-fold>
-        PerformanceTracker.pop();
-        PerformanceTracker.push("FAKE asteroids");
-        for(Asteroid asteroid : asteroids){
-            asteroid.draw();
-        }
         PerformanceTracker.pop();
         PerformanceTracker.push("FAKE shooting stars");
         for(ShootingStar star : shootingStars){
@@ -473,24 +468,22 @@ public class Game extends ThreeQuarterWorldLayer{
                 it.remove();
             }
         }
-        for(Iterator<DroppedItem> it = droppedItems.iterator(); it.hasNext();){
-            DroppedItem item = it.next();
+        for(DroppedItem item : new ArrayList<>(droppedItems)){
             item.tick();
-            if(item.dead)it.remove();
+            if(item.dead)removeObject(item);
         }
-        for(Iterator<Asteroid> it = asteroids.iterator(); it.hasNext();){
-            Asteroid asteroid = it.next();
+        for(Asteroid asteroid : new ArrayList<>(asteroids)){
             asteroid.tick();
-            if(asteroid.dead)it.remove();
+            if(asteroid.isDead())removeObject(asteroid);
         }
         for(Iterator<ShootingStar> it = shootingStars.iterator(); it.hasNext();){
             ShootingStar shootingStar = it.next();
             shootingStar.tick();
             if(shootingStar.dead)it.remove();
         }
-        for(int i = 0; i<particles.size(); i++){
-            var particle = particles.get(i);
+        for(Particle particle : new ArrayList<>(particles)){
             particle.tick();
+            if(particle.isDead())removeObject(particle);
         }
         for(Structure s : structures){
             if(s instanceof Laboratory){
@@ -797,7 +790,7 @@ public class Game extends ThreeQuarterWorldLayer{
         lost = true;
     }
     public void addItem(DroppedItem item){
-        droppedItems.add(item);
+        addObject(item);
     }
     public void addResources(Item item){
         if(actionUpdateRequired<1)actionUpdateRequired = 1;
@@ -1045,7 +1038,7 @@ public class Game extends ThreeQuarterWorldLayer{
         for(var i : state.droppedItems){
             DroppedItem item = new DroppedItem(game, i.x, i.y, Item.getItemByName(i.item));
             item.life = i.life;
-            game.droppedItems.add(item);
+            game.addItem(item);
         }
         game.meteorShower = state.meteorShower;
         game.meteorShowerTimer = state.meteorShowerTimer;
@@ -1335,6 +1328,7 @@ public class Game extends ThreeQuarterWorldLayer{
         //.9 intensity MAX
     }
     public void drawFog(){
+        if(fogTime==0)return; // Fog isn't running
         double a = Math.sin(Math.PI*fogTime);
         double b = .5*Math.sin(Math.PI*(2*fogTime-.5))+.5;
         double height = b*fogIntensity*fogHeightIntensity;
@@ -1362,67 +1356,107 @@ public class Game extends ThreeQuarterWorldLayer{
     private void stopFog(){
         fogTimeIncrease = fogTime = 0;
     }
-    public void damage(int x, int y){
-        damage(x, y, 1);
+    public RaycastResult damage(float x, float y){
+        return damage(x, y, 1);
     }
-    public void damage(int x, int y, int damage){
-        damage(x, y, damage, null);
+    public RaycastResult damage(float x, float y, int damage){
+        return damage(x, y, damage, null);
     }
-    public void damage(int x, int y, AsteroidMaterial material){
-        damage(x, y, 1, material);
+    public RaycastResult damage(float x, float y, AsteroidMaterial material){
+        return damage(x, y, 1, material);
     }
-    public void damage(int x, int y, int damage, AsteroidMaterial material){
-        DAMAGE:
+    public RaycastResult damage(float x, float y, int damage, AsteroidMaterial material){
+        RaycastResult raycast = null;
         for(int i = 0; i<damage; i++){
-            for(Structure structure : structures){
-                if(structure instanceof ShieldGenerator){
-                    ShieldGenerator shield = (ShieldGenerator)structure;
-                    if(structure.getPosition().distance(x, y, 0)<=shield.getShieldSize()/2){
-                        if(shield.shieldHit()){
-                            continue DAMAGE;
-                        }else{
-                            break;
-                        }
-                    }
+            raycast = raycast2D(x, y, RaycastFlag.STRUCTURE, RaycastFlag.SHIELD);
+            if(raycast.hitShield!=null){
+                if(raycast.hitShield.shieldHit())continue;
+                else{
+                    raycast.hitShield = null; // The shield failed to absorb the hit.
                 }
             }
-            Structure hit = getStructure(x, y);
-            if(hit==null||!hit.onHit(x, y)||material!=null&&material.forceDrop){
-                //<editor-fold defaultstate="collapsed" desc="Hit ground">
-                int dmgRad = 25;//TODO make this depend on asteroid and worker size
-                for(Worker worker : workers)
-                    if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains(x, y))
-                        worker.damage(x, y);
-                for(DroppedItem item : droppedItems)
-                    if(new BoundingBox(item.getPosition().x-dmgRad, item.getPosition().y-dmgRad, item.getSize().x+dmgRad*2, item.getSize().y+dmgRad*2).contains(x, y))
-                        item.damage(x, y);
-                if(material!=null){
-                    if(material.forceDrop){
-                        addItem(new DroppedItem(this, x, y, material.item));
-                    }else{
-                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+15-25, y+8-25, material.item));
-                        }
-                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+8-25, y+28-25, material.item));
-                        }
-                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+38-25, y+24-25, material.item));
-                        }
-                        if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
-                            addItem(new DroppedItem(this, x+23-25, y+34-25, material.item));
-                        }
+            if(raycast.hitStructure!=null){
+                if(raycast.hitStructure.onHit(raycast.hitPosition))continue;
+                else{
+                    raycast.hitStructure = null; // The structure refused to absorb the hit. (Probably not damageable)
+                }
+            }
+            int dmgRad = 25;//TODO make this depend on asteroid and worker size
+            for(Worker worker : workers){
+                if(new BoundingBox(worker.x-dmgRad, worker.y-dmgRad, worker.width+dmgRad*2, worker.height+dmgRad*2).contains((int)x, (int)y)){
+                    worker.damage();
+                }
+            }
+            for(DroppedItem item : droppedItems){
+                if(item.getPosition().distance(raycast.hitPosition)<=dmgRad){
+                    item.damage();
+                }
+            }
+            if(material!=null){
+                if(material.forceDrop){
+                    addItem(new DroppedItem(this, x, y, material.item));
+                }else{
+                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                        addItem(new DroppedItem(this, x+15-25, y+8-25, material.item));
+                    }
+                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                        addItem(new DroppedItem(this, x+8-25, y+28-25, material.item));
+                    }
+                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                        addItem(new DroppedItem(this, x+38-25, y+24-25, material.item));
+                    }
+                    if(rand.nextBoolean()&&rand.nextBoolean()&&rand.nextBoolean()){
+                        addItem(new DroppedItem(this, x+23-25, y+34-25, material.item));
                     }
                 }
-//</editor-fold>
             }
         }
+        if(raycast==null)raycast = raycast2D(x, y, RaycastFlag.STRUCTURE); // damage was 0, don't hit shield.
+        return raycast;
     }
     public Structure getStructure(int x, int y){
         Structure hit = null;
         for(Structure structure : structures)
             if(structure.getAxisAlignedBoundingBox().contains(new Vector3f(x, y, 0)))hit = structure;
         return hit;
+    }
+    public RaycastResult raycast2D(float targetX, float targetY, RaycastFlag... raycastFlags){
+        RaycastResult result = new RaycastResult();
+        result.hitPosition = new Vector3f(targetX, targetY, 0);
+        for(Structure structure : structures){//TODO consider skew factor
+            var bbox = structure.getAxisAlignedBoundingBox();
+            if(targetX<bbox.min.x)continue;
+            if(targetX>=bbox.max.x)continue;
+            if(targetY>bbox.max.y)continue;
+            if(targetY<bbox.min.y-bbox.max.z)continue;
+            Vector3f impactPosition = new Vector3f(targetX, 0, 0);
+            boolean hitFront = false;
+            if(targetY<bbox.max.y-bbox.max.z){
+                // hit the top of the structure
+                impactPosition.z = bbox.max.z;
+                impactPosition.y = targetY+impactPosition.z;
+            }else{
+                hitFront = true;
+                // hit the front of the structure
+                impactPosition.y = bbox.max.y;
+                impactPosition.z = impactPosition.y-targetY;
+            }
+            if(impactPosition.z>result.hitPosition.z){
+                result.hitPosition = impactPosition;
+                result.hitStructure = structure;
+                result.hitFront = hitFront;
+            }
+        }
+        Logger.debug("Hit Ground: "+(result.hitStructure==null));
+        for(Structure structure : structures){
+            if(structure instanceof ShieldGenerator sg){
+                //TODO set hit position to point on shield surface (keep as separate position, in case shield fails to absorb hit)
+                if(MathUtil.distance(sg.getPosition(), result.hitPosition)<sg.getShieldSize()/2){
+                    result.hitShield = sg;
+                }
+            }
+        }
+        return result;
     }
     /**
      * Push particles away from a location.
@@ -1489,7 +1523,7 @@ public class Game extends ThreeQuarterWorldLayer{
         return star;
     }
     public Asteroid addAsteroid(Asteroid asteroid){
-        asteroids.add(asteroid);
+        addObject(asteroid);
         return asteroid;
     }
     protected void drawDayNightCycle(){

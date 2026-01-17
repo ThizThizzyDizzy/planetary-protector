@@ -229,12 +229,20 @@ public abstract class Structure extends ThreeQuarterWorldObject{
         }
         fires.add(game.addParticleEffect(new Particle(game, x-25, y-25, ParticleEffectType.FIRE)));
     }
+    public final boolean onHit(Vector3f vec){
+        if(shield!=null){
+            if(shield.shieldHit())return true;
+        }
+        return damage((int)vec.x, (int)(vec.y-vec.z));
+    }
+    @Deprecated
     public final boolean onHit(int x, int y){
         if(shield!=null){
             if(shield.shieldHit())return true;
         }
         return damage(x,y);
     }
+    @Deprecated
     public boolean damage(int x, int y){
         if(type.isDamagable()){
             if(game.rand.nextDouble()<type.getIgnitionChance()){

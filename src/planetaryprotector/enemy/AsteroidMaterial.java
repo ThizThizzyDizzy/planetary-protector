@@ -9,6 +9,7 @@ public enum AsteroidMaterial{
     IRON(Item.ironOre, "iron", 8, new Color(142, 63, 11));
     public final Item item;
     public final String texture;
+    @Deprecated // use a special raycast to ignore shields, for shooting stars. Also replace with customizable drop chance.
     public boolean forceDrop = false;
     private final int weight;
     public final Color color;
